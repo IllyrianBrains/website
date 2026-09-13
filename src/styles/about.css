@@ -1,0 +1,42 @@
+/* Reading styles for Misioni, Ekipet and Statuti. */
+.about-page { font-size: 18px; }
+.about-page .city-page { max-width: 1080px; }
+.about-page .city-page h1 { margin-bottom: 32px; font-size: clamp(44px, 5vw, 64px); line-height: 1.1; }
+.about-page .city-block > h2 { margin-bottom: 24px; font-size: clamp(30px, 3vw, 40px); line-height: 1.2; }
+.about-page .about-body { max-width: 72ch; margin-bottom: 24px; font-size: 18px; line-height: 1.85; color: #4f5057; }
+.about-page .tone-dark .about-body,
+.about-page .tone-dark .team-card p { color: #d8d8dd; }
+.about-page .eyebrow { font-size: 13px; line-height: 1.6; letter-spacing: .12em; }
+
+.about-page .focus-area { margin-top: 32px; padding-top: 28px; border-top: 1px solid var(--line); }
+.about-page .focus-area h3 { margin: 0 0 20px; font-size: 24px; line-height: 1.4; }
+.about-page .focus-area ul { padding-left: 24px; }
+.about-page .focus-area li { padding: 7px 0; }
+.about-page .focus-area li::marker { color: var(--accent); }
+
+.about-page .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 28px; }
+.about-page .team-card { padding: 28px; }
+.about-page .team-card strong { font-size: 23px; line-height: 1.35; }
+.about-page .team-card span { margin-top: 10px; font-size: 16px; line-height: 1.6; text-transform: none; letter-spacing: normal; }
+.about-page .team-card p { margin-top: 18px; font-size: 17px; line-height: 1.8; color: #4f5057; }
+.about-page .team-card a { margin-top: 16px; padding-block: 10px; font-size: 16px; text-decoration: underline; text-underline-offset: 4px; }
+
+.about-page .info-section { grid-template-columns: minmax(180px, 240px) minmax(0, 1fr); gap: 40px; margin-top: 48px; }
+.about-page .info-section-intro h3 { font-size: 26px; line-height: 1.3; margin-bottom: 16px; }
+.about-page .info-section-intro p { font-size: 17px; line-height: 1.75; color: #4f5057; }
+.about-page .info-item summary { padding: 22px 4px; font-size: 20px; line-height: 1.5; }
+.about-page .info-body { padding: 0 4px 28px; }
+.about-page .info-body p,
+.about-page .info-body ul { max-width: 70ch; margin-bottom: 22px; font-size: 18px; line-height: 1.85; color: #4f5057; }
+.about-page .info-body ul { padding-left: 24px; }
+.about-page .info-body li + li { margin-top: 14px; }
+.about-page .info-body a { overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: 4px; }
+.about-page :is(a, summary):focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 3px; }
+.about-page .tone-dark :is(a, summary):focus-visible { outline-color: #e7c9da; }
+
+@media (max-width: 760px) {
+  .about-page .section { padding-block: 64px; }
+  .about-page .info-section { grid-template-columns: 1fr; gap: 24px; }
+  .about-page .team-grid { grid-template-columns: 1fr; }
+  .about-page .team-card { padding: 24px; }
+}

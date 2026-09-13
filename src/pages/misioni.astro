@@ -1,0 +1,100 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Guidelines from '../components/Guidelines.astro';
+
+const focusAreas = [
+  { id: 'S1', title: 'Strategjia e Zhvillimit të Rrjetit', items: ['Mbështetje për Qytetet — PRIORITET', 'Zhvillimi me Qytete të Reja', 'Bashkëpunimi mes Qytetesh', 'Zhvillimi i Profesionistëve', 'Integrimi i Profesionistëve', 'Zëri i Ekspertëve', 'Ndërkombëtarizimi i Bizneseve', 'Transferimi i Njohurive'] },
+  { id: 'S2', title: 'Strategjia Organizative', items: ['OJF si Mbështetje — PRIORITET', 'Regjistrimi i Qyteteve si OJF', 'Bashkëpunime me OJF Shqiptare', 'Mbrojtja e Pavarësisë së Rrjetit'] },
+  { id: 'S3', title: 'Strategjia Operacionale', items: ['Mbështetja e Ekipeve të Rrjetit — PRIORITET', 'Mirëmbajtja e Infrastrukturës së Rrjetit', 'Vazhdimësia Operacionale', 'Angazhimi i Stafit të Paguar'] },
+  { id: 'S4', title: 'Strategjia Financiare', items: ['Tarifat e Anëtarësimit — PRIORITET', 'Financimi i Programeve', 'Fondi i Nismave', 'Transparenca dhe Përgjegjësia Financiare'] },
+];
+---
+<BaseLayout title="Misioni · Illyrian Brains" description="Illyrian Brains është një rrjet që synon bashkëpunimin e profesionistëve shqiptarë nëpër botë.">
+  <Header />
+  <main class="about-page">
+    <section class="section tone-dark">
+      <div class="container city-page">
+        <h1>Misioni</h1>
+        <p class="about-body">Illyrian Brains është një rrjet që synon bashkëpunimin e profesionistëve shqiptarë nëpër botë. Rrjeti ka si qëllim krijimin dhe zhvillimin e një strukture sociale të bashkatdhetarëve nëpër botë duke praktikuar aktivitete kulturore, shoqërore dhe shkencore.</p>
+        <p class="about-body">IB vlerëson harmoninë dhe bashkëpunimin, sfidon konceptet e vjetra, fuqizon komunitetet lokale dhe mbështet arritjet e gjithësecilit.</p>
+        <p class="about-body">IB nuk është organizatë politike; e brendshme apo e jashtme, nacionaliste apo e çfarëdolloji; IB nuk është organizatë fitimprurëse, nuk angazhohet në asnjë lloj aktiviteti që synon të gjenerojë të ardhura; IB nuk është organizatë fetare apo spirituale.</p>
+        <p class="about-body">Rrjeti nuk promovon tematikat e sipërmendura, pasi ato mund të shkaktojnë përçarje mes pjesëmarrësve dhe synimi është bashkimi i tyre. Gjithçka që krijohet brenda kësaj kornize është e pranueshme dhe në liri të plotë për pjesëmarrësit.</p>
+        <p class="about-body">Rrjeti ka besim tek profesionistët shqiptarë dhe tek aftësia e tyre për të ndikuar pozitivisht në shoqëritë ku jetojnë. Illyrian Brains është një ftesë për të ndarë sfida dhe suksese me miq të rinj që flasin gjuhën tënde.</p>
+      </div>
+    </section>
+
+    <section class="section tone-grey">
+      <div class="container city-page">
+        <div class="city-block">
+          <h2>Fokus</h2>
+          {focusAreas.map((area) => (
+            <div class="focus-area">
+              <h3>{area.id}. {area.title}</h3>
+              <ul class="about-body">
+                {area.items.map((item) => <li>{item}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section tone-white">
+      <div class="container city-page">
+        <div class="city-block">
+          <h2>Informacione</h2>
+
+          <div class="info-section">
+            <div class="info-section-intro">
+              <h3>Rrjeti</h3>
+              <p>Bashkësia e qyteteve dhe nismave që krijojnë mundësi për profesionistët.</p>
+            </div>
+            <div class="info-accordion">
+              <details class="info-item">
+                <summary>Vendimmarrja<span class="info-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+                <div class="info-body">
+                  <p>Vendimmarrja për ndryshime në rrjet është e bazuar në konceptin e propozimeve. Propozimet për qytetet trajtohen nga qytetet në mënyrë të drejtpërdrejtë.</p>
+                  <ul>
+                    <li>Propozim publik (në Ide/Propozime) — për cilindo pjesëmarrës të IB, që ka një mendim se çfarë mund të jetë e nevojshme apo e dëshirueshme për rrjetin/komunitetin.</li>
+                    <li>Propozim i brendshëm (në OJF/Propozime) — për proçese te brendshme të funksionimit të IB: vizionin, vendimmarrjen, mjetet, e të tjera.</li>
+                  </ul>
+                  <p>Ndaj propozimin tënd: <a href="https://forum.illyrianbrains.org/c/ide/propozime/66" target="_blank" rel="noreferrer">forum.illyrianbrains.org/c/ide/propozime/66</a></p>
+                </div>
+              </details>
+              <details class="info-item">
+                <summary>Qytetet<span class="info-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+                <div class="info-body">
+                  <p>Qytetet janë baza e rrjetit. Aty formohen miqësitë dhe krijohen mundësitë për të çuar përpara një pjesë të komunitetit. Çdo qytet apo grup tematik ka autonominë të përzgjedhë tema të eventeve që janë më të vlefshme për pjesëmarrësit e tyre lokalë. Qytetet aktive kanë autonomi vendimmarrjeje në pikat si më poshtë:</p>
+                  <ul>
+                    <li>në përzgjedhjen e anëtarëve dhe ekipit të tyre organizator,</li>
+                    <li>në tematikën që duhet diskutuar në evente,</li>
+                    <li>në të ftuarët specialë, e dhënë që shmangen figura që nuk përfaqësojnë vlerat e rrjetit,</li>
+                    <li>në organizimin e eventeve argëtuese si hiking, volleyball, picnic, e të tjera.</li>
+                  </ul>
+                  <p>Sidoqoftë, pritet që qytetet të kontribuojnë gjithashtu në rrjet, dhe të ruajnë drejtimin dhe vlerat e rrjetit. Për çështje të ndryshme mund të kërkohet konfirmim nga Bordi, për të trajtuar apo sqaruar situata sensitive.</p>
+                </div>
+              </details>
+              <details class="info-item">
+                <summary>Raporte Vjetore<span class="info-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+                <div class="info-body">
+                  <p>Për të komunikuar arritjet e rrjetit dhe për të ndarë me anëtarët gjendjen aktuale dhe prioritetet e afërta, raporti vjetor i rrjetit bëhet çdo verë, nisur nga 2025. Të gjitha raportet mund të gjenden në forum: <a href="https://forum.illyrianbrains.org/tag/raport-vjetor" target="_blank" rel="noreferrer">forum.illyrianbrains.org/tag/raport-vjetor</a></p>
+                </div>
+              </details>
+              <details class="info-item">
+                <summary>Takime të Përgjithshme<span class="info-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+                <div class="info-body">
+                  <p>Takimet IB-Global sjellin së bashku anëtarët për të diskutuar çështjet më problematike, për të caktuar vizionin, dhe për të ndarë sugjerime për përmirësime. Bëhen zakonisht çdo vit. Më shumë info në forum: <a href="https://forum.illyrianbrains.org/tag/ib-global" target="_blank" rel="noreferrer">forum.illyrianbrains.org/tag/ib-global</a></p>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <Guidelines />
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>

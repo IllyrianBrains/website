@@ -1,0 +1,727 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+
+const quizzes = [
+  {
+    id: 'integrimi',
+    icon: '🧭',
+    title: 'Gati për integrim?',
+    blurb: 'Pesë situata të përditshme kur mbërrin në një vend të ri.',
+    questions: [
+      {
+        q: 'Sapo ke mbërritur në një qytet të ri. Cili është hapi i parë praktik?',
+        options: ['Regjistrimi i adresës/banesës pranë zyrës përkatëse', 'Blerja e biletave për ndeshjen e radhës', 'Mësimi i himnit kombëtar'],
+        correct: 0,
+      },
+      {
+        q: 'Për të hapur një llogari bankare zakonisht të duhet:',
+        options: ['Vetëm numri i telefonit', 'Pasaportë/ID dhe vërtetim adrese', 'Rekomandim nga ambasada'],
+        correct: 1,
+      },
+      {
+        q: 'Mënyra më efikase për të mësuar shpejt gjuhën lokale është:',
+        options: ['Vetëm aplikacione në telefon', 'Praktikë e përditshme me folës vendas', 'Të shmangësh situatat ku duhet ta flasësh'],
+        correct: 1,
+      },
+      {
+        q: 'Dikush të fton në një dalje të thjeshtë pas pune me kolegët. Zakonisht kjo është:',
+        options: ['Një takim pune i detyrueshëm', 'Një moment i lirë shoqëror', 'Një festë zyrtare e kompanisë'],
+        correct: 1,
+      },
+      {
+        q: 'Kur nuk je i sigurt për një zakon lokal, më mirë:',
+        options: ['E injoron dhe vazhdon si në shtëpi', 'Pyet dikë me takt ose vëzhgon', 'Shmang çdo kontakt social'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'ai-inxhinier',
+    icon: '💻',
+    title: 'AI për Inxhinierë',
+    blurb: 'Sa aktual je me konceptet e AI që përdoren në zhvillimin e softuerit sot?',
+    questions: [
+      {
+        q: 'Çfarë nënkupton "RAG" në kontekstin e modeleve gjuhësore?',
+        options: ['Retrieval-Augmented Generation', 'Random Access Generator', 'Rapid Application Gateway'],
+        correct: 0,
+      },
+      {
+        q: 'Si quhet aftësia e një modeli për të thirrur funksione/API të jashtme gjatë një bisede?',
+        options: ['Fine-tuning', 'Tool use / function calling', 'Tokenization'],
+        correct: 1,
+      },
+      {
+        q: 'Çfarë është "context window" te një model gjuhësor?',
+        options: ['Numri maksimal i tokenëve që modeli përpunon njëherësh', 'Koha maksimale e përgjigjes', 'Numri i përdoruesve njëkohësisht'],
+        correct: 0,
+      },
+      {
+        q: 'Cila praktikë ndihmon më shumë kundër "hallucinations" (përgjigje të pasakta) nga një LLM?',
+        options: ['Rritja e temperaturës së modelit', 'Dhënia e kontekstit/burimeve të sakta (p.sh. RAG)', 'Fshirja e prompt-it të sistemit'],
+        correct: 1,
+      },
+      {
+        q: 'Çfarë përshkruan më mirë "agentic AI"?',
+        options: ['AI që vetëm përgjigjet me tekst, pa asnjë veprim tjetër', 'Sisteme që planifikojnë dhe kryejnë disa hapa/veprime për të arritur një qëllim', 'Një lloj i ri procesori grafik'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'ai-arkitekt',
+    icon: '📐',
+    title: 'AI për Arkitektë',
+    blurb: 'AI po ndryshon projektimin dhe ndërtimin — sa e njeh këtë zhvillim?',
+    questions: [
+      {
+        q: 'Çfarë nënkupton "BIM"?',
+        options: ['Building Information Modeling', 'Basic Image Mapping', 'Bureau of Interior Materials'],
+        correct: 0,
+      },
+      {
+        q: 'Si përdoret më shpesh AI gjenerative në fazat e para të projektimit?',
+        options: ['Për të gjeneruar shpejt variante konceptuale për eksplorim', 'Vetëm për të printuar dokumente', 'Për të zëvendësuar plotësisht inxhinierin strukturor'],
+        correct: 0,
+      },
+      {
+        q: 'Çfarë të dhëna përdorin mjetet AI për optimizim energjetik të ndërtesave?',
+        options: ['Klimën, orientimin, materialet dhe përdorimin e hapësirës', 'Vetëm ngjyrën e fasadës', 'Numrin e kateve, pa lidhje me kontekstin'],
+        correct: 0,
+      },
+      {
+        q: 'Çfarë është "generative design" (p.sh. në Autodesk)?',
+        options: ['Krijim krejtësisht manual, pa algoritme', 'Algoritme që gjenerojnë shumë variante sipas kufizimeve të vendosura nga projektuesi', 'Një filtër vizual pa lidhje me performancën'],
+        correct: 1,
+      },
+      {
+        q: 'Cila është kujdesi më i rëndësishëm kur përdoret AI për vlerësime strukturore?',
+        options: ['Rezultatet duhet gjithmonë të verifikohen nga një inxhinier i licencuar', 'AI nuk gabon, nuk nevojitet kontroll', 'Vetëm çmimi i softuerit ka rëndësi'],
+        correct: 0,
+      },
+    ],
+  },
+  {
+    id: 'mbro-natyren',
+    icon: '🌱',
+    title: 'Mbro Natyrën',
+    blurb: 'Sa i kujdesshëm je për natyrën dhe komunitetin ku jeton?',
+    questions: [
+      {
+        q: 'Cila prej tyre zvogëlon më shumë gjurmën e karbonit në jetën e përditshme?',
+        options: ['Përdorimi i transportit publik ose biçikletës në vend të makinës', 'Lënia e dritave ndezur gjatë gjithë ditës', 'Blerja e produkteve të reja çdo javë'],
+        correct: 0,
+      },
+      {
+        q: 'Cila është mënyra më efektive për të reduktuar mbeturinat plastike?',
+        options: ['Djegia e plastikës në shtëpi', 'Përdorimi i qeseve dhe shisheve të ripërdorshme', 'Hedhja e saj në lumenj'],
+        correct: 1,
+      },
+      {
+        q: 'Çfarë do të thotë "biodiversitet"?',
+        options: ['Numri i njerëzve në një qytet', 'Larmia e formave të jetës në një ekosistem', 'Sasia e ujit në tokë'],
+        correct: 1,
+      },
+      {
+        q: 'Cili veprim lokal ndihmon njëkohësisht komunitetin dhe natyrën?',
+        options: ['Shmangia e çdo aktiviteti jashtë shtëpisë', 'Përdorimi i më shumë paketimeve njëpërdorimshe', 'Organizimi i aktiviteteve pastrimi (hiking + cleanup) me komunitetin'],
+        correct: 2,
+      },
+      {
+        q: 'Pse pemët janë të rëndësishme për qytetet?',
+        options: ['Thithin CO2, japin hije dhe përmirësojnë cilësinë e ajrit', 'Nuk kanë asnjë efekt mjedisor', 'Rrisin vetëm bukurinë estetike, asgjë tjetër'],
+        correct: 0,
+      },
+    ],
+  },
+  {
+    id: 'rrjetezim',
+    icon: '🤝',
+    title: 'Rrjetëzim',
+    blurb: 'Si të krijosh lidhje të vërteta dhe të qëndrueshme në evente dhe online.',
+    questions: [
+      {
+        q: 'Në një event rrjetëzimi, mënyra më natyrale për të filluar një bisedë është:',
+        options: ['Bëj një pyetje të hapur për personin ose eventin', 'Fillo menjëherë duke kërkuar një favor', 'Prit derisa dikush tjetër të fillojë bisedën'],
+        correct: 0,
+      },
+      {
+        q: 'Pas një takimi të mirë, hapi tjetër profesional është:',
+        options: ['Mos bëj asgjë, lëre kontaktin të harrohet', 'Dërgo një mesazh të shkurtër brenda 1–2 ditësh, duke përmendur diçka specifike nga biseda', 'Dërgo menjëherë një CV pa kontekst'],
+        correct: 1,
+      },
+      {
+        q: 'Kur kërkon një lidhje në LinkedIn nga dikush që sapo takove, më mirë:',
+        options: ['Dërgo kërkesën pa asnjë mesazh', 'Shto një mesazh të shkurtër që kujton se ku u njohët', 'Prit disa muaj para se ta shtosh'],
+        correct: 1,
+      },
+      {
+        q: 'Në një bisedë rrjetëzimi, ekuilibri i mirë është:',
+        options: ['Të flasësh vetëm ti për veten', 'Të dëgjosh dhe të pyesësh, jo vetëm të flasësh', 'Të mos flasësh fare'],
+        correct: 1,
+      },
+      {
+        q: 'Rrjetëzimi më i qëndrueshëm ndërtohet kur:',
+        options: ['Kërkon diçka menjëherë nga çdo kontakt i ri', 'Ofron ndihmë ose vlerë përpara se të kërkosh diçka', 'Mban kontakt vetëm kur ke nevojë për diçka'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'profesionalizem',
+    icon: '💼',
+    title: 'Profesionalizëm',
+    blurb: 'Etiketa e vogël që bën ndryshimin e madh në punë.',
+    questions: [
+      {
+        q: 'Një email profesional zakonisht:',
+        options: ['Është i qartë, i shkurtër dhe ka një subjekt të saktë', 'Përdor vetëm shkronja të mëdha për theksim', 'Nuk ka nevojë për subjekt'],
+        correct: 0,
+      },
+      {
+        q: 'Nëse do të vonohesh disa minuta për një takim:',
+        options: ['Thjesht vonohesh pa lajmëruar', 'Njofto sa më shpejt me një mesazh të shkurtër', 'Anulo pa arsye'],
+        correct: 1,
+      },
+      {
+        q: 'Kur nuk je dakord me një koleg në një takim, më mirë:',
+        options: ['E kritikon publikisht me ton të ashpër', 'E shpreh mendimin qartë, me respekt dhe bazuar në fakte', 'Hesht dhe flet pas takimit me të tjerë'],
+        correct: 1,
+      },
+      {
+        q: 'Marrja e feedback-ut negativ profesionalisht do të thotë:',
+        options: ['Ta marrësh personalisht dhe të mbrohesh menjëherë', 'Ta dëgjosh, të bësh pyetje sqaruese dhe të mendosh si të përmirësohesh', 'Ta injorosh plotësisht'],
+        correct: 1,
+      },
+      {
+        q: 'Në komunikim të shkruar me ekipin, është mirë të:',
+        options: ['Përgjigjesh brenda një kohe të arsyeshme dhe konfirmosh marrjen e detyrave', 'Lësh mesazhet pa lexuar për ditë të tëra', 'Përgjigjesh vetëm kur je i/e detyruar'],
+        correct: 0,
+      },
+    ],
+  },
+];
+
+const icebreakers = [
+  'Cili qytet i rrjetit IB do të doje më shumë ta vizitoje?',
+  'Cila është aftësia që po mëson këtë vit?',
+  'Cili libër apo podcast të ka ndryshuar mënyrën e të menduarit kohët e fundit?',
+  'Nëse do të kishe një mentor për 1 orë, çfarë do ta pyesje?',
+  'Cila është arritja e fundit që të ka bërë krenar/e?',
+  'Çfarë të bëri të bashkohesh me Illyrian Brains?',
+  'Cili projekt aktual po të emocionon më shumë në punë?',
+  'Çfarë do t’i thoshe vetes 5 vite më parë?',
+  'Cila është ëndrra jote profesionale afatgjatë?',
+  'Kush është dikush në rrjet që do të doje ta njihje më mirë?',
+];
+
+const pitchOptions = {
+  role: ['inxhinier/e software', 'arkitekt/e', 'mjek/e', 'sipërmarrës/e', 'student/e', 'financier/e', 'dizajner/e'],
+  focus: ['inteligjencën artificiale', 'ndërtimin e qëndrueshëm', 'shëndetësinë publike', 'teknologjinë financiare', 'edukimin', 'krijimtarinë digjitale'],
+  goal: ['të gjej bashkëpunëtorë për një projekt', 'të gjej mundësi të reja pune', 'të mentoroj dikë që po fillon', 'të mësoj nga dikush më me përvojë', 'të zgjeroj rrjetin tim profesional'],
+};
+
+// Memory match — city ↔ country, real cities from the network.
+const memoryPairs = [
+  { city: 'Berlin', country: 'Gjermani' },
+  { city: 'Tiranë', country: 'Shqipëri' },
+  { city: 'Milano', country: 'Itali' },
+  { city: 'Londër', country: 'Mbretëria e Bashkuar' },
+  { city: 'Nju Jork', country: 'SHBA' },
+  { city: 'Vjenë', country: 'Austri' },
+];
+
+// Speed sort — quick reaction game classifying everyday situations.
+const speedSortItems = [
+  { text: 'Afati i aplikimit për vizë/leje skadon nesër', category: 'urgjente' },
+  { text: 'Shefi pret përgjigjen tënde për një email urgjent', category: 'urgjente' },
+  { text: 'Qiraja duhet paguar sot', category: 'urgjente' },
+  { text: 'Një koleg pret konfirmimin tënd për një takim pas 10 minutash', category: 'urgjente' },
+  { text: 'Dokumenti duhet dorëzuar sot në zyrën e emigracionit', category: 'urgjente' },
+  { text: 'Klienti pret përgjigje për një problem urgjent teknik', category: 'urgjente' },
+  { text: 'Duhet të konfirmosh praninë në intervistën e nesërme', category: 'urgjente' },
+  { text: 'Mund të mësosh fjalorin e ri javën tjetër', category: 'mund-te-prese' },
+  { text: 'Blerja e mobiljeve të reja për apartamentin', category: 'mund-te-prese' },
+  { text: 'Leximi i librit që sapo bleve', category: 'mund-te-prese' },
+  { text: 'Organizimi i fotove nga pushimet', category: 'mund-te-prese' },
+  { text: 'Përditësimi i CV-së për muajin e ardhshëm', category: 'mund-te-prese' },
+  { text: 'Eksplorimi i restoranteve të reja në qytet', category: 'mund-te-prese' },
+  { text: 'Mësimi i një recete të re gatimi', category: 'mund-te-prese' },
+];
+---
+<BaseLayout title="Playground · Illyrian Brains" description="Playground — lojëra të krijuara nga komuniteti i Illyrian Brains.">
+  <Header />
+  <main>
+    <section class="section tone-dark">
+      <div class="container city-page">
+        <p class="eyebrow">Projektet</p>
+        <h1>Playground</h1>
+        <p class="about-body">Lojëra të krijuara nga komuniteti — një kënd argëtimi ku anëtarët eksperimentojnë dhe ndajnë atë që ndërtojnë për qejf.</p>
+      </div>
+    </section>
+
+    <section class="section tone-grey">
+      <div class="container">
+        <h2 class="playground-heading">Përputh Çiftet</h2>
+        <p class="about-body">Kthe kartat dhe përputh çdo qytet me vendin e tij. Sa më pak lëvizje, aq më mirë.</p>
+        <div class="memory-game" id="memory-game" data-pairs={JSON.stringify(memoryPairs)}>
+          <div class="memory-status">
+            <span>Lëvizje: <strong id="memory-moves">0</strong></span>
+            <button class="memory-restart" id="memory-restart" type="button">Rifillo ↺</button>
+          </div>
+          <div class="memory-grid" id="memory-grid"></div>
+          <p class="quiz-result" id="memory-result" role="status"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tone-dark">
+      <div class="container">
+        <h2 class="playground-heading">Urgjente apo Mund të Presë?</h2>
+        <p class="about-body">Klasifiko çdo situatë para se të mbarojë koha. Tri gabime dhe loja mbaron.</p>
+        <div class="speed-game" id="speed-game" data-items={JSON.stringify(speedSortItems)}>
+          <div class="speed-status">
+            <span class="speed-lives" id="speed-lives">❤️❤️❤️</span>
+            <span>Pikë: <strong id="speed-score">0</strong></span>
+          </div>
+          <div class="speed-timer-track"><span class="speed-timer-fill" id="speed-timer-fill"></span></div>
+          <p class="speed-prompt" id="speed-prompt">Shtyp "Fillo" për të nisur.</p>
+          <div class="speed-actions" id="speed-actions">
+            <button class="partner-button speed-btn" id="speed-start" type="button">Fillo lojën ▶</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tone-white">
+      <div class="container">
+        <h2 class="playground-heading">Kuize të shpejta</h2>
+        <div class="quiz-grid">
+          {quizzes.map((quiz) => (
+            <article class="quiz-card" data-quiz={JSON.stringify(quiz.questions)}>
+              <div class="quiz-icon" aria-hidden="true">{quiz.icon}</div>
+              <h3>{quiz.title}</h3>
+              <p class="quiz-blurb">{quiz.blurb}</p>
+              <form class="quiz-form">
+                {quiz.questions.map((question, qIndex) => (
+                  <fieldset class="quiz-question">
+                    <legend>{qIndex + 1}. {question.q}</legend>
+                    {question.options.map((option, oIndex) => (
+                      <label class="quiz-option">
+                        <input type="radio" name={`${quiz.id}-q${qIndex}`} value={oIndex} required />
+                        <span class="quiz-option-text">{option}</span>
+                        <span class="quiz-option-feedback" aria-hidden="true"></span>
+                      </label>
+                    ))}
+                  </fieldset>
+                ))}
+                <button class="partner-button quiz-submit" type="submit">Shiko rezultatin</button>
+                <p class="quiz-result" role="status"></p>
+              </form>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section tone-grey">
+      <div class="container">
+        <h2 class="playground-heading">Investo në Vend</h2>
+        <p class="about-body">Ke 100 pikë buxheti për katër sektorë. Ndaji si të duash dhe shiko çfarë lloj vendi ndërton strategjia jote.</p>
+        <div class="invest-game" id="invest-game">
+          <div class="invest-sliders">
+            <div class="invest-row">
+              <label for="invest-arsim"><span class="invest-icon" aria-hidden="true">🎓</span> Arsimi</label>
+              <input type="range" id="invest-arsim" min="0" max="100" value="25" step="5" />
+              <output for="invest-arsim">25</output>
+            </div>
+            <div class="invest-row">
+              <label for="invest-shendetesia"><span class="invest-icon" aria-hidden="true">🏥</span> Shëndetësia</label>
+              <input type="range" id="invest-shendetesia" min="0" max="100" value="25" step="5" />
+              <output for="invest-shendetesia">25</output>
+            </div>
+            <div class="invest-row">
+              <label for="invest-infrastruktura"><span class="invest-icon" aria-hidden="true">🏗️</span> Infrastruktura</label>
+              <input type="range" id="invest-infrastruktura" min="0" max="100" value="25" step="5" />
+              <output for="invest-infrastruktura">25</output>
+            </div>
+            <div class="invest-row">
+              <label for="invest-teknologjia"><span class="invest-icon" aria-hidden="true">💡</span> Teknologjia</label>
+              <input type="range" id="invest-teknologjia" min="0" max="100" value="25" step="5" />
+              <output for="invest-teknologjia">25</output>
+            </div>
+          </div>
+          <div class="invest-total">Totali: <strong id="invest-total">100</strong> / 100</div>
+          <button class="partner-button" id="invest-submit" type="button">Shiko rezultatin</button>
+          <div class="invest-bars" id="invest-bars" aria-hidden="true"></div>
+          <p class="quiz-result" id="invest-result" role="status"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tone-dark">
+      <div class="container">
+        <h2 class="playground-heading">Icebreaker Roulette</h2>
+        <p class="about-body">Shtyp butonin dhe merr një pyetje për ta hapur bisedën në takimin tjetër.</p>
+        <div class="icebreaker" id="icebreaker" data-prompts={JSON.stringify(icebreakers)}>
+          <p class="icebreaker-prompt" id="icebreaker-prompt" aria-live="polite">Shtyp "Rrotullo" për të filluar.</p>
+          <button class="partner-button" id="icebreaker-button" type="button">Rrotullo <span aria-hidden="true">🎲</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tone-white">
+      <div class="container">
+        <h2 class="playground-heading">Ndërto Pitch-in Tënd</h2>
+        <p class="about-body">Zgjidh rolin, fushën dhe qëllimin — merr një prezantim 10-sekondësh gati për eventin tjetër.</p>
+        <div class="pitch-builder">
+          <div class="pitch-fields">
+            <div class="pitch-field">
+              <label for="pitch-role">Roli</label>
+              <select id="pitch-role">
+                {pitchOptions.role.map((option) => <option value={option}>{option}</option>)}
+              </select>
+            </div>
+            <div class="pitch-field">
+              <label for="pitch-focus">Fusha</label>
+              <select id="pitch-focus">
+                {pitchOptions.focus.map((option) => <option value={option}>{option}</option>)}
+              </select>
+            </div>
+            <div class="pitch-field">
+              <label for="pitch-goal">Qëllimi</label>
+              <select id="pitch-goal">
+                {pitchOptions.goal.map((option) => <option value={option}>{option}</option>)}
+              </select>
+            </div>
+          </div>
+          <button class="partner-button" id="pitch-generate" type="button">Krijo pitch-in <span aria-hidden="true">✨</span></button>
+          <p class="pitch-output" id="pitch-output" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  // Memory match
+  const memoryGameEl = document.querySelector<HTMLElement>('#memory-game');
+  if (memoryGameEl) {
+    const pairs: { city: string; country: string }[] = JSON.parse(memoryGameEl.dataset.pairs || '[]');
+    const gridEl = document.querySelector<HTMLElement>('#memory-grid');
+    const movesEl = document.querySelector<HTMLElement>('#memory-moves');
+    const resultEl = document.querySelector<HTMLElement>('#memory-result');
+    const restartBtn = document.querySelector<HTMLButtonElement>('#memory-restart');
+
+    type Card = { pairId: number; text: string };
+    let cards: Card[] = [];
+    let flipped: number[] = [];
+    let matched: Set<number> = new Set();
+    let moves = 0;
+    let locked = false;
+
+    const shuffle = <T,>(arr: T[]): T[] => {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    };
+
+    const render = () => {
+      if (!gridEl) return;
+      gridEl.innerHTML = cards.map((card, index) => {
+        const isFlipped = flipped.includes(index) || matched.has(index);
+        return `<button class="memory-card${isFlipped ? ' is-flipped' : ''}${matched.has(index) ? ' is-matched' : ''}" type="button" data-index="${index}" ${matched.has(index) ? 'disabled' : ''}>
+          <span class="memory-card-face">?</span>
+          <span class="memory-card-back">${card.text}</span>
+        </button>`;
+      }).join('');
+      gridEl.querySelectorAll<HTMLButtonElement>('.memory-card').forEach((btn) => {
+        btn.addEventListener('click', () => handleFlip(Number(btn.dataset.index)));
+      });
+    };
+
+    const handleFlip = (index: number) => {
+      if (locked || flipped.includes(index) || matched.has(index)) return;
+      flipped.push(index);
+      render();
+      if (flipped.length === 2) {
+        moves += 1;
+        if (movesEl) movesEl.textContent = String(moves);
+        locked = true;
+        const [a, b] = flipped;
+        if (cards[a].pairId === cards[b].pairId) {
+          matched.add(a);
+          matched.add(b);
+          flipped = [];
+          locked = false;
+          render();
+          if (matched.size === cards.length && resultEl) {
+            resultEl.textContent = `🎉 Fitove me ${moves} lëvizje!`;
+          }
+        } else {
+          setTimeout(() => {
+            flipped = [];
+            locked = false;
+            render();
+          }, 800);
+        }
+      }
+    };
+
+    const start = () => {
+      const deck: Card[] = pairs.flatMap((pair, pairId) => [
+        { pairId, text: pair.city },
+        { pairId, text: pair.country },
+      ]);
+      cards = shuffle(deck);
+      flipped = [];
+      matched = new Set();
+      moves = 0;
+      locked = false;
+      if (movesEl) movesEl.textContent = '0';
+      if (resultEl) resultEl.textContent = '';
+      render();
+    };
+
+    restartBtn?.addEventListener('click', start);
+    start();
+  }
+
+  // Speed sort
+  const speedGameEl = document.querySelector<HTMLElement>('#speed-game');
+  if (speedGameEl) {
+    const items: { text: string; category: string }[] = JSON.parse(speedGameEl.dataset.items || '[]');
+    const promptEl = document.querySelector<HTMLElement>('#speed-prompt');
+    const actionsEl = document.querySelector<HTMLElement>('#speed-actions');
+    const scoreEl = document.querySelector<HTMLElement>('#speed-score');
+    const livesEl = document.querySelector<HTMLElement>('#speed-lives');
+    const timerFill = document.querySelector<HTMLElement>('#speed-timer-fill');
+    const ITEM_SECONDS = 4;
+
+    let queue: { text: string; category: string }[] = [];
+    let score = 0;
+    let lives = 3;
+    let timeoutId: number | undefined;
+    let playing = false;
+
+    const shuffle = <T,>(arr: T[]): T[] => {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    };
+
+    const updateStatus = () => {
+      if (scoreEl) scoreEl.textContent = String(score);
+      if (livesEl) livesEl.textContent = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+    };
+
+    const endGame = (message: string) => {
+      playing = false;
+      window.clearTimeout(timeoutId);
+      if (promptEl) promptEl.textContent = message;
+      if (timerFill) timerFill.style.transition = 'none';
+      if (timerFill) timerFill.style.width = '0%';
+      if (actionsEl) actionsEl.innerHTML = `<button class="partner-button speed-btn" id="speed-start" type="button">Luaj përsëri ↺</button>`;
+      actionsEl?.querySelector('#speed-start')?.addEventListener('click', startGame);
+    };
+
+    const nextItem = () => {
+      if (queue.length === 0) queue = shuffle(items);
+      const item = queue.shift();
+      if (!item) return;
+      if (promptEl) promptEl.textContent = item.text;
+      if (timerFill) {
+        timerFill.style.transition = 'none';
+        timerFill.style.width = '100%';
+        // Force reflow so the next transition actually animates from 100%.
+        void timerFill.offsetWidth;
+        timerFill.style.transition = `width ${ITEM_SECONDS}s linear`;
+        timerFill.style.width = '0%';
+      }
+      timeoutId = window.setTimeout(() => handleAnswer(null, item), ITEM_SECONDS * 1000);
+      if (actionsEl) {
+        actionsEl.innerHTML = `
+          <button class="partner-button speed-btn" data-choice="urgjente" type="button">Urgjente</button>
+          <button class="partner-button speed-btn speed-btn-secondary" data-choice="mund-te-prese" type="button">Mund të Presë</button>
+        `;
+        actionsEl.querySelectorAll<HTMLButtonElement>('.speed-btn').forEach((btn) => {
+          btn.addEventListener('click', () => handleAnswer(btn.dataset.choice ?? null, item));
+        });
+      }
+    };
+
+    const handleAnswer = (choice: string | null, item: { text: string; category: string }) => {
+      if (!playing) return;
+      window.clearTimeout(timeoutId);
+      if (choice === item.category) {
+        score += 1;
+        updateStatus();
+        nextItem();
+      } else {
+        lives -= 1;
+        updateStatus();
+        if (lives <= 0) {
+          endGame(`💥 Loja mbaroi — ${score} pikë gjithsej.`);
+        } else {
+          nextItem();
+        }
+      }
+    };
+
+    function startGame() {
+      score = 0;
+      lives = 3;
+      playing = true;
+      queue = shuffle(items);
+      updateStatus();
+      nextItem();
+    }
+
+    document.querySelector('#speed-start')?.addEventListener('click', startGame);
+  }
+
+  // Quiz cards
+  document.querySelectorAll<HTMLElement>('.quiz-card').forEach((card) => {
+    const questions: { q: string; options: string[]; correct: number }[] = JSON.parse(card.dataset.quiz || '[]');
+    const form = card.querySelector<HTMLFormElement>('.quiz-form');
+    const result = card.querySelector<HTMLElement>('.quiz-result');
+    form?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      let score = 0;
+      const fieldsets = form.querySelectorAll('fieldset');
+      fieldsets.forEach((fieldset, index) => {
+        const name = fieldset.querySelector('input')?.getAttribute('name');
+        if (!name) return;
+        const selectedValue = new FormData(form).get(name);
+        const selectedIndex = selectedValue === null ? null : Number(selectedValue);
+        const correctIndex = questions[index].correct;
+        if (selectedIndex === correctIndex) score += 1;
+
+        fieldset.querySelectorAll<HTMLElement>('.quiz-option').forEach((option, oIndex) => {
+          const feedback = option.querySelector<HTMLElement>('.quiz-option-feedback');
+          option.classList.remove('is-correct', 'is-incorrect');
+          if (!feedback) return;
+          if (oIndex === correctIndex) {
+            option.classList.add('is-correct');
+            feedback.textContent = '✓';
+          } else if (oIndex === selectedIndex) {
+            option.classList.add('is-incorrect');
+            feedback.textContent = '✕';
+          } else {
+            feedback.textContent = '';
+          }
+        });
+      });
+      if (!result) return;
+      const total = questions.length;
+      let message = '';
+      if (score === total) message = `${score}/${total} — Perfekte! Je plotësisht i/e përditësuar.`;
+      else if (score >= total - 1) message = `${score}/${total} — Shumë mirë, pothuajse çdo gjë e saktë.`;
+      else if (score >= Math.ceil(total / 2)) message = `${score}/${total} — Mirë, por ka vend për më shumë eksplorim.`;
+      else message = `${score}/${total} — Fillim i mirë, kthehu të mësosh më shumë.`;
+      result.textContent = message;
+    });
+
+    form?.addEventListener('change', () => {
+      form.querySelectorAll('.quiz-option').forEach((option) => option.classList.remove('is-correct', 'is-incorrect'));
+      form.querySelectorAll('.quiz-option-feedback').forEach((feedback) => { feedback.textContent = ''; });
+      if (result) result.textContent = '';
+    });
+  });
+
+  // Invest in a country
+  const investIds = ['arsim', 'shendetesia', 'infrastruktura', 'teknologjia'];
+  const investLabels: Record<string, string> = { arsim: 'Arsimi', shendetesia: 'Shëndetësia', infrastruktura: 'Infrastruktura', teknologjia: 'Teknologjia' };
+  const investIcons: Record<string, string> = { arsim: '🎓', shendetesia: '🏥', infrastruktura: '🏗️', teknologjia: '💡' };
+  const sliders = investIds.map((id) => document.querySelector<HTMLInputElement>(`#invest-${id}`));
+  const totalEl = document.querySelector<HTMLElement>('#invest-total');
+  const submitBtn = document.querySelector<HTMLButtonElement>('#invest-submit');
+  const resultEl = document.querySelector<HTMLElement>('#invest-result');
+  const barsEl = document.querySelector<HTMLElement>('#invest-bars');
+
+  const updateTotal = () => {
+    const total = sliders.reduce((sum, slider) => sum + Number(slider?.value ?? 0), 0);
+    if (totalEl) totalEl.textContent = String(total);
+    sliders.forEach((slider) => {
+      const output = slider?.parentElement?.querySelector('output');
+      if (output && slider) output.textContent = slider.value;
+    });
+    if (submitBtn) submitBtn.disabled = total !== 100;
+    if (totalEl) totalEl.style.color = total === 100 ? '' : '#c4232d';
+    if (resultEl) resultEl.textContent = '';
+    if (barsEl) barsEl.innerHTML = '';
+  };
+
+  sliders.forEach((slider) => slider?.addEventListener('input', updateTotal));
+  updateTotal();
+
+  submitBtn?.addEventListener('click', () => {
+    const values = investIds.map((id, index) => ({ id, label: investLabels[id], icon: investIcons[id], value: Number(sliders[index]?.value ?? 0) }));
+    const max = values.reduce((a, b) => (b.value > a.value ? b : a));
+    const min = values.reduce((a, b) => (b.value < a.value ? b : a));
+    let message: string;
+    let resultIcon: string;
+    if (max.value - min.value <= 15) {
+      message = 'Strategji e balancuar — zhvillim i qëndrueshëm në të gjitha drejtimet, pa varësi të theksuar nga një sektor i vetëm.';
+      resultIcon = '⚖️';
+    } else if (max.id === 'arsim') {
+      message = `Fokus te ${max.label} — kombet që investojnë në arsim ndërtojnë themelin për çdo gjë tjetër, por rezultatet vijnë ngadalë.`;
+      resultIcon = max.icon;
+    } else if (max.id === 'shendetesia') {
+      message = `Fokus te ${max.label} — një popullsi e shëndetshme është më produktive, por infrastruktura dhe teknologjia mund të mbeten pas.`;
+      resultIcon = max.icon;
+    } else if (max.id === 'infrastruktura') {
+      message = `Fokus te ${max.label} — themel i fortë për rritje afatgjatë, edhe pse përfitimet e menjëhershme janë të pakta.`;
+      resultIcon = max.icon;
+    } else {
+      message = `Fokus te ${max.label} — rritje e shpejtë dhe inovacion, por rrezik nëse arsimi dhe shëndetësia mbeten pas.`;
+      resultIcon = max.icon;
+    }
+    if (resultEl) resultEl.textContent = `${resultIcon} ${message}`;
+    if (barsEl) {
+      barsEl.innerHTML = values.map((v) => `
+        <div class="invest-bar-row">
+          <span class="invest-bar-label">${v.icon} ${v.label}</span>
+          <span class="invest-bar-track"><span class="invest-bar-fill" style="width:${v.value}%"></span></span>
+          <span class="invest-bar-value">${v.value}%</span>
+        </div>
+      `).join('');
+    }
+  });
+
+  // Icebreaker roulette
+  const icebreakerEl = document.querySelector<HTMLElement>('#icebreaker');
+  if (icebreakerEl) {
+    const prompts: string[] = JSON.parse(icebreakerEl.dataset.prompts || '[]');
+    const promptEl = document.querySelector<HTMLElement>('#icebreaker-prompt');
+    const button = document.querySelector<HTMLButtonElement>('#icebreaker-button');
+    let lastIndex = -1;
+    button?.addEventListener('click', () => {
+      let index = Math.floor(Math.random() * prompts.length);
+      if (prompts.length > 1) {
+        while (index === lastIndex) index = Math.floor(Math.random() * prompts.length);
+      }
+      lastIndex = index;
+      if (promptEl) promptEl.textContent = prompts[index];
+    });
+  }
+
+  // Pitch builder
+  const pitchRole = document.querySelector<HTMLSelectElement>('#pitch-role');
+  const pitchFocus = document.querySelector<HTMLSelectElement>('#pitch-focus');
+  const pitchGoal = document.querySelector<HTMLSelectElement>('#pitch-goal');
+  const pitchOutput = document.querySelector<HTMLElement>('#pitch-output');
+  document.querySelector('#pitch-generate')?.addEventListener('click', () => {
+    if (!pitchOutput || !pitchRole || !pitchFocus || !pitchGoal) return;
+    pitchOutput.textContent = `„Përshëndetje! Jam ${pitchRole.value} me fokus te ${pitchFocus.value}. Aktualisht dua ${pitchGoal.value} — nëse kjo tingëllon si diçka jotja, le të flasim!“`;
+  });
+</script>

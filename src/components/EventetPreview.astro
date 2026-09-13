@@ -1,0 +1,15 @@
+---
+import SectionTitle from './SectionTitle.astro';
+import EventCards from './EventCards.astro';
+import { events } from '../data/events';
+const now = Date.now();
+const upcoming = events.filter((event) => new Date(event.end || event.start).getTime() >= now);
+const past = events.filter((event) => new Date(event.end || event.start).getTime() < now).sort((a,b) => new Date(b.start).getTime() - new Date(a.start).getTime());
+---
+<section class="section grid-surface tone-dark">
+  <div class="container">
+    <SectionTitle kicker="Eventet" title="Takohemi rregullisht." text="Nga takimet lokale dhe aktivitetet sociale te workshop-et, diskutimet dhe konferencat — eventet tona krijohen nga vetë komuniteti." />
+    <EventCards items={upcoming} emptyText="Eventet e ardhshme do të publikohen së shpejti." />
+  </div>
+</section>
+{past.length > 0 && <section class="section tone-white"><div class="container"><SectionTitle kicker="Arkivi" title="Eventet e kaluara." text="Takime dhe aktivitete të zhvilluara nga komunitetet tona."/><EventCards items={past}/></div></section>}

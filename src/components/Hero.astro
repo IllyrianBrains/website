@@ -1,0 +1,38 @@
+---
+const communityColumns = [
+  ['Tiranë', 'Berlin', 'London', 'New York', 'Milano', 'Zürich', 'Köln', 'Amsterdam', 'Helsinki', 'Malta', 'Tampa Bay', 'Global'],
+  ['Takime të vogla', 'Mbrëmje komunitare', 'Punëtori', 'Trajnime', 'Seminare në internet', 'Grupe pune', 'Dizajni i IB', 'Rreth IB', 'Takime njohjeje', 'Konferenca globale', 'Biseda komunitare', 'Evente qytetesh'],
+  ['Teknologji', 'Shëndetësi', 'Akademi', 'Financë', 'Ligj', 'Dizajn', 'Media', 'Art dhe Kulturë', 'Sipërmarrje', 'Inteligjencë Artificiale', 'Diplomaci', 'Zhvillim Profesional'],
+  ['Lidhim mendjet', 'Ndërtojmë të ardhmen', 'Bashkëpunim', 'Partneritete', 'Mentorim', 'Shkëmbim Dijeje', 'Ndihmë Reciproke', 'Gjuha Shqipe', 'Diaspora', 'Mundësi', 'Miqësi', 'Iniciativa'],
+];
+---
+<section class="hero">
+  <svg class="hero-contours" viewBox="0 0 1440 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+    <g fill="none" stroke="currentColor" stroke-width="1">
+      <path d="M-120 600C180 360 340 790 770 580S1130 150 1560 310" />
+      <path d="M-120 628C180 388 340 818 770 608S1130 178 1560 338" opacity=".55" />
+      <path d="M-120 656C180 416 340 846 770 636S1130 206 1560 366" opacity=".25" />
+      <circle cx="770" cy="580" r="5" />
+    </g>
+  </svg>
+  <div class="hero-line" aria-hidden="true"><span></span></div>
+  <div class="hero-inner container">
+    <div class="hero-copy">
+      <h1>Rrjeti shqiptar i<br /><span>profesionistëve.</span></h1>
+      <p class="tagline">Zhvillim në karrierë, lehtësira në integrim, dhe miqësi që i qëndrojnë kohës — këto mund të t’i ofrojë një komunitet i gjerë që flet gjuhën tënde.</p>
+      <div class="hero-actions">
+        <a class="button primary" href="/misioni/">Misioni <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+    <div class="hero-community" aria-label="Fushat dhe aktivitetet e komunitetit Illyrian Brains">
+      <div class="community-wall" aria-hidden="true">
+        {communityColumns.map((items, columnIndex) => (
+          <div class:list={['community-column', { 'accent-column': columnIndex % 2 === 1 }]}>
+            {[...items, ...items].map((item) => <span>{item}</span>)}
+          </div>
+        ))}
+      </div>
+      <p>Illyrian Brains · një rrjet, kudo në botë</p>
+    </div>
+  </div>
+</section>

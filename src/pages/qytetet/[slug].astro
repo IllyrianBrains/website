@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import JoinCTA from '../../components/JoinCTA.astro';
+import { cities, defaultCityImage } from '../../data/cities';
+import EventCards from '../../components/EventCards.astro';
+import { eventsForCity, cityActivity, activityLabels } from '../../data/events';
+
+const htmlFiles = import.meta.glob('../../data/cities-content/*.html', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+const contentBySlug: Record<string, string> = {};
+for (const [path, content] of Object.entries(htmlFiles)) {
+  const slug = path.split('/').pop()!.replace('.html', '');
+  contentBySlug[slug] = content;
+}
+
+export function getStaticPaths() {
+  return cities.map((city) => ({ params: { slug: city.slug }, props: { city } }));
+}
+
+const { city } = Astro.props;
+const cityEvents = eventsForCity(city.slug);
+const activity = cityActivity[city.slug];
+const communityHtml = contentBySlug[city.slug];
+---
+<BaseLayout title={`Illyrian Brains ${city.city}`} description={`Komuniteti shqiptar i profesionistëve në ${city.city}.`}>
+  <Header />
+  <main>
+    <section class="section tone-dark">
+      <div class="container city-page">
+        <img class="city-hero-image" src={encodeURI(city.image || defaultCityImage)} alt={city.image ? `Komuniteti Illyrian Brains në ${city.city}` : ""} loading="lazy" />
+        <p class="eyebrow">{city.country}</p>
+        <h1>Illyrian Brains {city.city}</h1>
+        <p class="about-body">Komuniteti shqiptar i profesionistëve në {city.city}.</p>
+        <div class="city-summary-facts"><span>{cityEvents.length} evente</span>{activity && <span>{activityLabels[activity]}</span>}</div>
+
+        <div class="city-block"><h2>Eventet</h2><EventCards items={cityEvents} emptyText="Ky komunitet nuk ka ende evente të publikuara." /></div>
+
+        {city.activities && city.activities.length > 0 && (
+          <div class="city-block">
+            <h2>Komunitetet / aktivitetet</h2>
+            <ul class="city-activities">
+              {city.activities.map((activity) => <li>{activity}</li>)}
+            </ul>
+          </div>
+        )}
+      </div>
+    </section>
+
+    {communityHtml && (
+      <section class="section tone-white">
+        <div class="container">
+          <div class="atlas-content" set:html={communityHtml} />
+        </div>
+      </section>
+    )}
+
+    <JoinCTA />
+  </main>
+  <Footer />
+</BaseLayout>
+<style>
+  .city-summary-facts{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0}.city-summary-facts span{padding:7px 11px;border:1px solid #ffffff3d;border-radius:999px;color:#e7c9da;font-size:13px;font-weight:700}.city-block :global(.native-event-empty){margin-top:18px}.city-block :global(.native-event-grid){grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+</style>

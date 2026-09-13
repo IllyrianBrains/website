@@ -1,0 +1,52 @@
+---
+const social = {
+  title: 'Ana Shoqërore',
+  items: [
+    { name: 'Gjej Miq', text: 'Hapësira ku njohjet e reja lindin natyrshëm dhe krijohen miqësi të qëndrueshme.' },
+    { name: 'Evente Kulturore', text: 'Organizojmë mbrëmje kulturore, ekspozita dhe takime që na lidhin me rrënjët dhe e pasurojnë jetën tonë jashtë vendit.' },
+    { name: 'Mikro-komunitete', text: 'Nga sporti te arti, krijohen grupe të vogla që ndajnë pasionet dhe energjinë pozitive.' },
+  ],
+};
+const professional = {
+  title: 'Ana Profesionale',
+  items: [
+    { name: 'Bisedo me Ekspertë', text: 'Diskutime me profesionistë të fushave të ndryshme, këshilla praktike dhe mentorim.' },
+    { name: 'Zhvillo një Ide', text: 'Hapësirë për ide inovative dhe projekte bashkëpunimi që mund të marrin jetë me mbështetjen e rrjetit.' },
+    { name: 'Gjej Mundësi Punësimi', text: 'Ndihmojmë në ndarjen e ofertave të punës, mundësive të trajnimit dhe zhvillimit profesional.' },
+  ],
+};
+---
+<section class="section recipe-split">
+  <div class="container recipe-grid">
+    <div class="recipe-column recipe-column-dark">
+      <p class="eyebrow">Çfarë bëjmë</p>
+      <h2>Cila është receta jonë?</h2>
+      <p class="recipe-lead">Komunitetet tona mbështeten nga këto dy elementë që plotësojnë nevojat e profesionistëve shqiptarë në diasporë.</p>
+      <h3>{social.title}</h3>
+      <ul>
+        {social.items.map((item) => (
+          <li>
+            <strong>{item.name}</strong>
+            <span>{item.text}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="recipe-image">
+      <img src="/assets/inst_meetup.png" alt="Anëtarë të rrjetit Illyrian Brains gjatë një takimi" loading="lazy" />
+    </div>
+
+    <div class="recipe-column recipe-column-light">
+      <h3>{professional.title}</h3>
+      <ul>
+        {professional.items.map((item) => (
+          <li>
+            <strong>{item.name}</strong>
+            <span>{item.text}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>

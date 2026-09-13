@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Guidelines from '../components/Guidelines.astro';
+import { board, contributors } from '../data/team';
+---
+<BaseLayout title="Ekipet · Illyrian Brains" description="Bordi i Rrjetit dhe kontribuesit e ekipeve të Illyrian Brains.">
+  <Header />
+  <main class="about-page">
+    <section class="section tone-dark">
+      <div class="container city-page">
+        <h1>Ekipet</h1>
+
+        <div class="city-block">
+          <h2>Bordi i Rrjetit</h2>
+          <p class="about-body">Të përzgjedhur nga anëtarët kontribues të rrjetit.</p>
+          <div class="team-grid">
+            {board.map((member) => (
+              <article class="team-card">
+                <strong>{member.name}</strong>
+                <span>{member.role}</span>
+                {member.bio && <p>{member.bio}</p>}
+                {member.linkedin && <a href={member.linkedin} target="_blank" rel="noreferrer">LinkedIn ↗</a>}
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tone-grey">
+      <div class="container city-page">
+        <div class="city-block">
+          <h2>Kontribues të Ekipeve</h2>
+          <p class="about-body">Mbështetës të misionit të rrjetit.</p>
+          <div class="team-grid">
+            {contributors.map((member) => (
+              <article class="team-card">
+                <strong>{member.name}</strong>
+                <span>{member.role}</span>
+                {member.bio && <p>{member.bio}</p>}
+                {member.linkedin && <a href={member.linkedin} target="_blank" rel="noreferrer">LinkedIn ↗</a>}
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tone-white">
+      <div class="container city-page">
+        <Guidelines />
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>

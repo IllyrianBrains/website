@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { jobs } from '../data/jobs';
+import SectionTitle from '../components/SectionTitle.astro';
+---
+<BaseLayout title="Anëtarësohu · Illyrian Brains" description="Bashkohuni ekipit vullnetar të Illyrian Brains — pozicione të hapura në qytete, teknologji dhe komunikim.">
+  <Header />
+  <main>
+    <section class="section tone-dark">
+      <div class="container city-page">
+        <h1>Anëtarësohu</h1>
+        <p class="about-body">Ne jemi një rrjet profesionistësh, studiuesish, sipërmarrësish, studentësh dhe krijuesish që besojnë në fuqinë e bashkëpunimit. Në qytete dhe vende të ndryshme të botës, lidhim njerëz, ndajmë njohuri dhe mbështesim iniciativa që forcojnë komunitetin profesional shqiptar kudo që ndodhet.</p>
+      </div>
+    </section>
+
+    <section class="section tone-grey">
+      <div class="container city-page">
+        <div class="job-list">
+          {jobs.map((job) => (
+            <article class="job-card">
+              <div class="job-card-heading">
+                <h2>{job.title}</h2>
+                <span class="job-type">{job.type}</span>
+              </div>
+              <p class="job-department">{job.department}</p>
+              <p>{job.description}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section tone-white">
+      <div class="container">
+        <SectionTitle kicker="Na kontaktoni" title="Nuk gjetët rolin e duhur?" text="Na shkruani direkt — jemi të hapur për ide, bashkëpunime dhe çdo pyetje rreth përfshirjes në rrjet." />
+        <a class="partner-button" href="mailto:illyrianbrains@gmail.com">illyrianbrains@gmail.com <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>

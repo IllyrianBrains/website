@@ -1,0 +1,18 @@
+---
+const nodes = [
+  ['Teknologji',50,45,76], ['Sipërmarrje',73,28,60], ['Financë',80,58,50],
+  ['Kërkim',27,27,54], ['Dizajn',28,62,47], ['Shëndetësi',53,76,44],
+  ['Kulturë',14,47,41], ['Drejtësi',90,38,38], ['Produkt',63,54,46], ['Urbanizëm',16,77,39],
+];
+const links = [[0,1],[0,2],[0,3],[0,4],[0,5],[0,8],[1,2],[1,7],[1,8],[2,7],[2,8],[3,5],[4,6],[4,8],[4,9],[6,9]];
+---
+<div class="network-graphic" aria-label="Fushat profesionale dhe lidhjet mes tyre">
+  <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    {links.map(([a,b]) => <line x1={nodes[a][1]} y1={nodes[a][2]} x2={nodes[b][1]} y2={nodes[b][2]} />)}
+  </svg>
+  {nodes.map(([label,x,y,size], index) => <div class:list={['network-node', {'featured':index < 3}]} style={`--x:${x}%;--y:${y}%;--size:${size}px`}><span>{label}</span></div>)}
+  <p class="network-legend"><i></i> Fushat profesionale <b></b> Lidhjet mes njerëzve</p>
+</div>
+<style>
+  .network-graphic{position:relative;min-height:560px;overflow:hidden;border:1px solid #ffffff21;border-radius:18px;background-color:#202126;background-image:linear-gradient(#ffffff09 1px,transparent 1px),linear-gradient(90deg,#ffffff09 1px,transparent 1px);background-size:32px 32px;box-shadow:0 28px 70px #0005}.network-graphic svg{position:absolute;inset:0;width:100%;height:100%}.network-graphic line{stroke:#b58ca1;stroke-width:.18;opacity:.52;vector-effect:non-scaling-stroke}.network-node{position:absolute;left:var(--x);top:var(--y);display:grid;width:var(--size);height:var(--size);place-items:center;padding:7px;border:1px solid #ad7e96;border-radius:50%;color:#e9dce3;background:#7447615c;box-shadow:0 0 0 7px #7447610f,0 0 28px #74476133;transform:translate(-50%,-50%);animation:network-float 5s ease-in-out infinite alternate}.network-node:nth-of-type(2n){animation-delay:-2s}.network-node.featured{background:#744761ad;border-color:#d1a9bd}.network-node span{font-size:11px;font-weight:700;line-height:1.2;text-align:center}.network-legend{position:absolute;left:18px;bottom:16px;display:flex;align-items:center;gap:8px;margin:0;color:#ffffff94;font-size:11px}.network-legend i{width:10px;height:10px;border:1px solid #d1a9bd;border-radius:50%}.network-legend b{width:18px;height:1px;margin-left:10px;background:#b58ca1}@keyframes network-float{to{translate:0 -4px}}@media(max-width:700px){.network-graphic{min-height:430px}.network-node{width:calc(var(--size)*.8);height:calc(var(--size)*.8)}.network-node span{font-size:9px}}@media(prefers-reduced-motion:reduce){.network-node{animation:none}}
+</style>

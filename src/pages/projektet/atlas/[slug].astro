@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { atlasCountries } from '../../../data/atlas';
+
+const htmlFiles = import.meta.glob('../../../data/atlas/*.html', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+const contentBySlug: Record<string, string> = {};
+for (const [path, content] of Object.entries(htmlFiles)) {
+  const slug = path.split('/').pop()!.replace('.html', '');
+  contentBySlug[slug] = content;
+}
+
+export function getStaticPaths() {
+  return atlasCountries.map((country) => ({ params: { slug: country.slug }, props: { country } }));
+}
+
+const { country } = Astro.props;
+const html = contentBySlug[country.slug] ?? '';
+---
+<BaseLayout title={`${country.title} · Atlas · Illyrian Brains`} description={`Udhëzuesi Atlas për ${country.title} — informacion praktik për integrim, mbledhur nga komuniteti Illyrian Brains.`}>
+  <Header />
+  <main>
+    <section class="section tone-dark">
+      <div class="container city-page">
+        <p class="eyebrow">Projektet · Atlas</p>
+        <h1>{country.flag} {country.title}</h1>
+        <p class="about-body">Informacion praktik i mbledhur nga komuniteti Illyrian Brains për t’u orientuar në {country.title}. Nuk zëvendëson burimet zyrtare.</p>
+      </div>
+    </section>
+
+    <section class="section tone-white">
+      <div class="container">
+        {html
+          ? <div class="atlas-content" set:html={html} />
+          : <p class="about-body">Përmbajtja për këtë vend do të shtohet së shpejti.</p>}
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
