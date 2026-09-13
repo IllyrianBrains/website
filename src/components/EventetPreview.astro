@@ -2,9 +2,25 @@
 import SectionTitle from './SectionTitle.astro';
 const lumaEmbedUrl = 'https://luma.com/embed/calendar/cal-FWG6Cxwu8MbfxIl/events';
 ---
-<section class="section grid-surface tone-dark events-intro">
+<section class="section tone-dark events-intro">
   <div class="container">
     <SectionTitle kicker="Eventet" title="Takohemi rregullisht." text="Nga takimet lokale dhe aktivitetet sociale te workshop-et, diskutimet dhe konferencat — eventet tona krijohen nga vetë komuniteti. Eventet dhe regjistrimet menaxhohen përmes Luma." />
+  </div>
+</section>
+
+<section class="section tone-white events-calendar-section">
+  <div class="container">
+    <div class="events-calendar-heading">
+      <div>
+        <p class="eyebrow">Kalendari</p>
+        <h2>Eventet e ardhshme.</h2>
+      </div>
+      <p>Zgjidh një event për të parë hollësitë dhe për t’u regjistruar përmes Luma.</p>
+    </div>
+    <div class="luma-embed">
+      <iframe src={lumaEmbedUrl} width="600" height="650" frameborder="0" allowfullscreen aria-hidden="false" tabindex="0" title="Kalendari i eventeve të Illyrian Brains"></iframe>
+    </div>
+    <a class="partner-button" href={lumaEmbedUrl} target="_blank" rel="noreferrer">Hap kalendarin e plotë <span aria-hidden="true">↗</span></a>
   </div>
 </section>
 
@@ -24,22 +40,6 @@ const lumaEmbedUrl = 'https://luma.com/embed/calendar/cal-FWG6Cxwu8MbfxIl/events
         <div><span>Formati</span><strong>3 ditë</strong><p>Komunitet · Konferencë · Punëtori</p></div>
       </div>
     </a>
-  </div>
-</section>
-
-<section class="section tone-white events-calendar-section">
-  <div class="container">
-    <div class="events-calendar-heading">
-      <div>
-        <p class="eyebrow">Kalendari</p>
-        <h2>Eventet e ardhshme.</h2>
-      </div>
-      <p>Zgjidh një event për të parë hollësitë dhe për t’u regjistruar përmes Luma.</p>
-    </div>
-    <div class="luma-embed">
-      <iframe src={lumaEmbedUrl} width="600" height="650" frameborder="0" allowfullscreen aria-hidden="false" tabindex="0" title="Kalendari i eventeve të Illyrian Brains"></iframe>
-    </div>
-    <a class="partner-button" href={lumaEmbedUrl} target="_blank" rel="noreferrer">Hap kalendarin e plotë <span aria-hidden="true">↗</span></a>
   </div>
 </section>
 
