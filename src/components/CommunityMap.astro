@@ -1,15 +1,30 @@
 ---
 import { cities } from '../data/cities';
+import { cityRegions } from '../data/regions';
+
+const regionBySlug = new Map(cityRegions.flatMap(region => region.citySlugs.map(slug => [slug, region])));
+const citiesWithRegion = cities.map(city => {
+  const region = regionBySlug.get(city.slug);
+  return { ...city, region: region?.name ?? '', color: region?.color ?? '#744761' };
+});
 ---
 <section class="section community-map-section tone-dark" id="community">
   <div class="container">
     <div class="community-map-heading">
       <div><p class="eyebrow">Komuniteti</p><h2>Qytetet e rrjetit.</h2></div>
-      <p>Një pamje e qyteteve nga vijnë njerëzit e komunitetit tonë dhe profesionistët e rrjetit Illyrian Brains.</p>
+      <p>Një pamje e qyteteve nga vijnë njerëzit e komunitetit tonë dhe profesionistët e rrjetit Illyrian Brains — secili rajon me ngjyrën e vet.</p>
+    </div>
+
+    <div class="map-legend">
+      {cityRegions.map(region => <span class="map-legend-item"><span class="map-legend-dot" style={`background:${region.color}`} aria-hidden="true"></span>{region.name}</span>)}
     </div>
 
     <div class="community-map-layout">
-      <div id="community-map" data-cities={JSON.stringify(cities)} aria-label="Harta e qyteteve të Illyrian Brains"></div>
+      <div id="community-map" data-cities={JSON.stringify(citiesWithRegion)} aria-label="Harta e qyteteve të Illyrian Brains, ngjyrosur sipas rajonit"></div>
+    </div>
+
+    <div class="community-map-cta">
+      <a class="partner-button" href="/qytetet/">Shiko të gjitha qytetet <span aria-hidden="true">↗</span></a>
     </div>
   </div>
   <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -24,15 +39,24 @@ import { cities } from '../data/cities';
       }).addTo(map);
 
       const markers = cityData.map((city) => {
+        const isInactive = city.status === 'inactive';
         const marker = L.circleMarker([city.lat, city.lng], {
-          radius: 15, color: '#744761', weight: 1, opacity: .58, fillColor: '#744761', fillOpacity: .24
+          radius: 10, color: '#fff', weight: 2, opacity: .9,
+          fillColor: isInactive ? '#9a9ba3' : city.color, fillOpacity: isInactive ? .5 : .85
         })
-          .bindTooltip(`<div class="map-city-tooltip"><strong>${city.city}</strong><span>${city.country}</span></div>`, { direction: 'top', offset: [0, -10], opacity: .96 })
-          .bindPopup(`<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>Pjesë e komunitetit Illyrian Brains</small></div>`);
+          .bindTooltip(`<div class="map-city-tooltip"><strong>${city.city}</strong><span>${city.country}${isInactive ? ' · jo aktive' : ''}</span></div>`, { direction: 'top', offset: [0, -10], opacity: .96 })
+          .bindPopup(`<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>${city.region}${isInactive ? ' · Jo aktive' : ''}</small><a class="map-popup-link" href="/qytetet/">Shiko drejtorinë e qyteteve ↗</a></div>`);
         marker.addTo(map);
         return { city, marker };
       });
-      if (markers.length) map.fitBounds(L.featureGroup(markers.map(({ marker }) => marker)).getBounds(), { padding: [34, 34] });
+      // Fit to the European cluster specifically rather than every marker — most
+      // cities are in Europe, and including the North American / Middle East
+      // outliers in the bounds zooms the map out so far that the view is mostly
+      // open ocean. Those markers still render and are reachable by panning.
+      const isEurope = (city) => city.lat >= 34 && city.lat <= 71 && city.lng >= -25 && city.lng <= 45;
+      const europeMarkers = markers.filter(({ city }) => isEurope(city)).map(({ marker }) => marker);
+      const fitMarkers = europeMarkers.length ? europeMarkers : markers.map(({ marker }) => marker);
+      if (fitMarkers.length) map.fitBounds(L.featureGroup(fitMarkers).getBounds(), { padding: [34, 34] });
 
     }
   </script>

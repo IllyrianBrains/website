@@ -1,3 +1,86 @@
 ---
-return Astro.redirect('/rrjeti/#qytetet');
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { cities, defaultCityImage } from '../../data/cities';
+import { cityRegions } from '../../data/regions';
+const bySlug = (slug:string) => cities.find(city => city.slug === slug);
+const directoryCities = cityRegions.flatMap(region => region.citySlugs.map(bySlug).filter(Boolean).map(city => ({ ...city!, region: region.name, color: region.color }))).sort((a,b) => a.city.localeCompare(b.city,'sq'));
+const countries = [...new Set(cities.map(city => city.country))].sort((a,b) => a.localeCompare(b,'sq'));
 ---
+<BaseLayout title="Qytetet · Illyrian Brains" description="Zbulo komunitetet lokale të rrjetit Illyrian Brains, qytet pas qyteti.">
+  <Header />
+  <main class="network-page">
+    <section class="section tone-dark city-hero"><div class="container city-page">
+      <p class="eyebrow">Illyrian Brains Network</p><h1>Qytetet e rrjetit.</h1><p class="about-body">Qytetet janë pika e nisjes së rrjetit: aty lindin njohjet, aktivitetet dhe bashkëpunimet lokale. Zgjidh një qytet për t'u njohur me komunitetin pranë teje.</p>
+    </div></section>
+
+    <section class="section tone-white" id="qytetet"><div class="container">
+      <div class="map-legend" id="city-map-legend">
+        {cityRegions.map(region => <button type="button" class="map-legend-item" data-region={region.name}><span class="map-legend-dot" style={`background:${region.color}`} aria-hidden="true"></span>{region.name}</button>)}
+      </div>
+      <div class="community-map-layout">
+        <div id="community-map" data-cities={JSON.stringify(directoryCities)} aria-label="Harta e qyteteve, ngjyrosur sipas rajonit"></div>
+      </div>
+      <div class="city-directory-stats"><strong id="city-stat-total">{directoryCities.length}</strong><span>qytete në rrjet</span></div>
+      <div class="member-filters city-filters">
+        <div class="member-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="city-search" type="search" placeholder="Kërko qytet ose shtet…" aria-label="Kërko qytete"/></div>
+        <select id="city-region-filter" aria-label="Filtro sipas rajonit"><option value="">Të gjitha rajonet</option>{cityRegions.map(region=><option value={region.name}>{region.name}</option>)}</select>
+        <select id="city-country-filter" aria-label="Filtro sipas shtetit"><option value="">Të gjitha shtetet</option>{countries.map(country=><option value={country}>{country}</option>)}</select>
+        <select id="city-sort" aria-label="Rendit qytetet"><option value="city">Qyteti (A–Z)</option><option value="country">Shteti (A–Z)</option></select>
+      </div>
+      <p class="result-count" id="city-result-count"></p>
+      <div class="member-grid city-directory-grid" id="city-directory-grid" data-cities={JSON.stringify(directoryCities)} data-fallback={defaultCityImage}>
+        {directoryCities.map(city => <a class="member-card city-directory-card" href={`/qytetet/${city.slug}/`}><div class="member-card-top"><img class="member-avatar city-directory-image" src={encodeURI(city.image || defaultCityImage)} alt="" loading="lazy"/><div><p class="member-card-name">{city.city}</p><p class="member-card-role">{city.country}</p></div><span class="city-directory-arrow" aria-hidden="true">↗</span></div></a>)}
+      </div>
+    </div></section>
+  </main>
+  <Footer />
+</BaseLayout>
+<script>
+  const cityGrid=document.querySelector<HTMLElement>('#city-directory-grid'),citySearch=document.querySelector<HTMLInputElement>('#city-search'),cityRegion=document.querySelector<HTMLSelectElement>('#city-region-filter'),cityCountry=document.querySelector<HTMLSelectElement>('#city-country-filter'),citySort=document.querySelector<HTMLSelectElement>('#city-sort'),cityCount=document.querySelector<HTMLElement>('#city-result-count'),cityTotal=document.querySelector<HTMLElement>('#city-stat-total');
+  if(cityGrid){const cities=JSON.parse(cityGrid.dataset.cities||'[]'),fallback=cityGrid.dataset.fallback||'';const renderCities=()=>{const query=(citySearch?.value||'').trim().toLocaleLowerCase('sq');const list=cities.filter((item:any)=>(!query||`${item.city} ${item.country}`.toLocaleLowerCase('sq').includes(query))&&(!cityRegion?.value||item.region===cityRegion.value)&&(!cityCountry?.value||item.country===cityCountry.value)).sort((a:any,b:any)=>(citySort?.value==='country'?`${a.country} ${a.city}`:`${a.city} ${a.country}`).localeCompare(citySort?.value==='country'?`${b.country} ${b.city}`:`${b.city} ${b.country}`,'sq'));if(cityTotal)cityTotal.textContent=String(list.length);if(cityCount)cityCount.textContent=`${list.length} qytet${list.length===1?'':'e'} u gjet${list.length===1?'':'ën'}`;cityGrid.innerHTML=list.length?list.map((item:any)=>`<a class="member-card city-directory-card" href="/qytetet/${item.slug}/"><div class="member-card-top"><img class="member-avatar city-directory-image" src="${encodeURI(item.image||fallback)}" alt="" loading="lazy"><div><p class="member-card-name">${item.city}</p><p class="member-card-role">${item.country}</p></div><span class="city-directory-arrow" aria-hidden="true">↗</span></div></a>`).join(''):'<p class="member-empty">Asnjë qytet nuk përputhet me filtrat. Provo një kërkim tjetër.</p>'};[citySearch,cityRegion,cityCountry,citySort].forEach(control=>control?.addEventListener(control===citySearch?'input':'change',renderCities));renderCities()}
+
+  // Region legend doubles as a shortcut into the existing region <select> filter —
+  // clicking a chip sets/clears it and reuses the filtering already wired above.
+  const cityLegend=document.querySelector<HTMLElement>('#city-map-legend');
+  const legendButtons=cityLegend?Array.from(cityLegend.querySelectorAll<HTMLButtonElement>('.map-legend-item')):[];
+  const syncLegend=()=>{legendButtons.forEach(btn=>btn.classList.toggle('is-active',!!cityRegion&&btn.dataset.region===cityRegion.value))};
+  legendButtons.forEach(btn=>btn.addEventListener('click',()=>{if(!cityRegion)return;cityRegion.value=cityRegion.value===btn.dataset.region?'':(btn.dataset.region||'');cityRegion.dispatchEvent(new Event('change'));syncLegend()}));
+  cityRegion?.addEventListener('change',syncLegend);
+</script>
+<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script is:inline>
+  const cityMapElement = document.querySelector('#community-map');
+  if (cityMapElement && window.L) {
+    const cityMapData = JSON.parse(cityMapElement.dataset.cities || '[]');
+    const cityMap = L.map(cityMapElement, { scrollWheelZoom: true, doubleClickZoom: true, touchZoom: true, zoomControl: true }).setView([44, 8], 3);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(cityMap);
+
+    const cityMarkers = cityMapData.map((city) => {
+      const isInactive = city.status === 'inactive';
+      const marker = L.circleMarker([city.lat, city.lng], {
+        radius: 10, color: '#fff', weight: 2, opacity: .9,
+        fillColor: isInactive ? '#9a9ba3' : city.color, fillOpacity: isInactive ? .5 : .85
+      })
+        .bindTooltip(`<div class="map-city-tooltip"><strong>${city.city}</strong><span>${city.country}${isInactive ? ' · jo aktive' : ''}</span></div>`, { direction: 'top', offset: [0, -10], opacity: .96 })
+        .bindPopup(`<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>${city.region}${isInactive ? ' · Jo aktive' : ''}</small><a class="map-popup-link" href="/qytetet/${city.slug}/">Shiko qytetin ↗</a></div>`);
+      marker.addTo(cityMap);
+      return { city, marker };
+    });
+    // Fit to the European cluster specifically rather than every marker — most
+    // cities are in Europe, and including the North American / Middle East
+    // outliers in the bounds zooms the map out so far that the view is mostly
+    // open ocean. Those markers still render and are reachable by panning.
+    const isEurope = (city) => city.lat >= 34 && city.lat <= 71 && city.lng >= -25 && city.lng <= 45;
+    const europeMarkers = cityMarkers.filter(({ city }) => isEurope(city)).map(({ marker }) => marker);
+    const fitMarkers = europeMarkers.length ? europeMarkers : cityMarkers.map(({ marker }) => marker);
+    if (fitMarkers.length) cityMap.fitBounds(L.featureGroup(fitMarkers).getBounds(), { padding: [34, 34] });
+  }
+</script>
+<style>
+  .city-hero .about-body{max-width:640px;margin-top:18px;color:#ffffffb8;font-size:19px;line-height:1.75}#qytetet .map-legend{margin-top:0}.city-directory-stats{display:flex;align-items:baseline;gap:12px;margin-top:28px;margin-bottom:24px;padding-block:20px;border-block:1px solid var(--line)}.city-directory-stats strong{font-family:var(--font-display);font-size:38px;font-weight:400}.city-directory-stats span{color:var(--muted);font-size:14px;text-transform:uppercase;letter-spacing:.08em}.city-filters{margin-bottom:0}.city-directory-grid{margin-top:32px;margin-bottom:12px}.city-directory-card{color:var(--ink);text-decoration:none}.city-directory-card .member-card-top{min-width:0}.city-directory-image{border-radius:10px}.city-directory-card .member-card-top>div{min-width:0}.city-directory-card .member-card-name,.city-directory-card .member-card-role{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.city-directory-arrow{margin-left:auto;color:var(--accent);font-size:18px}
+</style>

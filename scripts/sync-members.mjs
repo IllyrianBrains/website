@@ -1,6 +1,6 @@
-// Pulls the current membership of the public forum groups that make up the
-// Anëtarët directory and writes it to src/data/members.json. The site reads that
-// committed file at build time — nothing fetches the forum live on every build.
+// Pulls Anëtarët from the forum's trust_level_0 group and supplements those
+// records with the staff groups used on Ekipet. The site reads the committed
+// snapshot at build time — nothing fetches the forum on every page request.
 //
 // Re-run this whenever the forum group membership should be refreshed:
 //   node scripts/sync-members.mjs
@@ -9,13 +9,20 @@ import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const FORUM_URL = 'https://forum.illyrianbrains.org';
+const API_KEY = process.env.DISCOURSE_API_KEY;
+const API_USERNAME = process.env.DISCOURSE_API_USERNAME;
 
-// Forum group slug -> label shown on member cards and in the group filter.
-const DIRECTORY_GROUPS = {
+const DIRECTORY_GROUP = 'trust_level_0';
+// Forum group slug -> label used only for team affiliations and filters.
+const TEAM_GROUPS = {
   Bordi: 'Bordi',
   'Staff-Ekipet': 'Ekipet',
   'Staff-Nismat': 'Nismat',
   'Staff-Qytetet': 'Qytetet',
+};
+const EXPERTISE_GROUPS = {
+  'C-Akademix': 'Akademi',
+  'C-Legal': 'Ligj',
   'C-Tech': 'Teknologji',
 };
 
@@ -24,8 +31,11 @@ async function fetchGroupMembers(slug) {
   const limit = 100;
   let offset = 0;
   for (;;) {
+    const headers = { 'User-Agent': 'illyrianbrains.org-build' };
+    if (API_KEY) headers['Api-Key'] = API_KEY;
+    if (API_USERNAME) headers['Api-Username'] = API_USERNAME;
     const response = await fetch(`${FORUM_URL}/g/${slug}/members.json?limit=${limit}&offset=${offset}`, {
-      headers: { 'User-Agent': 'illyrianbrains.org-build' },
+      headers,
     });
     if (!response.ok) throw new Error(`${slug}: HTTP ${response.status}`);
     const data = await response.json();
@@ -47,28 +57,40 @@ function parseGeoLocation(customFields) {
   }
 }
 
+function parseFieldOfExpertise(customFields) {
+  const value = customFields?.field_of_expertise ?? customFields?.expertise ?? customFields?.profession;
+  return typeof value === 'string' ? value.split(/[,;|]/).map(item => item.trim()).filter(Boolean) : [];
+}
+
 async function main() {
-  const slugs = Object.keys(DIRECTORY_GROUPS);
+  const slugs = [DIRECTORY_GROUP, ...Object.keys(TEAM_GROUPS), ...Object.keys(EXPERTISE_GROUPS)];
   const groupResults = await Promise.all(
     slugs.map(async (slug) => {
       try {
         return await fetchGroupMembers(slug);
       } catch (error) {
         console.warn(`[sync-members] could not fetch forum group "${slug}":`, error.message);
-        return [];
+        return null;
       }
     })
   );
+  if (groupResults.slice(1).some(result => result === null)) {
+    throw new Error('Forum refresh incomplete; the existing members.json snapshot was preserved.');
+  }
 
   const merged = new Map();
 
   slugs.forEach((slug, i) => {
-    const label = DIRECTORY_GROUPS[slug];
-    for (const member of groupResults[i]) {
+    const label = TEAM_GROUPS[slug];
+    const expertiseLabel = EXPERTISE_GROUPS[slug];
+    const inDirectory = slug === DIRECTORY_GROUP;
+    for (const member of groupResults[i] ?? []) {
       const addedTs = new Date(member.added_at).getTime();
       const existing = merged.get(member.id);
       if (existing) {
-        if (!existing.groups.includes(label)) existing.groups.push(label);
+        if (label && !existing.groups.includes(label)) existing.groups.push(label);
+        if (expertiseLabel && !existing.fieldsOfExpertise.includes(expertiseLabel)) existing.fieldsOfExpertise.push(expertiseLabel);
+        if (inDirectory) existing.inDirectory = true;
         if (!Number.isNaN(addedTs)) existing.addedTimestamps.push(addedTs);
         continue;
       }
@@ -78,8 +100,10 @@ async function main() {
         username: member.username,
         city,
         country,
+        fieldsOfExpertise: [...new Set([...parseFieldOfExpertise(member.custom_fields), ...(expertiseLabel ? [expertiseLabel] : [])])],
         avatar: member.avatar_template ? `${FORUM_URL}${member.avatar_template.replace('{size}', '120')}` : undefined,
-        groups: [label],
+        groups: label ? [label] : [],
+        inDirectory,
         profileUrl: `${FORUM_URL}/u/${member.username}`,
         addedTimestamps: Number.isNaN(addedTs) ? [] : [addedTs],
       });

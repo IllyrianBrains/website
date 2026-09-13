@@ -1,7 +1,5 @@
-// Anëtarët directory data — a local snapshot of the public groups on
-// forum.illyrianbrains.org (Bordi, Staff-Ekipet, Staff-Nismat, Staff-Qytetet,
-// C-Tech). Nothing here is hand-maintained or fetched live at build time; this file
-// is generated. Re-run `node scripts/sync-members.mjs` to refresh it from the forum.
+// Local forum snapshot. Anëtarët comes from trust_level_0; staff affiliations
+// come from Bordi, Staff-Ekipet, Staff-Nismat and Staff-Qytetet.
 
 import rawMembers from './members.json';
 
@@ -10,10 +8,16 @@ export interface Member {
   username: string;
   city?: string;
   country?: string;
+  fieldsOfExpertise?: string[];
   since: number;
   avatar?: string;
   groups: string[];
+  inDirectory: boolean;
   profileUrl: string;
 }
 
 export const members: Member[] = rawMembers;
+const trustLevelMembers = members.filter(member => member.inDirectory);
+// Keep the last usable directory visible if an authenticated trust_level_0
+// refresh has not been completed yet.
+export const directoryMembers: Member[] = trustLevelMembers.length ? trustLevelMembers : members;

@@ -8,7 +8,7 @@ export function organizeClauses(article: StatutiArticle) {
     const number = match?.[1] ?? '';
     const text = match?.[2] ?? clause;
     // Alphabetic, Roman numeral, numbered and dash lists occur in the source.
-    const parts = text.split(/\s+(?=(?:[a-g]\.|[ivx]+\.|\d+\)|-)\s)/u);
+    const parts = text.split(/\s+(?=(?:[a-zA-Z]\.|[ivxIVX]+\.|\d+[.)]|-)\s)/u);
     const introduction = parts.shift() ?? '';
     return { number, introduction, items: parts, id: `pika-${number.replace(/\.$/, '').replaceAll('.', '-')}` };
   });

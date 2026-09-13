@@ -1,3 +1,32 @@
 ---
-return Astro.redirect('/rrjeti/#anetaret');
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import MemberNetworkGraph from '../components/MemberNetworkGraph.astro';
+import { directoryMembers as members } from '../data/members';
+const memberCities = [...new Set(members.map(member => member.city).filter((city):city is string => Boolean(city)))].sort();
 ---
+<BaseLayout title="Anëtarët · Illyrian Brains" description="Njih profesionistët e komunitetit Illyrian Brains Network.">
+  <Header />
+  <main class="network-page">
+    <section class="section tone-dark member-hero"><div class="container city-page">
+      <p class="eyebrow">Illyrian Brains Network</p><h1>Anëtarët e rrjetit.</h1><p class="about-body">Njih profesionistët e komunitetit dhe zbulo fushat që na lidhin.</p>
+    </div></section>
+
+    <section class="tone-grey"><div class="container"><MemberNetworkGraph members={members} /></div></section>
+
+    <section class="section tone-white" id="anetaret"><div class="container">
+      <div class="member-stats"><div><strong id="stat-total">{members.length}</strong><span>Anëtarë të listuar</span></div><div><strong>{memberCities.length}</strong><span>Qytete</span></div><div><strong>5000+</strong><span>Madhësia e rrjetit</span></div></div>
+      <p class="result-count" id="result-count"></p><div class="member-grid" id="member-grid" data-members={JSON.stringify(members)}></div>
+    </div></section>
+  </main>
+  <Footer />
+  <div class="member-drawer-overlay" id="member-overlay"></div><aside class="member-drawer" id="member-drawer" aria-hidden="true"><div class="member-drawer-inner" id="member-drawer-content"></div></aside>
+</BaseLayout>
+<script>
+  const grid=document.querySelector<HTMLElement>('#member-grid'),search=document.querySelector<HTMLInputElement>('#member-search'),expertise=document.querySelector<HTMLSelectElement>('#filter-expertise'),contribution=document.querySelector<HTMLSelectElement>('#filter-contribution'),city=document.querySelector<HTMLSelectElement>('#filter-city'),count=document.querySelector<HTMLElement>('#result-count'),total=document.querySelector<HTMLElement>('#stat-total'),overlay=document.querySelector<HTMLElement>('#member-overlay'),drawer=document.querySelector<HTMLElement>('#member-drawer'),content=document.querySelector<HTMLElement>('#member-drawer-content');
+  if(grid){const members=JSON.parse(grid.dataset.members||'[]');const initials=(name:string)=>name.split(' ').map((part:string)=>part[0]).join('').slice(0,2).toUpperCase();const fields=(member:any)=>member.fieldsOfExpertise||[];const expertisePills=(member:any)=>fields(member).map((value:string)=>`<span class="member-pill member-pill-accent">${value}</span>`).join('');const contributionPills=(member:any)=>(member.groups||[]).map((value:string)=>`<span class="member-pill">Kontribut: ${value}</span>`).join('');const render=()=>{const query=(search?.value||'').trim().toLowerCase();const list=members.filter((member:any)=>(!query||`${member.name} ${member.username} ${fields(member).join(' ')} ${(member.groups||[]).join(' ')}`.toLowerCase().includes(query))&&(!expertise?.value||fields(member).includes(expertise.value))&&(!contribution?.value||(member.groups||[]).includes(contribution.value))&&(!city?.value||member.city===city.value)).sort((a:any,b:any)=>a.name.localeCompare(b.name));if(total)total.textContent=String(list.length);if(count)count.textContent=`${list.length} anëtar${list.length===1?'':'ë'} u gjet${list.length===1?'':'ën'}`;grid.innerHTML=list.length?list.map((member:any)=>`<button class="member-card" type="button" data-username="${member.username}"><div class="member-card-top">${member.avatar?`<img class="member-avatar" src="${member.avatar}" alt="" loading="lazy">`:`<span class="member-avatar member-avatar-fallback">${initials(member.name)}</span>`}<div><p class="member-card-name">${member.name}</p><p class="member-card-role">${fields(member).join(' · ')||'Ekspertiza TBD'}</p></div></div><div class="member-card-meta">${expertisePills(member)}${contributionPills(member)}${member.city?`<span class="member-pill">${member.city}</span>`:''}</div></button>`).join(''):'<p class="member-empty">Asnjë anëtar nuk përputhet me filtrat.</p>'};const close=()=>{drawer?.classList.remove('open');overlay?.classList.remove('open');drawer?.setAttribute('aria-hidden','true');document.body.style.overflow=''};grid.addEventListener('click',event=>{const username=(event.target as HTMLElement).closest<HTMLElement>('.member-card')?.dataset.username,member=members.find((item:any)=>item.username===username);if(!member||!drawer||!overlay||!content)return;content.innerHTML=`<button class="member-drawer-close" type="button" aria-label="Mbyll profilin">✕</button>${member.avatar?`<img class="member-drawer-avatar" src="${member.avatar}" alt="">`:`<span class="member-drawer-avatar member-avatar-fallback">${initials(member.name)}</span>`}<h2>${member.name}</h2><p class="member-drawer-role">${fields(member).join(' · ')||'Ekspertiza TBD'}</p><div class="member-tags">${expertisePills(member)}${contributionPills(member)}${member.city?`<span class="member-pill">${member.city}</span>`:''}<span class="member-pill">Anëtar që nga ${member.since}</span></div><a class="partner-button" href="${member.profileUrl}" target="_blank" rel="noreferrer">Shiko profilin në forum <span>↗</span></a>`;drawer.classList.add('open');overlay.classList.add('open');drawer.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';content.querySelector('.member-drawer-close')?.addEventListener('click',close)});[search,expertise,contribution,city].forEach(control=>control?.addEventListener(control===search?'input':'change',render));overlay?.addEventListener('click',close);document.addEventListener('keydown',event=>{if(event.key==='Escape')close()});render()}
+</script>
+<style>
+  .member-hero .about-body{max-width:640px;margin-top:18px;color:#ffffffb8;font-size:19px;line-height:1.75}#anetaret .member-stats{margin:28px 0 40px;padding-block:24px;border-block:1px solid var(--line)}#anetaret .member-grid{margin-top:32px;margin-bottom:12px}
+</style>

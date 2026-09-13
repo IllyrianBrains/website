@@ -1,4 +1,29 @@
 ---
+import { cities } from '../data/cities';
+import { directoryMembers as members } from '../data/members';
+
+const pages = [
+  { title: 'Ballina', type: 'Faqe', url: '/', keywords: 'illyrian brains rrjeti komuniteti' },
+  { title: 'Rrjeti', type: 'Faqe', url: '/rrjeti/', keywords: 'qytetet anetaret partneret bizneset harta' },
+  { title: 'OJF Partnere', type: 'Faqe', url: '/partneret/', keywords: 'OJF Partnere bashkepunetore' },
+  { title: 'Bizneset', type: 'Faqe', url: '/bizneset/', keywords: 'biznese diaspora' },
+  { title: 'Harta', type: 'Faqe', url: '/harta/', keywords: 'harta komuniteti qytetet anetaret bizneset partneret organizata' },
+  { title: 'Eventet', type: 'Faqe', url: '/eventet/', keywords: 'kalendari takime aktivitete' },
+  { title: 'Misioni', type: 'Rreth nesh', url: '/misioni/', keywords: 'vizioni vlerat organizata' },
+  { title: 'Ekipet', type: 'Rreth nesh', url: '/ekipet/', keywords: 'bordi staff qytetet nismat ekipet' },
+  { title: 'Statuti', type: 'Rreth nesh', url: '/statuti/', keywords: 'rregullat asambleja bordi anetaresia' },
+  { title: 'Anëtarësohu', type: 'Faqe', url: '/anetaresohu/', keywords: 'bashkohu aplikim vullnetar' },
+  { title: 'Atlas', type: 'Projekt', url: 'https://atlas.illyrianbrains.org/', keywords: 'guida shtete diaspora', external: true },
+  { title: 'Global', type: 'Projekt', url: 'https://global.illyrianbrains.org/', keywords: 'konferenca asambleja ib global', external: true },
+  { title: 'Heritage', type: 'Projekt', url: 'https://heritage.illyrianbrains.org/', keywords: 'trashegimi kulture', external: true },
+  { title: 'Mentoring', type: 'Projekt', url: 'https://mentoring.illyrianbrains.org/', keywords: 'mentor karriere zhvillim', external: true },
+  { title: 'Playground', type: 'Projekt', url: '/projektet/playground/', keywords: 'lojera komuniteti' },
+];
+const searchIndex = [
+  ...cities.map(city => ({ title: city.city, type: 'Qytet', url: `/qytetet/${city.slug}/`, keywords: city.country, priority: 0 })),
+  ...members.map(member => ({ title: member.name, type: 'Anëtar', url: member.profileUrl, keywords: `${member.username} ${(member.fieldsOfExpertise || []).join(' ')} ${member.city || ''} ${member.country || ''} ${member.groups.join(' ')}`, external: true, priority: 1 })),
+  ...pages.map(page => ({ ...page, priority: 2 })),
+];
 ---
 <header class="site-header">
   <a class="brand" href="/" aria-label="Ballina e Illyrian Brains">
@@ -13,9 +38,11 @@
         Rrjeti
       </button>
       <ul class="dropdown-menu" id="rrjeti-menu">
-        <li><a href="/rrjeti/">Pamja e rrjetit</a></li>
-        <li><a href="/rrjeti/#qytetet">Qytetet</a></li>
-        <li><a href="/rrjeti/#anetaret">Anëtarët</a></li>
+        <li><a href="/harta/">Harta</a></li>
+        <li><a href="/qytetet/">Qytetet</a></li>
+        <li><a href="/anetaret/">Anëtarët</a></li>
+        <li><a href="/partneret/">OJF Partnere</a></li>
+        <li><a href="/bizneset/">Bizneset</a></li>
       </ul>
     </div>
     <a href="/eventet/">Eventet</a>
@@ -24,10 +51,10 @@
         Projektet
       </button>
       <ul class="dropdown-menu" id="projektet-menu">
-        <li><a href="/projektet/atlas/">Atlas</a></li>
-        <li><a href="/projektet/mentoring/">Mentoring</a></li>
-        <li><a href="/projektet/heritage/">Heritage</a></li>
-        <li><a href="/projektet/ide/">Ide</a></li>
+        <li><a href="https://atlas.illyrianbrains.org/" target="_blank" rel="noreferrer">Atlas ↗</a></li>
+        <li><a href="https://global.illyrianbrains.org/" target="_blank" rel="noreferrer">Global ↗</a></li>
+        <li><a href="https://heritage.illyrianbrains.org/" target="_blank" rel="noreferrer">Heritage ↗</a></li>
+        <li><a href="https://mentoring.illyrianbrains.org/" target="_blank" rel="noreferrer">Mentoring ↗</a></li>
         <li><a href="/projektet/playground/">Playground</a></li>
       </ul>
     </div>
@@ -49,14 +76,37 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle class="instagram-dot" cx="17.4" cy="6.8" r="1"/></svg>
       </a>
     </div>
+    <button class="site-search-open" type="button" aria-label="Kërko në faqe" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.7"/><path d="m16 16 4.3 4.3"/></svg>
+    </button>
     <a class="nav-cta" href="/anetaresohu/">Anëtarësohu!</a>
   </nav>
 </header>
+
+<div class="site-search-overlay" id="site-search-overlay" hidden>
+  <section class="site-search-dialog" role="dialog" aria-modal="true" aria-labelledby="site-search-title">
+    <div class="site-search-top">
+      <div><p class="site-search-kicker">Kërko në Illyrian Brains</p><h2 id="site-search-title">Çfarë po kërkon?</h2></div>
+      <button class="site-search-close" type="button" aria-label="Mbyll kërkimin">✕</button>
+    </div>
+    <div class="site-search-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.7"/><path d="m16 16 4.3 4.3"/></svg><input id="site-search-input" type="search" placeholder="Kërko faqe, qytet, projekt ose person…" autocomplete="off"/></div>
+    <p class="site-search-status" id="site-search-status">Shkruaj të paktën dy shkronja për të filluar.</p>
+    <div class="site-search-results" id="site-search-results"></div>
+  </section>
+</div>
+<script type="application/json" id="site-search-data" set:html={JSON.stringify(searchIndex).replace(/</g, '\\u003c')}></script>
 
 <script>
   const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
   const nav = document.querySelector<HTMLElement>('.nav');
   const dropdowns = document.querySelectorAll<HTMLElement>('.nav-item.dropdown');
+  const searchOpen = document.querySelector<HTMLButtonElement>('.site-search-open');
+  const searchOverlay = document.querySelector<HTMLElement>('#site-search-overlay');
+  const searchClose = document.querySelector<HTMLButtonElement>('.site-search-close');
+  const searchInput = document.querySelector<HTMLInputElement>('#site-search-input');
+  const searchResults = document.querySelector<HTMLElement>('#site-search-results');
+  const searchStatus = document.querySelector<HTMLElement>('#site-search-status');
+  const searchData = JSON.parse(document.querySelector('#site-search-data')?.textContent || '[]');
 
   toggle?.addEventListener('click', () => {
     const isOpen = nav?.classList.toggle('nav-open') ?? false;
@@ -90,7 +140,25 @@
 
   document.addEventListener('click', () => closeDropdowns());
 
+  const normalize = (value:string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('sq');
+  const escapeHtml = (value:string) => value.replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character] || character));
+  const closeSearch = () => { if (!searchOverlay) return; searchOverlay.hidden = true; document.body.style.overflow = ''; searchOpen?.focus(); };
+  const openSearch = () => { if (!searchOverlay) return; searchOverlay.hidden = false; nav?.classList.remove('nav-open'); toggle?.setAttribute('aria-expanded','false'); document.body.style.overflow = 'hidden'; requestAnimationFrame(() => searchInput?.focus()); };
+  const renderSearch = () => {
+    if (!searchResults || !searchStatus) return;
+    const query = normalize(searchInput?.value.trim() || '');
+    if (query.length < 2) { searchResults.innerHTML = ''; searchStatus.textContent = 'Shkruaj të paktën dy shkronja për të filluar.'; return; }
+    const terms = query.split(/\s+/).filter(Boolean);
+    const matches = searchData.map((item:any) => { const text=normalize(`${item.title} ${item.type} ${item.keywords||''}`); const score=terms.reduce((sum:number,term:string)=>sum+(normalize(item.title).startsWith(term)?4:text.includes(term)?1:-20),0); return {...item,score}; }).filter((item:any)=>item.score>=terms.length).sort((a:any,b:any)=>(a.priority??2)-(b.priority??2)||b.score-a.score||a.title.localeCompare(b.title,'sq')).slice(0,16);
+    searchStatus.textContent = matches.length ? `${matches.length} rezultate` : 'Nuk u gjet asnjë rezultat. Provo një fjalë tjetër.';
+    searchResults.innerHTML = matches.map((item:any) => `<a class="site-search-result" href="${encodeURI(item.url)}"${item.external?' target="_blank" rel="noreferrer"':''}><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.type)}</small></span><b aria-hidden="true">↗</b></a>`).join('');
+  };
+  searchOpen?.addEventListener('click', openSearch);
+  searchClose?.addEventListener('click', closeSearch);
+  searchOverlay?.addEventListener('click', event => { if (event.target === searchOverlay) closeSearch(); });
+  searchInput?.addEventListener('input', renderSearch);
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeDropdowns();
+    if (event.key === 'Escape') { closeDropdowns(); if (!searchOverlay?.hidden) closeSearch(); }
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openSearch(); }
   });
 </script>

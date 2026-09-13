@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import DirectoryNetworkGraph from '../components/DirectoryNetworkGraph.astro';
+import { businesses, businessCategoryLabels } from '../data/businesses';
+
+const categories = Object.entries(businessCategoryLabels).map(([id, label]) => ({ id, label }));
+const graphBusinesses = businesses.map((business, index) => ({ id: `business-${index}`, label: business.name, category: business.category, url: business.website }));
+const businessesByCategory = categories
+  .map(category => ({ ...category, businesses: businesses.filter(business => business.category === category.id) }))
+  .filter(group => group.businesses.length > 0);
+---
+<BaseLayout title="Bizneset · Illyrian Brains" description="Bizneset e themeluara dhe drejtuara nga anëtarët e komunitetit Illyrian Brains.">
+  <Header />
+  <main class="network-page">
+    <section class="section tone-dark"><div class="container city-page">
+      <p class="eyebrow">Illyrian Brains Network</p><h1>Bizneset e rrjetit.</h1><p class="about-body">Bizneset e themeluara dhe drejtuara nga anëtarët e komunitetit — një hapësirë për t'i njohur dhe mbështetur.</p>
+    </div></section>
+
+    <section class="section tone-white"><div class="container">
+      <DirectoryNetworkGraph kind="business" title="Bizneset në ekosistem." description="Eksploro si bizneset e komunitetit lidhen me anëtarët, qytetet dhe kategoritë e zhvillimit profesional." categories={categories} items={graphBusinesses} />
+      <div class="business-directory">
+        <div class="business-directory-heading"><p class="eyebrow">Bizneset tona</p><h2>Drejtoria e bizneseve</h2></div>
+        {businessesByCategory.map(group => (
+          <div class="business-category-group">
+            <h3 class="business-category-title">{group.label}</h3>
+            <div class="business-directory-grid">
+              {group.businesses.map(business => (
+                <article class="business-directory-card">
+                  {business.city && <span class="business-city">{business.city}{business.country ? `, ${business.country}` : ''}</span>}
+                  <h4>{business.name}</h4>
+                  <p>{business.description}</p>
+                  {business.website && <div class="business-links"><a href={business.website} target="_blank" rel="noreferrer">Faqja zyrtare <span aria-hidden="true">↗</span></a></div>}
+                </article>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div></section>
+  </main>
+  <Footer />
+</BaseLayout>
+<style>
+  .business-directory{margin-top:80px;padding-top:64px;border-top:1px solid var(--line)}.business-directory-heading{margin-bottom:28px}.business-directory-heading h2{margin:0;font-size:clamp(32px,4vw,46px);font-weight:400;letter-spacing:-.03em}.business-category-group{margin-top:44px}.business-category-group:first-of-type{margin-top:0}.business-category-title{margin:0 0 16px;color:var(--accent-dark);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.business-directory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.business-directory-card{display:flex;min-height:220px;flex-direction:column;padding:28px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 12px 35px rgba(23,24,29,.045)}.business-city{align-self:flex-start;padding:6px 10px;border-radius:999px;color:var(--accent-dark);background:var(--soft);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.business-directory-card h4{margin:20px 0 10px;font-size:22px;font-weight:400;line-height:1.15}.business-directory-card p{margin:0;color:var(--muted);font-size:14px;line-height:1.65}.business-links{margin-top:auto;padding-top:20px}.business-links a{color:var(--accent-dark);font-size:13px;font-weight:700}.business-links a:hover{text-decoration:underline;text-underline-offset:3px}@media(max-width:700px){.business-directory-grid{grid-template-columns:1fr}.business-directory-card{min-height:190px}}
+</style>

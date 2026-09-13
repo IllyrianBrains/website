@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import DirectoryNetworkGraph from '../components/DirectoryNetworkGraph.astro';
+import { partners, partnerCategoryLabels } from '../data/partners';
+
+const categories = Object.entries(partnerCategoryLabels).map(([id, label]) => ({ id, label }));
+const graphPartners = partners.map((partner, index) => ({ id: `partner-${index}`, label: partner.name, category: partner.category, url: partner.website || partner.linkedin }));
+const partnersByCategory = categories
+  .map(category => ({ ...category, partners: partners.filter(partner => partner.category === category.id) }))
+  .filter(group => group.partners.length > 0);
+---
+<BaseLayout title="OJF Partnere · Illyrian Brains" description="Organizatat partnere që bashkëpunojnë me rrjetin Illyrian Brains.">
+  <Header />
+  <main class="network-page">
+    <section class="section tone-dark"><div class="container city-page">
+      <p class="eyebrow">Illyrian Brains Network</p><h1>OJF Partnere.</h1><p class="about-body">Organizatat që bashkëpunojnë me komunitetin Illyrian Brains.</p>
+    </div></section>
+
+    <section class="section tone-white"><div class="container">
+      <DirectoryNetworkGraph kind="partner" title="Organizatat që na lidhin." description="Eksploro si organizatat partnere lidhen me anëtarët, qytetet dhe fushat e bashkëpunimit të Illyrian Brains." categories={categories} items={graphPartners} />
+      <div class="partner-directory">
+        <div class="partner-directory-heading"><p class="eyebrow">Bashkëpunimet</p><h2>OJF Partnere</h2></div>
+        {partnersByCategory.map(group => (
+          <div class="partner-category-group">
+            <h3 class="partner-category-title">{group.label}</h3>
+            <div class="partner-directory-grid">
+              {group.partners.map(partner => (
+                <article class="partner-directory-card">
+                  {partner.city && <span class="partner-city">{partner.city}</span>}
+                  <h3>{partner.name}</h3>
+                  <p>{partner.description}</p>
+                  <div class="partner-links">
+                    {partner.website && <a href={partner.website} target="_blank" rel="noreferrer">Faqja zyrtare <span aria-hidden="true">↗</span></a>}
+                    {partner.linkedin && <a href={partner.linkedin} target="_blank" rel="noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div></section>
+  </main>
+  <Footer />
+</BaseLayout>
+<style>
+  .partner-directory{margin-top:80px;padding-top:64px;border-top:1px solid var(--line)}.partner-directory-heading{margin-bottom:28px}.partner-directory-heading h2{margin:0;font-size:clamp(32px,4vw,46px);font-weight:400;letter-spacing:-.03em}.partner-category-group{margin-top:44px}.partner-category-title{margin:0 0 16px;color:var(--accent-dark);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.partner-directory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.partner-directory-card{display:flex;min-height:270px;flex-direction:column;padding:28px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 12px 35px rgba(23,24,29,.045)}.partner-city{color:var(--muted);font-size:12px;font-weight:600}.partner-directory-card h3{margin:24px 0 10px;font-size:25px;line-height:1.15}.partner-directory-card p{margin:0;color:var(--muted);font-size:14px;line-height:1.65}.partner-links{display:flex;flex-wrap:wrap;gap:18px;margin-top:auto;padding-top:24px}.partner-links a{color:var(--accent-dark);font-size:13px;font-weight:700}.partner-links a:hover{text-decoration:underline;text-underline-offset:3px}@media(max-width:700px){.partner-directory-grid{grid-template-columns:1fr}.partner-directory-card{min-height:240px}}
+</style>

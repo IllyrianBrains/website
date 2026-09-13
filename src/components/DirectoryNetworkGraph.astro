@@ -1,0 +1,88 @@
+---
+interface GraphCategory { id: string; label: string; }
+interface GraphItem { id: string; label: string; category: string; url?: string; }
+interface Props {
+  kind: 'partner' | 'business';
+  title: string;
+  description: string;
+  categories: GraphCategory[];
+  items?: GraphItem[];
+}
+
+const { kind, title, description, categories, items = [] } = Astro.props;
+const graphId = `${kind}-directory-graph`;
+const elements = [
+  { data: { id: 'members', label: 'Anëtarët', type: 'network' } },
+  { data: { id: 'cities', label: 'Qytetet', type: 'network' } },
+  ...categories.map(category => ({ data: { id: category.id, label: category.label, type: 'category' } })),
+  ...items.map(item => ({ data: { id: item.id, label: item.label, type: 'organization', url: item.url || '' } })),
+  ...items.map(item => ({ data: { id: `${item.category}-${item.id}`, source: item.category, target: item.id } })),
+];
+---
+<section class="directory-network" aria-labelledby={`${graphId}-title`}>
+  <header class="directory-network-heading">
+    <div><p class="eyebrow">Harta e ekosistemit</p><h2 id={`${graphId}-title`}>{title}</h2></div>
+    <p>{description}</p>
+  </header>
+  <div class="directory-network-toolbar">
+    <div class="directory-network-legend"><span><i class="network"></i>Komuniteti</span><span><i class="category"></i>Kategoria</span>{items.length > 0 && <span><i class="organization"></i>Organizata</span>}</div>
+    <button type="button" data-graph-reset>Rivendos pamjen</button>
+  </div>
+  <div id={graphId} class="directory-network-graph" data-elements={JSON.stringify(elements)} role="img" aria-label={`Graf interaktiv i lidhjeve në drejtorinë e ${kind === 'partner' ? 'partnerëve' : 'bizneseve'}`}></div>
+  <p class="directory-network-note" data-graph-note>Zgjidh një nyje për të parë lidhjet e saj.</p>
+</section>
+
+<script>
+  import cytoscape from 'cytoscape';
+
+  document.querySelectorAll<HTMLElement>('.directory-network-graph').forEach((container) => {
+    if (container.dataset.ready === 'true') return;
+    container.dataset.ready = 'true';
+    const section = container.closest<HTMLElement>('.directory-network');
+    const note = section?.querySelector<HTMLElement>('[data-graph-note]');
+    const reset = section?.querySelector<HTMLButtonElement>('[data-graph-reset]');
+    const elements = JSON.parse(container.dataset.elements || '[]');
+    const cy = cytoscape({
+      container,
+      elements,
+      style: [
+        { selector: 'node', style: { label: 'data(label)', 'font-family': 'Inter, sans-serif', 'font-size': 12, 'font-weight': 700, color: '#505158', 'text-valign': 'bottom', 'text-margin-y': 10, 'text-wrap': 'wrap', 'text-max-width': 110, width: 42, height: 42, 'background-color': '#b58ca1', 'border-width': 4, 'border-color': '#f4edf1' } },
+        { selector: 'node[type="network"]', style: { shape: 'diamond', width: 54, height: 54, color: '#293f52', 'background-color': '#293f52', 'border-color': '#e3e9ed' } },
+        { selector: 'node[type="category"]', style: { shape: 'round-rectangle', width: 64, height: 42, color: '#6b4a25', 'background-color': '#b98545', 'border-color': '#f3e7d8' } },
+        { selector: 'node[type="organization"]', style: { shape: 'round-rectangle', width: 72, height: 48, color: '#744761', 'background-color': '#ffffff', 'border-width': 3, 'border-color': '#744761', 'text-max-width': 130 } },
+        { selector: 'edge', style: { width: 1.5, 'line-color': '#c8bdc3', 'curve-style': 'bezier', opacity: .7 } },
+        { selector: '.faded', style: { opacity: .12 } },
+        { selector: '.focused', style: { 'border-width': 6, 'border-color': '#d9b2c6', 'z-index': 10 } },
+      ],
+      layout: { name: 'breadthfirst', directed: true, circle: false, animate: false, fit: true, padding: 65, spacingFactor: 1.25, avoidOverlap: true },
+      minZoom: .55,
+      maxZoom: 2.4,
+      wheelSensitivity: .25,
+      boxSelectionEnabled: false,
+    });
+    const clear = () => {
+      cy.elements().removeClass('faded focused');
+      if (note) note.textContent = 'Zgjidh një nyje për të parë lidhjet e saj.';
+    };
+    cy.on('tap', 'node', event => {
+      const node = event.target;
+      cy.elements().addClass('faded');
+      node.closedNeighborhood().removeClass('faded');
+      node.addClass('focused');
+      const url = node.data('url');
+      if (note) note.innerHTML = `<strong>${node.data('label')}</strong> · ${node.degree()} lidhje në ekosistem${url ? ` · <a href="${url}" target="_blank" rel="noreferrer">Hap faqen ↗</a>` : ''}`;
+    });
+    cy.on('tap', event => { if (event.target === cy) clear(); });
+    cy.on('dbltap', 'node', event => {
+      const url = event.target.data('url');
+      if (url) window.open(url, '_blank', 'noopener,noreferrer');
+    });
+    reset?.addEventListener('click', () => { clear(); cy.fit(undefined, 55); });
+    new ResizeObserver(() => { cy.resize(); cy.fit(undefined, 55); }).observe(container);
+    requestAnimationFrame(() => { cy.resize(); cy.fit(undefined, 55); });
+  });
+</script>
+
+<style>
+  .directory-network{padding:12px 0}.directory-network-heading{display:grid;grid-template-columns:1fr minmax(290px,460px);gap:55px;align-items:end}.directory-network-heading h2{max-width:650px;margin:0;font-size:clamp(38px,5vw,58px);font-weight:400;line-height:1.05;letter-spacing:-.035em}.directory-network-heading>p{margin:0;color:var(--muted);font-size:16px;line-height:1.7}.directory-network-toolbar{display:flex;align-items:center;justify-content:space-between;gap:25px;margin:38px 0 14px}.directory-network-legend{display:flex;flex-wrap:wrap;gap:18px}.directory-network-legend span{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.directory-network-legend i{display:block;width:12px;height:12px;border-radius:50%;background:#744761}.directory-network-legend .network{border-radius:1px;background:#293f52;transform:rotate(45deg)}.directory-network-legend .category{width:17px;border-radius:3px;background:#b98545}.directory-network-legend .organization{width:17px;border:2px solid #744761;border-radius:3px;background:#fff}.directory-network-toolbar button{padding:9px 13px;border:1px solid var(--line);border-radius:6px;color:var(--ink);background:#fff;font:600 12px var(--font-body);cursor:pointer}.directory-network-graph{height:min(65vh,620px);min-height:480px;border:1px solid var(--line);border-radius:18px;background-color:#faf9fa;background-image:linear-gradient(#17181d0b 1px,transparent 1px),linear-gradient(90deg,#17181d0b 1px,transparent 1px);background-size:24px 24px;box-shadow:0 18px 50px #17181d0c}.directory-network-note{margin:13px 0 0;color:var(--muted);font-size:13px}.directory-network-note strong,.directory-network-note a{color:var(--accent-dark)}.directory-network-note a{font-weight:700}@media(max-width:760px){.directory-network-heading{grid-template-columns:1fr;gap:20px}.directory-network-toolbar{align-items:flex-start;flex-direction:column}.directory-network-graph{min-height:520px}}
+</style>

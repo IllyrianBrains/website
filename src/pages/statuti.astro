@@ -6,74 +6,51 @@ import { statutiIntro, statutiArticles } from '../data/statuti';
 import { organizeClauses, statutiSections } from '../utils/statuti';
 
 const [title, , , ...introBody] = statutiIntro;
-const sections = statutiSections.map((section) => ({
+const sections = statutiSections.map(section => ({
   ...section,
-  articles: statutiArticles.filter(({ number }) => number >= section.from && number <= section.to),
+  articles: statutiArticles.filter(article => article.number >= section.from && article.number <= section.to),
 }));
 ---
 <BaseLayout title="Statuti · Illyrian Brains" description="Statuti i regjistruar i shoqatës Illyrian Brains Network.">
   <Header />
-  <main class="about-page">
-    <section class="section tone-dark statute-hero">
-      <div class="container">
+  <main class="statute-page">
+    <section class="statute-hero">
+      <div class="statute-document">
         <p class="eyebrow">Illyrian Brains Network</p>
         <h1>{title}</h1>
-        <p class="statute-lead">Organizimi, anëtarësia dhe funksionimi i shoqatës.</p>
-        <div class="statute-meta"><span>25 nene</span><span>5 seksione</span><a href="#permbajtja">Shfleto përmbajtjen ↓</a></div>
+        <p>Dokumenti themelor për organizimin dhe funksionimin e shoqatës.</p>
       </div>
     </section>
 
-    <section class="section tone-white">
-      <div class="container statute-layout">
-        <section class="statute-intro" aria-labelledby="hyrje">
-          <p class="eyebrow">Dokumenti themelor</p>
-          <h2 id="hyrje">Hyrje</h2>
-          {introBody.map((paragraph) => <p>{paragraph}</p>)}
-        </section>
-
-        <nav class="statute-toc" id="permbajtja" aria-label="Përmbajtja e statutit">
-          <h2>Përmbajtja</h2>
-          <div class="statute-toc-grid">
-            {sections.map((section) => (
-              <details open>
-                <summary>{section.title}<small>Nenet {section.from}–{section.to}</small></summary>
-                <ol>
-                  {section.articles.map((article) => (
-                    <li><a href={`#neni-${article.number}`}><span>{article.number.toString().padStart(2, '0')}</span><span>{article.title}</span></a></li>
-                  ))}
-                </ol>
-              </details>
-            ))}
-          </div>
-        </nav>
-
-        <div class="statute-content">
-          {sections.map((section, index) => (
-            <section class="statute-section" aria-labelledby={section.id}>
-              <header class="statute-section-heading" id={section.id}>
-                <p class="eyebrow">Seksioni {index + 1} · Nenet {section.from}–{section.to}</p>
-                <h2>{section.title}</h2>
-              </header>
-              {section.articles.map((article) => (
-                <article class="statute-article" id={`neni-${article.number}`} aria-labelledby={`titulli-${article.number}`}>
-                  <header><a class="statute-article-number" href={`#neni-${article.number}`}>Neni {article.number}</a><h3 id={`titulli-${article.number}`}>{article.title}</h3></header>
-                  <div class="statute-clauses">
-                    {organizeClauses(article).map((clause) => (
-                      <section class:list={['statute-clause', { 'statute-subclause': clause.number.split('.').length > 3 }]} id={clause.id} aria-label={`Pika ${clause.number}`}>
-                        <a class="statute-point" href={`#${clause.id}`} aria-label={`Lidhja te pika ${clause.number}`}>{clause.number}</a>
-                        <div class="statute-clause-text">
-                          <p>{clause.introduction}</p>
-                          {clause.items.length > 0 && <ul>{clause.items.map((item) => <li>{item}</li>)}</ul>}
-                        </div>
-                      </section>
-                    ))}
-                  </div>
-                  <a class="statute-back" href="#permbajtja">↑ Kthehu te përmbajtja</a>
-                </article>
-              ))}
-            </section>
-          ))}
+    <section class="statute-body">
+      <div class="statute-document">
+        <div class="statute-introduction">
+          {introBody.map(paragraph => <p>{paragraph}</p>)}
         </div>
+
+        {sections.map(section => (
+          <section class="statute-section">
+            <h2>{section.title}</h2>
+            {section.articles.map(article => (
+              <article class="statute-article">
+                <h3><span>Neni {article.number}</span>{article.title}</h3>
+                <div class="statute-clauses">
+                  {organizeClauses(article).map(clause => (
+                    <div class="statute-clause">
+                      <p>
+                        {clause.number && <strong>{clause.number}</strong>}
+                        {clause.introduction}
+                      </p>
+                      {clause.items.length > 0 && (
+                        <ul>{clause.items.map(item => <li>{item}</li>)}</ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </section>
+        ))}
       </div>
     </section>
   </main>
@@ -81,54 +58,27 @@ const sections = statutiSections.map((section) => ({
 </BaseLayout>
 
 <style>
-  .statute-hero h1 { margin: 0; font-size: clamp(48px, 7vw, 80px); font-weight: 300; }
-  .statute-lead { max-width: 540px; color: #d8ced4; font-size: 18px; }
-  .statute-meta { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 32px; font-size: 15px; }
-  .statute-meta a { text-decoration: underline; text-underline-offset: 5px; }
-  .statute-layout { display: block; }
-  .statute-toc { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--line); }
-  .statute-toc h2 { margin: 0 0 20px; font-size: 23px; }
-  .statute-toc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; }
-  .statute-toc details { padding: 14px 0; border-top: 1px solid var(--line); }
-  .statute-toc summary { cursor: pointer; color: var(--accent-dark); font-size: 16px; font-weight: 700; }
-  .statute-toc small { display: block; margin: 5px 0 0 16px; color: var(--muted); font-size: 14px; font-weight: 400; }
-  .statute-toc ol { list-style: none; padding: 0; margin: 12px 0 0; }
-  .statute-toc a { display: grid; grid-template-columns: 24px 1fr; gap: 10px; padding: 12px 8px; border-radius: 5px; font-size: 14px; line-height: 1.6; }
-  .statute-toc a:hover { background: var(--soft); color: var(--accent); }
-  .statute-toc a span:first-child { color: var(--accent); font-variant-numeric: tabular-nums; }
-  .statute-content { min-width: 0; margin-top: 56px; }
-  .statute-intro { padding: 28px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); }
-  .statute-intro h2 { margin: 0 0 16px; font-size: 28px; }
-  .statute-intro p:not(.eyebrow), .statute-clause-text { font-size: 18px; line-height: 1.8; }
-  .statute-intro p:last-child { margin-bottom: 0; }
-  .statute-section { margin-top: 64px; }
-  .statute-section-heading { padding-bottom: 24px; border-bottom: 2px solid var(--accent); }
-  .statute-section-heading h2 { margin: 0; font-size: clamp(28px, 4vw, 36px); font-weight: 400; }
-  .statute-article { padding: 32px 0; border-bottom: 1px solid var(--line); }
-  .statute-article-number { color: var(--accent); font-size: 15px; font-weight: 700; }
-  .statute-article h3 { margin: 10px 0 24px; font-size: 24px; line-height: 1.45; font-weight: 600; overflow-wrap: anywhere; }
-  .statute-clause { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 16px; padding: 20px 0; }
-  .statute-clause + .statute-clause { border-top: 1px solid #eeeaed; }
-  .statute-point { color: var(--accent); font-size: 16px; font-weight: 700; padding-top: 4px; }
-  .statute-clause-text p { margin: 0; }
-  .statute-clause-text ul { list-style: none; padding: 0 0 0 18px; margin: 16px 0 0; border-left: 2px solid #e3d6df; }
-  .statute-clause-text li { padding: 10px 0; }
-  .statute-clause-text li + li { border-top: 1px solid #eeeaed; }
-  .statute-subclause { padding-left: 12px; }
-  .statute-back { display: inline-block; margin-top: 20px; color: var(--muted); font-size: 15px; }
-  .statute-back:hover, .statute-point:hover { color: var(--accent-dark); text-decoration: underline; }
-  :target { scroll-margin-top: 24px; }
-  .statute-clause:target { background: #f7f2f5; }
-  a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-  @media (max-width: 540px) {
-    .statute-intro { padding: 20px; }
-    .statute-toc-grid { grid-template-columns: 1fr; }
-    .statute-clause { grid-template-columns: 1fr; gap: 8px; }
-    .statute-section { margin-top: 44px; }
-  }
-  @media print {
-    .statute-toc, .statute-back, .statute-meta { display: none; }
-    .statute-section-heading, .statute-article header { break-after: avoid; }
-    .statute-clause { break-inside: avoid; }
-  }
+  .statute-page{color:var(--ink);background:var(--paper)}
+  .statute-document{width:min(100% - 40px,820px);margin-inline:auto}
+  .statute-hero{padding:88px 0 72px;color:#fff;background:var(--night)}
+  .statute-hero h1{margin:0;font-size:clamp(50px,8vw,78px);font-weight:300;line-height:1}
+  .statute-hero>div>p:last-child{max-width:580px;margin:22px 0 0;color:#ffffffb5;font-size:19px;line-height:1.7}
+  .statute-body{padding:72px 0 100px}
+  .statute-introduction{padding-bottom:42px;border-bottom:1px solid var(--line)}
+  .statute-introduction p{margin:0;color:var(--muted);font-size:18px;line-height:1.85}
+  .statute-introduction p+p{margin-top:14px}
+  .statute-section{padding-top:58px}
+  .statute-section+.statute-section{margin-top:34px;border-top:1px solid var(--line)}
+  .statute-section>h2{margin:0 0 38px;color:var(--accent-dark);font-size:clamp(28px,4vw,36px);font-weight:500;line-height:1.25}
+  .statute-article+.statute-article{margin-top:42px}
+  .statute-article h3{margin:0 0 17px;font-size:22px;font-weight:600;line-height:1.45}
+  .statute-article h3 span{display:block;margin-bottom:5px;color:var(--accent);font-size:14px;font-weight:700;text-transform:none}
+  .statute-clause+.statute-clause{margin-top:15px}
+  .statute-article p{margin:0;color:#3f4046;font-size:17px;line-height:1.85;overflow-wrap:anywhere}
+  .statute-clause p strong{margin-right:7px;color:var(--accent-dark);font-weight:700}
+  .statute-clause ul{margin:13px 0 0;padding:0;list-style:none}
+  .statute-clause li{padding:6px 0 6px 22px;color:#3f4046;font-size:17px;line-height:1.75;text-indent:-22px}
+  .statute-clause li+li{margin-top:4px}
+  @media(max-width:560px){.statute-document{width:min(100% - 30px,820px)}.statute-hero{padding:62px 0 54px}.statute-body{padding:52px 0 76px}.statute-section{padding-top:44px}.statute-section+.statute-section{margin-top:24px}.statute-article+.statute-article{margin-top:34px}.statute-article p{font-size:16px;line-height:1.8}}
+  @media print{.statute-hero{padding:20px 0;color:#000;background:#fff}.statute-body{padding-top:20px}.statute-section,.statute-article{break-inside:avoid}}
 </style>

@@ -8,10 +8,10 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "members:sync": "node scripts/sync-members.mjs",
-    "atlas:sync": "python3 scripts/sync-atlas.py"
+    "members:sync": "node --env-file-if-exists=.env scripts/sync-members.mjs"
   },
   "dependencies": {
-    "astro": "^7.2.2"
+    "astro": "^7.2.2",
+    "cytoscape": "^3.34.3"
   }
 }

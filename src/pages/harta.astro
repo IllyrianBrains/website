@@ -1,0 +1,201 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { cities } from '../data/cities';
+import { cityRegions } from '../data/regions';
+import { directoryMembers as members } from '../data/members';
+import { businesses } from '../data/businesses';
+import { partners } from '../data/partners';
+
+const regionBySlug = new Map(cityRegions.flatMap(region => region.citySlugs.map(slug => [slug, region])));
+const citiesWithRegion = cities.map(city => {
+  const region = regionBySlug.get(city.slug);
+  return { ...city, region: region?.name ?? '', color: region?.color ?? '#744761' };
+});
+
+// Members/businesses/partners record city as free text (from the forum sync, or
+// hand-entered), which doesn't always match the name used in cities.csv — e.g. an
+// English exonym ("Rome") vs. the local spelling ("Roma"). Normalize and alias
+// known cases so they land on the right marker instead of being silently dropped.
+const normalize = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const cityAliases: Record<string, string> = {
+  florence: 'firenze',
+  genoa: 'genova',
+  milan: 'milano',
+  rome: 'roma',
+  nuremberg: 'nurnberg',
+  'city of london': 'london',
+  'greater london': 'london',
+};
+const cityByKey = new Map<string, (typeof citiesWithRegion)[number]>();
+for (const city of citiesWithRegion) {
+  const keys = new Set([normalize(city.slug), ...city.city.split('/').map(part => normalize(part))]);
+  keys.forEach(key => cityByKey.set(key, city));
+}
+function matchCity(name?: string) {
+  if (!name) return undefined;
+  const key = normalize(name);
+  return cityByKey.get(cityAliases[key] ?? key);
+}
+
+const membersByCity = new Map<string, number>();
+let unmatchedMembers = 0;
+for (const member of members) {
+  const city = matchCity(member.city);
+  if (!city) { if (member.city) unmatchedMembers++; continue; }
+  membersByCity.set(city.slug, (membersByCity.get(city.slug) ?? 0) + 1);
+}
+
+const businessesByCity = new Map<string, { name: string; website?: string }[]>();
+for (const business of businesses) {
+  const city = matchCity(business.city);
+  if (!city) continue;
+  const list = businessesByCity.get(city.slug) ?? [];
+  list.push({ name: business.name, website: business.website });
+  businessesByCity.set(city.slug, list);
+}
+
+const partnersByCity = new Map<string, { name: string; website?: string; type: 'partner' | 'ngo' }[]>();
+for (const partner of partners) {
+  const city = matchCity(partner.city);
+  if (!city) continue;
+  const list = partnersByCity.get(city.slug) ?? [];
+  list.push({ name: partner.name, website: partner.website || partner.linkedin, type: partner.type });
+  partnersByCity.set(city.slug, list);
+}
+
+const mapCities = citiesWithRegion.map(city => ({
+  ...city,
+  memberCount: membersByCity.get(city.slug) ?? 0,
+  businesses: businessesByCity.get(city.slug) ?? [],
+  partners: partnersByCity.get(city.slug) ?? [],
+}));
+
+const totalMappedMembers = members.length - unmatchedMembers;
+const totalCitiesWithPeople = mapCities.filter(city => city.memberCount > 0).length;
+---
+<BaseLayout title="Harta · Illyrian Brains" description="Anëtarët, organizatat partnere dhe bizneset e rrjetit Illyrian Brains, qytet pas qyteti, në një hartë të vetme.">
+  <Header />
+  <main class="network-page">
+    <section class="section tone-dark"><div class="container city-page">
+      <p class="eyebrow">Illyrian Brains Network</p>
+      <h1>Harta e komunitetit.</h1>
+      <p class="about-body">Anëtarët, organizatat partnere dhe bizneset e rrjetit, të vendosura sipas qytetit ku janë. Zgjidh një qytet për të parë kush është aty.</p>
+    </div></section>
+
+    <section class="section tone-white"><div class="container">
+      <div class="member-stats">
+        <div><strong>{totalMappedMembers}</strong><span>Anëtarë të hartëzuar</span></div>
+        <div><strong>{businesses.length}</strong><span>Biznese</span></div>
+        <div><strong>{partners.length}</strong><span>OJF Partnere</span></div>
+        <div><strong>{totalCitiesWithPeople}</strong><span>Qytete me anëtarë</span></div>
+      </div>
+
+      <div class="map-legend">
+        {cityRegions.map(region => <span class="map-legend-item"><span class="map-legend-dot" style={`background:${region.color}`} aria-hidden="true"></span>{region.name}</span>)}
+      </div>
+
+      <div class="map-layer-filters" aria-label="Filtro çfarë përfshihet në hartë">
+        <div><p class="eyebrow">Përfshi në hartë</p><span id="map-filter-status">4 nga 4 lloje aktive</span></div>
+        <div class="map-layer-actions">
+          <button type="button" class="is-active" data-map-layer="city" aria-pressed="true"><i class="map-layer-dot city"></i>Qytete</button>
+          <button type="button" class="is-active" data-map-layer="member" aria-pressed="true"><i class="map-layer-dot member"></i>Anëtarë</button>
+          <button type="button" class="is-active" data-map-layer="business" aria-pressed="true"><i class="map-layer-dot business"></i>Biznese</button>
+          <button type="button" class="is-active" data-map-layer="ngo" aria-pressed="true"><i class="map-layer-dot ngo"></i>OJF Partnere</button>
+        </div>
+      </div>
+
+      <div class="community-map-layout">
+        <div id="community-map" data-cities={JSON.stringify(mapCities)} aria-label="Harta e anëtarëve, bizneseve dhe organizatave partnere të Illyrian Brains, sipas qytetit"></div>
+      </div>
+
+      {unmatchedMembers > 0 && (
+        <p class="map-footnote">Qyteti bazohet në atë të vetëdeklaruar në forum; {unmatchedMembers} anëtarë jetojnë në qytete pa kapitull të Illyrian Brains ende dhe nuk shfaqen në hartë.</p>
+      )}
+    </div></section>
+  </main>
+  <Footer />
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    const mapElement = document.querySelector('#community-map');
+    if (mapElement && window.L) {
+      const cityData = JSON.parse(mapElement.dataset.cities || '[]');
+      const map = L.map(mapElement, { scrollWheelZoom: true, doubleClickZoom: true, touchZoom: true, zoomControl: true }).setView([44, 8], 3);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      const activeLayers = new Set(['city', 'member', 'business', 'ngo']);
+      const layerButtons = Array.from(document.querySelectorAll('[data-map-layer]'));
+      const filterStatus = document.querySelector('#map-filter-status');
+      const orgsOf = (city) => [
+        ...city.partners.filter((partner) => activeLayers.has('ngo')).map((partner) => ({ ...partner, tag: 'Organizatë Partnere' })),
+        ...city.businesses.filter(() => activeLayers.has('business')).map((business) => ({ ...business, tag: 'Biznes' })),
+      ];
+      const popupHtml = (city) => {
+        const orgs = orgsOf(city);
+        const orgList = orgs.length
+          ? `<ul class="map-popup-orgs">${orgs.map((org) => `<li>${org.website ? `<a href="${org.website}" target="_blank" rel="noreferrer">${org.name}</a>` : org.name} <em>${org.tag}</em></li>`).join('')}</ul>`
+          : '';
+        const memberCount = activeLayers.has('member') ? city.memberCount : 0;
+        const summaryParts = [];
+        if (activeLayers.has('member')) summaryParts.push(`${memberCount} anëtar${memberCount === 1 ? '' : 'ë'}`);
+        if (orgs.length) summaryParts.push(`${orgs.length} organizata`);
+        const summary = summaryParts.join(' · ') || 'Vetëm qyteti';
+        return `<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>${summary}</small>${orgList}<a class="map-popup-link" href="/qytetet/${city.slug}/">Shiko qytetin ↗</a></div>`;
+      };
+
+      const markers = cityData.map((city) => {
+        const isInactive = city.status === 'inactive';
+        const total = city.memberCount + city.businesses.length + city.partners.length;
+        const radius = Math.min(22, 7 + Math.sqrt(total) * 3.4);
+        const marker = L.circleMarker([city.lat, city.lng], {
+          radius, color: '#fff', weight: 2, opacity: .9,
+          fillColor: isInactive ? '#9a9ba3' : city.color, fillOpacity: isInactive ? .5 : .85
+        })
+          .bindTooltip(`<div class="map-city-tooltip"><strong>${city.city}</strong><span>${city.memberCount} anëtarë${isInactive ? ' · jo aktive' : ''}</span></div>`, { direction: 'top', offset: [0, -10], opacity: .96 })
+          .bindPopup(popupHtml(city));
+        return { city, marker };
+      });
+      const refreshMarkers = () => {
+        markers.forEach(({ city, marker }) => {
+          const hasMembers = activeLayers.has('member') && city.memberCount > 0;
+          const hasOrganizations = (activeLayers.has('ngo') && city.partners.length > 0) || (activeLayers.has('business') && city.businesses.length > 0);
+          const show = activeLayers.has('city') || hasMembers || hasOrganizations;
+          if (show) {
+            if (!map.hasLayer(marker)) marker.addTo(map);
+            marker.setPopupContent(popupHtml(city));
+          } else if (map.hasLayer(marker)) map.removeLayer(marker);
+        });
+        if (filterStatus) filterStatus.textContent = `${activeLayers.size} nga 4 lloje aktive`;
+      };
+      layerButtons.forEach((button) => button.addEventListener('click', () => {
+        const layer = button.dataset.mapLayer;
+        if (!layer) return;
+        if (activeLayers.has(layer)) activeLayers.delete(layer); else activeLayers.add(layer);
+        button.classList.toggle('is-active', activeLayers.has(layer));
+        button.setAttribute('aria-pressed', String(activeLayers.has(layer)));
+        refreshMarkers();
+      }));
+      refreshMarkers();
+      // Fit to the European cluster specifically rather than every marker — most
+      // cities are in Europe, and including the North American / Middle East
+      // outliers in the bounds zooms the map out so far that the view is mostly
+      // open ocean. Those markers still render and are reachable by panning.
+      const isEurope = (city) => city.lat >= 34 && city.lat <= 71 && city.lng >= -25 && city.lng <= 45;
+      const europeMarkers = markers.filter(({ city }) => isEurope(city)).map(({ marker }) => marker);
+      const fitMarkers = europeMarkers.length ? europeMarkers : markers.map(({ marker }) => marker);
+      if (fitMarkers.length) map.fitBounds(L.featureGroup(fitMarkers).getBounds(), { padding: [34, 34] });
+    }
+  </script>
+</BaseLayout>
+<style>
+  .map-footnote { max-width: 68ch; margin-top: 18px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .map-popup-orgs { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 0; padding: 8px 0 0; border-top: 1px solid var(--line); list-style: none; }
+  .map-popup-orgs li { display: flex; align-items: baseline; gap: 6px; font-size: 12px; }
+  .map-popup-orgs a { color: var(--accent-dark); font-weight: 700; }
+  .map-popup-orgs em { color: var(--muted); font-size: 10px; font-style: normal; text-transform: uppercase; letter-spacing: .06em; }
+  .map-layer-filters{display:flex;align-items:center;justify-content:space-between;gap:28px;margin:28px 0 16px;padding:18px 20px;border:1px solid var(--line);border-radius:12px;background:var(--soft)}.map-layer-filters .eyebrow{margin:0 0 3px}.map-layer-filters>div>span{color:var(--muted);font-size:11px}.map-layer-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}.map-layer-actions button{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:#fff;font:700 12px var(--font-body);cursor:pointer;transition:.18s ease}.map-layer-actions button.is-active{color:#fff;border-color:var(--ink);background:var(--ink)}.map-layer-dot{width:8px;height:8px;border-radius:50%;background:#9a9ba3}.map-layer-dot.member{background:#744761}.map-layer-dot.business{background:#293f52}.map-layer-dot.ngo{background:#b98545}@media(max-width:720px){.map-layer-filters{align-items:flex-start;flex-direction:column}.map-layer-actions{justify-content:flex-start}}
+</style>

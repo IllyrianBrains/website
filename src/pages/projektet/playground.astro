@@ -253,17 +253,48 @@ const speedSortItems = [
 ---
 <BaseLayout title="Playground · Illyrian Brains" description="Playground — lojëra të krijuara nga komuniteti i Illyrian Brains.">
   <Header />
-  <main>
-    <section class="section tone-dark">
+  <main class="playground-page">
+    <section class="section tone-dark playground-hero">
       <div class="container city-page">
         <p class="eyebrow">Projektet</p>
         <h1>Playground</h1>
-        <p class="about-body">Lojëra të krijuara nga komuniteti — një kënd argëtimi ku anëtarët eksperimentojnë dhe ndajnë atë që ndërtojnë për qejf.</p>
+        <p class="about-body">Zgjidh një lojë, sfido veten dhe mëso diçka të re. Çdo eksperiencë luhet veçmas — pa shpërqendrime.</p>
       </div>
     </section>
 
-    <section class="section tone-grey">
+    <section class="section tone-grey playground-library" id="lojerat">
       <div class="container">
+        <div class="playground-library-heading">
+          <div><p class="eyebrow">Zgjidh eksperiencën</p><h2>Çfarë do të luash?</h2></div>
+          <p>11 eksperienca të shkurtra për dije, reagim dhe biseda më të mira.</p>
+        </div>
+        <div class="play-category">
+          <div class="play-category-heading"><span>01</span><div><h3>Lojëra</h3><p>Sfida interaktive për kujtesën dhe reagimin.</p></div></div>
+          <div class="play-menu play-menu-games">
+            <a class="play-menu-card play-menu-card-featured" href="#perputh-ciftet" data-open-play="perputh-ciftet"><span class="play-menu-icon">◫</span><span><small>Lojë kujtese · 3–5 min</small><strong>Përputh Çiftet</strong><em>Lidh qytetet e rrjetit me shtetet e tyre.</em></span><b>Luaj →</b></a>
+            <a class="play-menu-card play-menu-card-featured" href="#urgjente" data-open-play="urgjente"><span class="play-menu-icon">⚡</span><span><small>Lojë shpejtësie · 2 min</small><strong>Urgjente apo Mund të Presë?</strong><em>Klasifiko situatat para se të mbarojë koha.</em></span><b>Luaj →</b></a>
+          </div>
+        </div>
+        <div class="play-category play-category-quizzes">
+          <div class="play-category-heading"><span>02</span><div><h3>Kuize</h3><p>Teste të shkurtra me pesë pyetje, të ndara sipas temës.</p></div></div>
+          <div class="play-menu">
+            {quizzes.map((quiz) => <a class="play-menu-card" href={`#${quiz.id}`} data-open-play={quiz.id}><span class="play-menu-icon">{quiz.icon}</span><span><small>Kuiz · 5 pyetje</small><strong>{quiz.title}</strong><em>{quiz.blurb}</em></span><b>Fillo kuizin →</b></a>)}
+          </div>
+        </div>
+        <div class="play-category">
+          <div class="play-category-heading"><span>03</span><div><h3>Mjete</h3><p>Ide praktike për planifikim dhe komunikim.</p></div></div>
+          <div class="play-menu">
+            <a class="play-menu-card" href="#investo" data-open-play="investo"><span class="play-menu-icon">◎</span><span><small>Simulator · 3 min</small><strong>Investo në Vend</strong><em>Ndaj buxhetin dhe zbulo strategjinë tënde.</em></span><b>Provo →</b></a>
+            <a class="play-menu-card" href="#icebreaker" data-open-play="icebreaker"><span class="play-menu-icon">✦</span><span><small>Mjet social · 1 min</small><strong>Icebreaker Roulette</strong><em>Gjej pyetjen e radhës për të hapur bisedën.</em></span><b>Rrotullo →</b></a>
+            <a class="play-menu-card" href="#pitch" data-open-play="pitch"><span class="play-menu-icon">↗</span><span><small>Mjet profesional · 2 min</small><strong>Ndërto Pitch-in Tënd</strong><em>Krijo një prezantim të shkurtër për eventin tjetër.</em></span><b>Krijo →</b></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tone-grey play-panel" id="perputh-ciftet" data-play-panel>
+      <div class="container">
+        <a class="play-back" href="#lojerat">← Të gjitha lojërat</a>
         <h2 class="playground-heading">Përputh Çiftet</h2>
         <p class="about-body">Kthe kartat dhe përputh çdo qytet me vendin e tij. Sa më pak lëvizje, aq më mirë.</p>
         <div class="memory-game" id="memory-game" data-pairs={JSON.stringify(memoryPairs)}>
@@ -277,8 +308,9 @@ const speedSortItems = [
       </div>
     </section>
 
-    <section class="section tone-dark">
+    <section class="section tone-dark play-panel" id="urgjente" data-play-panel>
       <div class="container">
+        <a class="play-back play-back-light" href="#lojerat">← Të gjitha lojërat</a>
         <h2 class="playground-heading">Urgjente apo Mund të Presë?</h2>
         <p class="about-body">Klasifiko çdo situatë para se të mbarojë koha. Tri gabime dhe loja mbaron.</p>
         <div class="speed-game" id="speed-game" data-items={JSON.stringify(speedSortItems)}>
@@ -295,15 +327,17 @@ const speedSortItems = [
       </div>
     </section>
 
-    <section class="section tone-white">
+    <section class="section tone-white play-panel quiz-panel" id="kuizet" data-play-panel>
       <div class="container">
-        <h2 class="playground-heading">Kuize të shpejta</h2>
+        <a class="play-back" href="#lojerat">← Të gjitha lojërat</a>
         <div class="quiz-grid">
           {quizzes.map((quiz) => (
-            <article class="quiz-card" data-quiz={JSON.stringify(quiz.questions)}>
+            <article class="quiz-card" data-quiz={JSON.stringify(quiz.questions)} data-quiz-id={quiz.id}>
               <div class="quiz-icon" aria-hidden="true">{quiz.icon}</div>
+              <p class="quiz-kicker">Kuiz i shpejtë · 5 pyetje</p>
               <h3>{quiz.title}</h3>
               <p class="quiz-blurb">{quiz.blurb}</p>
+              <p class="quiz-instruction">Zgjidh një përgjigje për çdo pyetje. Rezultati dhe përgjigjet e sakta shfaqen në fund.</p>
               <form class="quiz-form">
                 {quiz.questions.map((question, qIndex) => (
                   <fieldset class="quiz-question">
@@ -326,8 +360,9 @@ const speedSortItems = [
       </div>
     </section>
 
-    <section class="section tone-grey">
+    <section class="section tone-grey play-panel" id="investo" data-play-panel>
       <div class="container">
+        <a class="play-back" href="#lojerat">← Të gjitha lojërat</a>
         <h2 class="playground-heading">Investo në Vend</h2>
         <p class="about-body">Ke 100 pikë buxheti për katër sektorë. Ndaji si të duash dhe shiko çfarë lloj vendi ndërton strategjia jote.</p>
         <div class="invest-game" id="invest-game">
@@ -361,8 +396,9 @@ const speedSortItems = [
       </div>
     </section>
 
-    <section class="section tone-dark">
+    <section class="section tone-dark play-panel" id="icebreaker" data-play-panel>
       <div class="container">
+        <a class="play-back play-back-light" href="#lojerat">← Të gjitha lojërat</a>
         <h2 class="playground-heading">Icebreaker Roulette</h2>
         <p class="about-body">Shtyp butonin dhe merr një pyetje për ta hapur bisedën në takimin tjetër.</p>
         <div class="icebreaker" id="icebreaker" data-prompts={JSON.stringify(icebreakers)}>
@@ -372,8 +408,9 @@ const speedSortItems = [
       </div>
     </section>
 
-    <section class="section tone-white">
+    <section class="section tone-white play-panel" id="pitch" data-play-panel>
       <div class="container">
+        <a class="play-back" href="#lojerat">← Të gjitha lojërat</a>
         <h2 class="playground-heading">Ndërto Pitch-in Tënd</h2>
         <p class="about-body">Zgjidh rolin, fushën dhe qëllimin — merr një prezantim 10-sekondësh gati për eventin tjetër.</p>
         <div class="pitch-builder">
@@ -407,6 +444,39 @@ const speedSortItems = [
 </BaseLayout>
 
 <script>
+  // Focus mode: one game or quiz at a time, with shareable hash URLs.
+  const playPanels = Array.from(document.querySelectorAll<HTMLElement>('[data-play-panel]'));
+  const quizCards = Array.from(document.querySelectorAll<HTMLElement>('[data-quiz-id]'));
+  const library = document.querySelector<HTMLElement>('#lojerat');
+
+  const openPlay = (id: string, shouldScroll = true) => {
+    const selectedQuiz = quizCards.find((card) => card.dataset.quizId === id);
+    const activePanel = selectedQuiz ? document.querySelector<HTMLElement>('#kuizet') : playPanels.find((panel) => panel.id === id);
+    playPanels.forEach((panel) => panel.classList.toggle('is-active', panel === activePanel));
+    quizCards.forEach((card) => card.classList.toggle('is-active', card === selectedQuiz));
+    library?.classList.toggle('is-hidden', Boolean(activePanel));
+    document.querySelector<HTMLElement>('.playground-hero')?.classList.toggle('is-hidden', Boolean(activePanel));
+    if (shouldScroll) (activePanel ?? library)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  document.querySelectorAll<HTMLAnchorElement>('[data-open-play]').forEach((link) => link.addEventListener('click', (event) => {
+    event.preventDefault();
+    const id = link.dataset.openPlay;
+    if (!id) return;
+    history.pushState(null, '', `#${id}`);
+    openPlay(id);
+  }));
+
+  document.querySelectorAll<HTMLAnchorElement>('.play-back').forEach((link) => link.addEventListener('click', (event) => {
+    event.preventDefault();
+    history.pushState(null, '', '#lojerat');
+    openPlay('');
+  }));
+
+  window.addEventListener('popstate', () => openPlay(location.hash.slice(1)));
+  const initialPlay = location.hash.slice(1);
+  if (initialPlay && initialPlay !== 'lojerat') openPlay(initialPlay, false);
+
   // Memory match
   const memoryGameEl = document.querySelector<HTMLElement>('#memory-game');
   if (memoryGameEl) {
