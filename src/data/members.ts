@@ -9,6 +9,10 @@ export interface Member {
   city?: string;
   country?: string;
   fieldsOfExpertise?: string[];
+  bio?: string;
+  title?: string;
+  website?: string;
+  profileSynced?: boolean;
   since: number;
   avatar?: string;
   groups: string[];

@@ -20,7 +20,7 @@ const pages = [
 ];
 const searchIndex = [
   ...cities.map(city => ({ title: city.city, type: 'Qytet', url: `/qytetet/${city.slug}/`, keywords: city.country, priority: 0 })),
-  ...members.map(member => ({ title: member.name, type: 'Anëtar', url: member.profileUrl, keywords: `${member.username} ${(member.fieldsOfExpertise || []).join(' ')} ${member.city || ''} ${member.country || ''} ${member.groups.join(' ')}`, external: true, priority: 1 })),
+  ...members.map(member => ({ title: member.name, type: 'Anëtar', url: member.profileUrl, keywords: `${member.username} ${member.title || ''} ${member.bio || ''} ${(member.fieldsOfExpertise || []).join(' ')} ${member.city || ''} ${member.country || ''} ${member.groups.join(' ')}`, priority: 1, member: { username: member.username, city: member.city || '', country: member.country || '', expertise: member.fieldsOfExpertise || [], groups: member.groups, since: member.since, avatar: member.avatar || '', profileUrl: member.profileUrl, bio: member.bio || '', title: member.title || '', website: member.website || '' } })),
   ...pages.map(page => ({ ...page, priority: 2 })),
 ];
 ---
@@ -34,7 +34,7 @@ const searchIndex = [
   <nav class="nav" id="site-nav" aria-label="Navigimi kryesor">
     <div class="nav-item dropdown">
       <button class="dropdown-toggle" type="button" aria-expanded="false" aria-controls="rrjeti-menu">
-        Rrjeti
+        Rrjeti<span class="nav-caret" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
       </button>
       <ul class="dropdown-menu" id="rrjeti-menu">
         <li><a href="/qytetet/">Qytetet</a></li>
@@ -46,7 +46,7 @@ const searchIndex = [
     <a href="/eventet/">Eventet</a>
     <div class="nav-item dropdown">
       <button class="dropdown-toggle" type="button" aria-expanded="false" aria-controls="projektet-menu">
-        Projektet
+        Projektet<span class="nav-caret" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
       </button>
       <ul class="dropdown-menu" id="projektet-menu">
         <li><a href="https://atlas.illyrianbrains.org/" target="_blank" rel="noreferrer">Atlas ↗</a></li>
@@ -58,7 +58,7 @@ const searchIndex = [
     </div>
     <div class="nav-item dropdown">
       <button class="dropdown-toggle" type="button" aria-expanded="false" aria-controls="rreth-nesh-menu">
-        Rreth Nesh
+        Rreth Nesh<span class="nav-caret" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
       </button>
       <ul class="dropdown-menu" id="rreth-nesh-menu">
         <li><a href="/misioni/">Misioni</a></li>
@@ -66,17 +66,19 @@ const searchIndex = [
         <li><a href="/statuti/">Statuti</a></li>
       </ul>
     </div>
-    <div class="social-links" aria-label="Rrjetet sociale">
-      <a class="social-link" href="https://www.linkedin.com/company/illyrian-brains/" target="_blank" rel="noreferrer" aria-label="Illyrian Brains në LinkedIn">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 8.5H3.2V19h3.3V8.5ZM4.85 3.2a1.9 1.9 0 1 0 0 3.8 1.9 1.9 0 0 0 0-3.8ZM19.8 13.1c0-3.2-1.7-4.9-4.1-4.9-1.9 0-2.75 1.05-3.23 1.78V8.5H9.2V19h3.27v-5.2c0-1.37.26-2.7 1.96-2.7 1.68 0 1.7 1.57 1.7 2.8V19h3.27l.4-5.9Z"/></svg>
-      </a>
-      <a class="social-link" href="https://www.instagram.com/illyrianbrains/" target="_blank" rel="noreferrer" aria-label="Illyrian Brains në Instagram">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle class="instagram-dot" cx="17.4" cy="6.8" r="1"/></svg>
-      </a>
+    <div class="nav-meta">
+      <div class="social-links" aria-label="Rrjetet sociale">
+        <a class="social-link" href="https://www.linkedin.com/company/illyrian-brains/" target="_blank" rel="noreferrer" aria-label="Illyrian Brains në LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 8.5H3.2V19h3.3V8.5ZM4.85 3.2a1.9 1.9 0 1 0 0 3.8 1.9 1.9 0 0 0 0-3.8ZM19.8 13.1c0-3.2-1.7-4.9-4.1-4.9-1.9 0-2.75 1.05-3.23 1.78V8.5H9.2V19h3.27v-5.2c0-1.37.26-2.7 1.96-2.7 1.68 0 1.7 1.57 1.7 2.8V19h3.27l.4-5.9Z"/></svg>
+        </a>
+        <a class="social-link" href="https://www.instagram.com/illyrianbrains/" target="_blank" rel="noreferrer" aria-label="Illyrian Brains në Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle class="instagram-dot" cx="17.4" cy="6.8" r="1"/></svg>
+        </a>
+      </div>
+      <button class="site-search-open" type="button" aria-label="Kërko në faqe" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.7"/><path d="m16 16 4.3 4.3"/></svg>
+      </button>
     </div>
-    <button class="site-search-open" type="button" aria-label="Kërko në faqe" aria-haspopup="dialog">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.7"/><path d="m16 16 4.3 4.3"/></svg>
-    </button>
     <a class="nav-cta" href="/anetaresohu/">Anëtarësohu!</a>
   </nav>
 </header>
@@ -109,12 +111,17 @@ const searchIndex = [
   toggle?.addEventListener('click', () => {
     const isOpen = nav?.classList.toggle('nav-open') ?? false;
     toggle.setAttribute('aria-expanded', String(isOpen));
+    // Lock background scroll while the mobile menu is open — otherwise the page
+    // behind it scrolls (the menu doesn't cover the full viewport), which looks
+    // broken and lets you scroll the hero content underneath the open menu.
+    document.body.style.overflow = isOpen ? 'hidden' : '';
   });
 
   nav?.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', () => {
       nav.classList.remove('nav-open');
       toggle?.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
     });
   });
 
@@ -149,14 +156,29 @@ const searchIndex = [
     const terms = query.split(/\s+/).filter(Boolean);
     const matches = searchData.map((item:any) => { const text=normalize(`${item.title} ${item.type} ${item.keywords||''}`); const score=terms.reduce((sum:number,term:string)=>sum+(normalize(item.title).startsWith(term)?4:text.includes(term)?1:-20),0); return {...item,score}; }).filter((item:any)=>item.score>=terms.length).sort((a:any,b:any)=>(a.priority??2)-(b.priority??2)||b.score-a.score||a.title.localeCompare(b.title,'sq')).slice(0,16);
     searchStatus.textContent = matches.length ? `${matches.length} rezultate` : 'Nuk u gjet asnjë rezultat. Provo një fjalë tjetër.';
-    searchResults.innerHTML = matches.map((item:any) => `<a class="site-search-result" href="${encodeURI(item.url)}"${item.external?' target="_blank" rel="noreferrer"':''}><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.type)}</small></span><b aria-hidden="true">↗</b></a>`).join('');
+    searchResults.innerHTML = matches.map((item:any,index:number) => item.member
+      ? `<button class="site-search-result site-search-person" type="button" data-result-index="${index}"><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.type)}${item.member.city ? ` · ${escapeHtml(item.member.city)}` : ''}</small></span><b aria-hidden="true">→</b></button>`
+      : `<a class="site-search-result" href="${encodeURI(item.url)}"${item.external?' target="_blank" rel="noreferrer"':''}><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.type)}</small></span><b aria-hidden="true">↗</b></a>`).join('');
+    searchResults.querySelectorAll<HTMLButtonElement>('[data-result-index]').forEach(button => button.addEventListener('click', () => {
+      const item = matches[Number(button.dataset.resultIndex)];
+      if (!item?.member) return;
+      const member = item.member;
+      const initials = item.title.split(' ').map((part:string) => part[0]).join('').slice(0,2).toUpperCase();
+      searchResults.innerHTML = `<article class="site-search-profile"><button class="site-search-profile-back" type="button">← Kthehu te rezultatet</button><div class="site-search-profile-head">${member.avatar ? `<img src="${escapeHtml(member.avatar)}" alt="">` : `<span>${escapeHtml(initials)}</span>`}<div><small>Anëtar i komunitetit</small><h3>${escapeHtml(item.title)}</h3><p>${member.title ? escapeHtml(member.title) : `@${escapeHtml(member.username)}`}</p></div></div>${member.bio ? `<p class="site-search-profile-bio">${escapeHtml(member.bio)}</p>` : ''}<div class="site-search-profile-meta">${member.expertise.map((value:string) => `<span>${escapeHtml(value)}</span>`).join('')}${member.city ? `<span>${escapeHtml(member.city)}${member.country ? `, ${escapeHtml(member.country)}` : ''}</span>` : ''}<span>Anëtar që nga ${escapeHtml(String(member.since))}</span></div><div class="site-search-profile-actions">${member.website ? `<a class="partner-button" href="${encodeURI(member.website)}" target="_blank" rel="noreferrer">Faqja personale <span aria-hidden="true">↗</span></a>` : ''}<a class="partner-button" href="${encodeURI(member.profileUrl)}" target="_blank" rel="noreferrer">Profili në forum <span aria-hidden="true">↗</span></a></div></article>`;
+      searchStatus.textContent = 'Profili i anëtarit';
+      searchResults.querySelector<HTMLButtonElement>('.site-search-profile-back')?.addEventListener('click', renderSearch);
+    }));
   };
   searchOpen?.addEventListener('click', openSearch);
   searchClose?.addEventListener('click', closeSearch);
   searchOverlay?.addEventListener('click', event => { if (event.target === searchOverlay) closeSearch(); });
   searchInput?.addEventListener('input', renderSearch);
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') { closeDropdowns(); if (!searchOverlay?.hidden) closeSearch(); }
+    if (event.key === 'Escape') {
+      closeDropdowns();
+      if (!searchOverlay?.hidden) closeSearch();
+      if (nav?.classList.contains('nav-open')) { nav.classList.remove('nav-open'); toggle?.setAttribute('aria-expanded', 'false'); document.body.style.overflow = ''; }
+    }
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openSearch(); }
   });
 </script>
