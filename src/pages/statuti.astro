@@ -25,26 +25,29 @@ const sections = statutiSections.map((section) => ({
 
     <section class="section tone-white">
       <div class="container statute-layout">
+        <section class="statute-intro" aria-labelledby="hyrje">
+          <p class="eyebrow">Dokumenti themelor</p>
+          <h2 id="hyrje">Hyrje</h2>
+          {introBody.map((paragraph) => <p>{paragraph}</p>)}
+        </section>
+
         <nav class="statute-toc" id="permbajtja" aria-label="Përmbajtja e statutit">
           <h2>Përmbajtja</h2>
-          {sections.map((section) => (
-            <details open>
-              <summary>{section.title}<small>Nenet {section.from}–{section.to}</small></summary>
-              <ol>
-                {section.articles.map((article) => (
-                  <li><a href={`#neni-${article.number}`}><span>{article.number.toString().padStart(2, '0')}</span><span>{article.title}</span></a></li>
-                ))}
-              </ol>
-            </details>
-          ))}
+          <div class="statute-toc-grid">
+            {sections.map((section) => (
+              <details open>
+                <summary>{section.title}<small>Nenet {section.from}–{section.to}</small></summary>
+                <ol>
+                  {section.articles.map((article) => (
+                    <li><a href={`#neni-${article.number}`}><span>{article.number.toString().padStart(2, '0')}</span><span>{article.title}</span></a></li>
+                  ))}
+                </ol>
+              </details>
+            ))}
+          </div>
         </nav>
 
         <div class="statute-content">
-          <section class="statute-intro" aria-labelledby="hyrje">
-            <p class="eyebrow">Dokumenti themelor</p>
-            <h2 id="hyrje">Hyrje</h2>
-            {introBody.map((paragraph) => <p>{paragraph}</p>)}
-          </section>
           {sections.map((section, index) => (
             <section class="statute-section" aria-labelledby={section.id}>
               <header class="statute-section-heading" id={section.id}>
@@ -82,9 +85,10 @@ const sections = statutiSections.map((section) => ({
   .statute-lead { max-width: 540px; color: #d8ced4; font-size: 18px; }
   .statute-meta { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 32px; font-size: 15px; }
   .statute-meta a { text-decoration: underline; text-underline-offset: 5px; }
-  .statute-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: clamp(32px, 4vw, 56px); align-items: start; }
-  .statute-toc { position: sticky; top: 112px; max-height: calc(100vh - 136px); overflow-y: auto; padding-right: 16px; scrollbar-width: thin; }
+  .statute-layout { display: block; }
+  .statute-toc { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--line); }
   .statute-toc h2 { margin: 0 0 20px; font-size: 23px; }
+  .statute-toc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; }
   .statute-toc details { padding: 14px 0; border-top: 1px solid var(--line); }
   .statute-toc summary { cursor: pointer; color: var(--accent-dark); font-size: 16px; font-weight: 700; }
   .statute-toc small { display: block; margin: 5px 0 0 16px; color: var(--muted); font-size: 14px; font-weight: 400; }
@@ -92,7 +96,7 @@ const sections = statutiSections.map((section) => ({
   .statute-toc a { display: grid; grid-template-columns: 24px 1fr; gap: 10px; padding: 12px 8px; border-radius: 5px; font-size: 14px; line-height: 1.6; }
   .statute-toc a:hover { background: var(--soft); color: var(--accent); }
   .statute-toc a span:first-child { color: var(--accent); font-variant-numeric: tabular-nums; }
-  .statute-content { min-width: 0; }
+  .statute-content { min-width: 0; margin-top: 56px; }
   .statute-intro { padding: 28px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); }
   .statute-intro h2 { margin: 0 0 16px; font-size: 28px; }
   .statute-intro p:not(.eyebrow), .statute-clause-text { font-size: 18px; line-height: 1.8; }
@@ -116,18 +120,14 @@ const sections = statutiSections.map((section) => ({
   :target { scroll-margin-top: 24px; }
   .statute-clause:target { background: #f7f2f5; }
   a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-  @media (max-width: 1000px) {
-    .statute-layout { grid-template-columns: 1fr; }
-    .statute-toc { position: static; max-height: none; padding: 24px; border: 1px solid var(--line); border-radius: 12px; }
-  }
   @media (max-width: 540px) {
     .statute-intro { padding: 20px; }
+    .statute-toc-grid { grid-template-columns: 1fr; }
     .statute-clause { grid-template-columns: 1fr; gap: 8px; }
     .statute-section { margin-top: 44px; }
   }
   @media print {
     .statute-toc, .statute-back, .statute-meta { display: none; }
-    .statute-layout { display: block; }
     .statute-section-heading, .statute-article header { break-after: avoid; }
     .statute-clause { break-inside: avoid; }
   }

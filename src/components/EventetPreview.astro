@@ -1,15 +1,40 @@
 ---
 import SectionTitle from './SectionTitle.astro';
-import EventCards from './EventCards.astro';
-import { events } from '../data/events';
-const now = Date.now();
-const upcoming = events.filter((event) => new Date(event.end || event.start).getTime() >= now);
-const past = events.filter((event) => new Date(event.end || event.start).getTime() < now).sort((a,b) => new Date(b.start).getTime() - new Date(a.start).getTime());
+const lumaEmbedUrl = 'https://luma.com/embed/calendar/cal-FWG6Cxwu8MbfxIl/events';
 ---
-<section class="section grid-surface tone-dark">
+<section class="section grid-surface tone-dark events-intro">
   <div class="container">
-    <SectionTitle kicker="Eventet" title="Takohemi rregullisht." text="Nga takimet lokale dhe aktivitetet sociale te workshop-et, diskutimet dhe konferencat — eventet tona krijohen nga vetë komuniteti." />
-    <EventCards items={upcoming} emptyText="Eventet e ardhshme do të publikohen së shpejti." />
+    <SectionTitle kicker="Eventet" title="Takohemi rregullisht." text="Nga takimet lokale dhe aktivitetet sociale te workshop-et, diskutimet dhe konferencat — eventet tona krijohen nga vetë komuniteti. Eventet dhe regjistrimet menaxhohen përmes Luma." />
   </div>
 </section>
-{past.length > 0 && <section class="section tone-white"><div class="container"><SectionTitle kicker="Arkivi" title="Eventet e kaluara." text="Takime dhe aktivitete të zhvilluara nga komunitetet tona."/><EventCards items={past}/></div></section>}
+
+<section class="section tone-white events-calendar-section">
+  <div class="container">
+    <div class="events-calendar-heading">
+      <div>
+        <p class="eyebrow">Kalendari</p>
+        <h2>Eventet e ardhshme.</h2>
+      </div>
+      <p>Zgjidh një event për të parë hollësitë dhe për t’u regjistruar përmes Luma.</p>
+    </div>
+    <div class="luma-embed">
+      <iframe src={lumaEmbedUrl} width="600" height="650" frameborder="0" allowfullscreen aria-hidden="false" tabindex="0" title="Kalendari i eventeve të Illyrian Brains"></iframe>
+    </div>
+    <a class="partner-button" href={lumaEmbedUrl} target="_blank" rel="noreferrer">Hap kalendarin e plotë <span aria-hidden="true">↗</span></a>
+  </div>
+</section>
+
+<style>
+  .events-intro { padding-block: clamp(88px, 11vw, 140px); }
+  .events-intro :global(.section-title) { max-width: 820px; }
+  .events-calendar-heading { display: grid; grid-template-columns: 1fr minmax(280px, 430px); gap: 48px; align-items: end; margin-bottom: 38px; }
+  .events-calendar-heading h2 { margin: 0; font-size: clamp(38px, 5vw, 58px); font-weight: 400; line-height: 1.08; }
+  .events-calendar-heading > p { margin: 0; color: var(--muted); font-size: 18px; line-height: 1.75; }
+  .events-calendar-section .luma-embed { max-width: none; margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: #fff; box-shadow: 0 18px 50px rgba(23,24,29,.06); }
+  .events-calendar-section .luma-embed iframe { width: 100%; height: min(720px, 78vh); min-height: 560px; border: 0; border-radius: 8px; background: #fff; }
+  @media (max-width: 760px) {
+    .events-calendar-heading { grid-template-columns: 1fr; gap: 18px; }
+    .events-calendar-section .luma-embed { padding: 5px; }
+    .events-calendar-section .luma-embed iframe { min-height: 620px; }
+  }
+</style>

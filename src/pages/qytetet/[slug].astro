@@ -4,8 +4,6 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import JoinCTA from '../../components/JoinCTA.astro';
 import { cities, defaultCityImage } from '../../data/cities';
-import EventCards from '../../components/EventCards.astro';
-import { eventsForCity, cityActivity, activityLabels } from '../../data/events';
 
 const htmlFiles = import.meta.glob('../../data/cities-content/*.html', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 const contentBySlug: Record<string, string> = {};
@@ -19,46 +17,132 @@ export function getStaticPaths() {
 }
 
 const { city } = Astro.props;
-const cityEvents = eventsForCity(city.slug);
-const activity = cityActivity[city.slug];
-const communityHtml = contentBySlug[city.slug];
+const rawCommunityHtml = contentBySlug[city.slug] || '';
+const getImageAttribute = (tag: string, name: string) => tag.match(new RegExp(`${name}=["']([^"']*)["']`, 'i'))?.[1] || '';
+const cityPhotos = [...rawCommunityHtml.matchAll(/<img\b[^>]*>/gi)].map(match => ({ src: getImageAttribute(match[0], 'src'), alt: getImageAttribute(match[0], 'alt') })).filter(photo => photo.src);
+const communityHtml = rawCommunityHtml
+  .replace(/<img\b[^>]*>/gi, '')
+  .replace(/<p>\s*(?:<br\s*\/?\s*>\s*)*<\/p>/gi, '')
+  .replace(/<div>\s*<\/div>/gi, '');
+const sectionPattern = /<h[23][^>]*>([\s\S]*?)<\/h[23]>/gi;
+const matches = communityHtml ? [...communityHtml.matchAll(sectionPattern)] : [];
+const cleanTitle = (html: string) => html.replace(/<[^>]+>/g, '').trim();
+const communityIntro = communityHtml ? communityHtml.slice(0, matches[0]?.index ?? communityHtml.length).trim() : '';
+const communitySections = matches.map((match, index) => ({
+  title: cleanTitle(match[1]),
+  html: communityHtml.slice((match.index ?? 0) + match[0].length, matches[index + 1]?.index ?? communityHtml.length).trim(),
+})).filter(section => section.title || section.html);
 ---
 <BaseLayout title={`Illyrian Brains ${city.city}`} description={`Komuniteti shqiptar i profesionistëve në ${city.city}.`}>
   <Header />
-  <main>
-    <section class="section tone-dark">
-      <div class="container city-page">
-        <img class="city-hero-image" src={encodeURI(city.image || defaultCityImage)} alt={city.image ? `Komuniteti Illyrian Brains në ${city.city}` : ""} loading="lazy" />
-        <p class="eyebrow">{city.country}</p>
-        <h1>Illyrian Brains {city.city}</h1>
-        <p class="about-body">Komuniteti shqiptar i profesionistëve në {city.city}.</p>
-        <div class="city-summary-facts"><span>{cityEvents.length} evente</span>{activity && <span>{activityLabels[activity]}</span>}</div>
-
-        <div class="city-block"><h2>Eventet</h2><EventCards items={cityEvents} emptyText="Ky komunitet nuk ka ende evente të publikuara." /></div>
-
-        {city.activities && city.activities.length > 0 && (
-          <div class="city-block">
-            <h2>Komunitetet / aktivitetet</h2>
-            <ul class="city-activities">
-              {city.activities.map((activity) => <li>{activity}</li>)}
-            </ul>
+  <main class="city-detail-page">
+    <section class="section tone-dark city-detail-hero">
+      <div class="container">
+        <a class="city-back-link" href="/rrjeti/#qytetet"><span aria-hidden="true">←</span> Të gjitha qytetet</a>
+        <div class="city-hero-layout">
+          <div class="city-hero-copy">
+            <p class="eyebrow">{city.country}</p>
+            <h1>Illyrian Brains<br /><span>{city.city}</span></h1>
+            <p>Komuniteti shqiptar i profesionistëve në {city.city}—një hapësirë për njohje, dije dhe bashkëpunim.</p>
+            <div class="city-hero-actions">
+              <a class="partner-button" href="#komuniteti">Zbulo komunitetin <span aria-hidden="true">↓</span></a>
+              {city.lumaUrl && <a class="city-text-link" href={city.lumaUrl} target="_blank" rel="noreferrer">Shiko eventet në Luma ↗</a>}
+            </div>
           </div>
-        )}
+          <figure class="city-hero-figure">
+            <img src={encodeURI(city.image || defaultCityImage)} alt={city.image ? `Komuniteti Illyrian Brains në ${city.city}` : ""} loading="eager" />
+            <figcaption><span>Komuniteti lokal</span><strong>{city.city}, {city.country}</strong></figcaption>
+          </figure>
+        </div>
       </div>
     </section>
 
-    {communityHtml && (
-      <section class="section tone-white">
-        <div class="container">
-          <div class="atlas-content" set:html={communityHtml} />
+    <section class="section tone-white city-community" id="komuniteti">
+      <div class="container city-content-layout">
+        <aside class="city-content-index">
+          <p class="eyebrow">Në këtë faqe</p>
+          <a href="#rreth-komunitetit">Rreth komunitetit</a>
+          {communitySections.map((section, index) => <a href={`#seksioni-${index + 1}`}>{section.title}</a>)}
+          {city.activities && city.activities.length > 0 && <a href="#aktivitetet">Aktivitetet</a>}
+          {cityPhotos.length > 0 && <a href="#galeria">Galeria</a>}
+        </aside>
+        <div class="city-content-main">
+          <section class="city-content-section city-overview" id="rreth-komunitetit">
+            <p class="eyebrow">Rreth komunitetit</p>
+            <h2>Një komunitet që të lidh me njerëzit e duhur.</h2>
+            {communityIntro ? <div class="city-rich-text" set:html={communityIntro} /> : <p class="city-intro-fallback">Illyrian Brains {city.city} bashkon profesionistë, studentë, krijues dhe sipërmarrës shqiptarë që jetojnë në {city.city} dhe zonat përreth. Komuniteti krijon mundësi për njohje të reja, shkëmbim përvojash dhe bashkëpunim.</p>}
+          </section>
+
+          {communitySections.map((section, index) => (
+            <section class="city-content-section" id={`seksioni-${index + 1}`}>
+              <span class="city-section-number">{String(index + 1).padStart(2, '0')}</span>
+              <h2>{section.title}</h2>
+              <div class="city-rich-text" set:html={section.html} />
+            </section>
+          ))}
+
+          {city.activities && city.activities.length > 0 && <section class="city-content-section" id="aktivitetet"><span class="city-section-number">{String(communitySections.length + 1).padStart(2, '0')}</span><h2>Komunitetet dhe aktivitetet</h2><ul class="city-activities">{city.activities.map((activity) => <li>{activity}</li>)}</ul></section>}
+
+          {cityPhotos.length > 0 && (
+            <section class="city-content-section city-gallery-section" id="galeria">
+              <span class="city-section-number">Galeria</span>
+              <h2>Momente nga komuniteti.</h2>
+              <div class="city-photo-grid">
+                {cityPhotos.map((photo, index) => <figure><img src={encodeURI(photo.src)} alt={photo.alt || `Aktivitet i komunitetit Illyrian Brains ${city.city}`} loading="lazy" /><figcaption>{photo.alt && photo.alt !== 'image' ? photo.alt : `${city.city} · ${String(index + 1).padStart(2, '0')}`}</figcaption></figure>)}
+              </div>
+            </section>
+          )}
         </div>
-      </section>
-    )}
+      </div>
+    </section>
 
     <JoinCTA />
   </main>
   <Footer />
 </BaseLayout>
+
 <style>
-  .city-summary-facts{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0}.city-summary-facts span{padding:7px 11px;border:1px solid #ffffff3d;border-radius:999px;color:#e7c9da;font-size:13px;font-weight:700}.city-block :global(.native-event-empty){margin-top:18px}.city-block :global(.native-event-grid){grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .city-detail-hero { overflow: hidden; padding-top: 54px; }
+  .city-back-link { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 42px; color: rgba(255,255,255,.68); font-size: 14px; font-weight: 600; }
+  .city-back-link:hover { color: #fff; }
+  .city-hero-layout { display: grid; grid-template-columns: minmax(0,.82fr) minmax(440px,1.18fr); gap: clamp(50px,8vw,110px); align-items: center; }
+  .city-hero-copy h1 { margin: 0; font-size: clamp(48px,6vw,78px); font-weight: 300; line-height: .98; letter-spacing: -.045em; }
+  .city-hero-copy h1 span { color: #d6b7c8; }
+  .city-hero-copy > p:not(.eyebrow) { max-width: 580px; margin: 28px 0 0; color: rgba(255,255,255,.76); font-size: 19px; line-height: 1.75; }
+  .city-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; margin-top: 34px; }
+  .city-hero-actions .partner-button { margin: 0; }
+  .city-text-link { color: #e5d5de; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 5px; }
+  .city-hero-figure { position: relative; height: clamp(360px,42vw,540px); margin: 0; padding: 10px; border: 1px solid rgba(255,255,255,.14); border-radius: 18px; background: rgba(255,255,255,.04); box-shadow: 0 28px 65px rgba(0,0,0,.28); }
+  .city-hero-figure::after { content: ''; position: absolute; inset: 10px; border: 1px solid rgba(255,255,255,.18); border-radius: 11px; box-shadow: inset 0 -110px 80px rgba(14,14,18,.55); pointer-events: none; }
+  .city-hero-figure img { width: 100%; height: 100%; border-radius: 11px; object-fit: cover; }
+  .city-hero-figure figcaption { position: absolute; z-index: 1; right: 32px; bottom: 29px; left: 32px; display: flex; align-items: end; justify-content: space-between; gap: 20px; color: #fff; }
+  .city-hero-figure figcaption span { color: #d6b7c8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+  .city-hero-figure figcaption strong { font-size: 16px; text-align: right; }
+  .city-content-layout { display: grid; grid-template-columns: 230px minmax(0,760px); gap: clamp(45px,8vw,110px); align-items: start; }
+  .city-content-index { position: sticky; top: 118px; display: flex; flex-direction: column; padding: 22px 0; border-block: 1px solid var(--line); }
+  .city-content-index .eyebrow { margin-bottom: 12px; }
+  .city-content-index a { padding: 9px 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+  .city-content-index a:hover { color: var(--accent); }
+  .city-content-main { min-width: 0; }
+  .city-content-section { position: relative; padding: 54px 0; border-bottom: 1px solid var(--line); scroll-margin-top: 110px; }
+  .city-content-section:first-child { padding-top: 0; }
+  .city-content-section h2 { max-width: 680px; margin: 0 0 25px; font-size: clamp(30px,4vw,42px); font-weight: 400; line-height: 1.18; letter-spacing: -.025em; }
+  .city-section-number { display: block; margin-bottom: 14px; color: var(--accent); font-size: 13px; font-weight: 800; letter-spacing: .1em; }
+  .city-intro-fallback, .city-rich-text :global(p), .city-rich-text :global(ul), .city-rich-text :global(ol), .city-rich-text :global(blockquote) { max-width: 68ch; color: #4f5057; font-size: 18px; line-height: 1.85; }
+  .city-rich-text :global(p) { margin: 0 0 20px; }
+  .city-rich-text :global(ul), .city-rich-text :global(ol) { margin: 18px 0 24px; padding-left: 25px; }
+  .city-rich-text :global(li) { margin-bottom: 11px; padding-left: 5px; }
+  .city-rich-text :global(li::marker) { color: var(--accent); }
+  .city-rich-text :global(ul ul) { margin: 10px 0; }
+  .city-rich-text :global(a) { color: var(--accent-dark); font-weight: 650; text-decoration: underline; text-underline-offset: 4px; }
+  .city-rich-text :global(blockquote) { margin: 0 0 30px; padding: 20px 24px; border-left: 3px solid var(--accent); background: #f4eef1; }
+  .city-rich-text :global(blockquote p) { margin: 0; color: var(--ink); }
+  .city-rich-text :global(img) { width: 100%; margin: 28px 0; border-radius: 12px; }
+  .city-photo-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 32px; }
+  .city-photo-grid figure { position: relative; min-width: 0; margin: 0; overflow: hidden; border-radius: 12px; background: var(--soft); }
+  .city-photo-grid img { width: 100%; height: 270px; object-fit: cover; transition: transform .35s ease; }
+  .city-photo-grid figure:hover img { transform: scale(1.025); }
+  .city-photo-grid figcaption { position: absolute; right: 8px; bottom: 8px; left: 8px; overflow: hidden; padding: 7px 9px; border-radius: 5px; color: rgba(255,255,255,.9); background: rgba(23,24,29,.72); font-size: 11px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+  @media (max-width: 900px) { .city-hero-layout { grid-template-columns: 1fr; } .city-hero-figure { height: min(68vw,480px); } .city-content-layout { grid-template-columns: 1fr; } .city-content-index { position: static; display: grid; grid-template-columns: repeat(2,1fr); gap: 0 18px; } .city-content-index .eyebrow { grid-column: 1/-1; } }
+  @media (max-width: 560px) { .city-detail-hero { padding-top: 38px; } .city-back-link { margin-bottom: 32px; } .city-hero-figure { height: 320px; } .city-hero-figure figcaption { align-items: start; flex-direction: column; gap: 5px; } .city-hero-figure figcaption strong { text-align: left; } .city-content-index { grid-template-columns: 1fr; } .city-content-section { padding-block: 42px; } .city-intro-fallback, .city-rich-text :global(p), .city-rich-text :global(ul), .city-rich-text :global(ol), .city-rich-text :global(blockquote) { font-size: 17px; } .city-photo-grid { grid-template-columns: 1fr; } .city-photo-grid img { height: 250px; } }
 </style>
