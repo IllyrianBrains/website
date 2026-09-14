@@ -4,44 +4,88 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import DirectoryNetworkGraph from '../components/DirectoryNetworkGraph.astro';
 import { businesses, businessCategoryLabels } from '../data/businesses';
+import { offers } from '../data/offers';
 
 const categories = Object.entries(businessCategoryLabels).map(([id, label]) => ({ id, label }));
-const graphBusinesses = businesses.map((business, index) => ({ id: `business-${index}`, label: business.name, category: business.category, url: business.website }));
-const businessesByCategory = categories
-  .map(category => ({ ...category, businesses: businesses.filter(business => business.category === category.id) }))
-  .filter(group => group.businesses.length > 0);
+const graphBusinesses = businesses.map((business, index) => ({ id: `business-${index}`, label: business.name, category: business.category, city: business.city, url: business.website }));
+const businessCities = [...new Set(businesses.map(business => business.city).filter((city): city is string => Boolean(city)))].sort((a, b) => a.localeCompare(b, 'sq'));
 ---
 <BaseLayout title="Bizneset · Illyrian Brains" description="Bizneset e themeluara dhe drejtuara nga anëtarët e komunitetit Illyrian Brains.">
   <Header />
   <main class="network-page">
-    <section class="section tone-dark"><div class="container city-page">
-      <p class="eyebrow">Illyrian Brains Network</p><h1>Bizneset e rrjetit.</h1><p class="about-body">Bizneset e themeluara dhe drejtuara nga anëtarët e komunitetit — një hapësirë për t'i njohur dhe mbështetur.</p>
+    <p class="construction-note construction-banner"><span class="construction-icon" aria-hidden="true">🚧</span><span><strong>Në ndërtim e sipër.</strong> Katalogu i bizneseve po plotësohet vazhdimisht me profile të reja.</span></p>
+    <section class="section tone-dark page-hero page-hero--business"><div class="container city-page">
+      <h1>Bizneset e rrjetit.</h1><p class="about-body">Bizneset e themeluara dhe drejtuara nga anëtarët e komunitetit — një hapësirë për t'i njohur dhe mbështetur.</p>
     </div></section>
 
     <section class="section tone-white"><div class="container">
-      <DirectoryNetworkGraph kind="business" title="Bizneset në ekosistem." description="Eksploro si bizneset e komunitetit lidhen me anëtarët, qytetet dhe kategoritë e zhvillimit profesional." categories={categories} items={graphBusinesses} />
-      <div class="business-directory">
-        <div class="business-directory-heading"><p class="eyebrow">Bizneset tona</p><h2>Drejtoria e bizneseve</h2></div>
-        {businessesByCategory.map(group => (
-          <div class="business-category-group">
-            <h3 class="business-category-title">{group.label}</h3>
-            <div class="business-directory-grid">
-              {group.businesses.map(business => (
-                <article class="business-directory-card">
-                  {business.city && <span class="business-city">{business.city}{business.country ? `, ${business.country}` : ''}</span>}
-                  <h4>{business.name}</h4>
-                  <p>{business.description}</p>
-                  {business.website && <div class="business-links"><a href={business.website} target="_blank" rel="noreferrer">Faqja zyrtare <span aria-hidden="true">↗</span></a></div>}
-                </article>
-              ))}
-            </div>
-          </div>
+      <div class="catalog-heading">
+        <div><h2>Gjej biznesin e duhur.</h2></div>
+        <p><strong>Përdor kërkimin dhe filtrat më poshtë</strong> për të parë bizneset sipas emrit, kategorisë, qytetit ose kontributit në IB.</p>
+      </div>
+      <div class="directory-filters member-filters" aria-label="Filtro katalogun e bizneseve">
+        <div class="member-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="business-search" type="search" placeholder="Kërko biznes…" aria-label="Kërko biznes"/></div>
+        <select id="business-category" aria-label="Filtro sipas kategorisë"><option value="">Të gjitha kategoritë</option>{categories.map(category => <option value={category.id}>{category.label}</option>)}</select>
+        <select id="business-city" aria-label="Filtro sipas qytetit"><option value="">Të gjitha qytetet</option>{businessCities.map(city => <option value={city}>{city}</option>)}</select>
+        <select id="business-contribution" aria-label="Filtro sipas kontributit në IB"><option value="">Kontributi në IB</option><option value="yes">Me kontribut në IB</option><option value="no">Pa kontribut ende</option></select>
+      </div>
+      <p class="directory-result-count" id="business-result-count"></p>
+      <div class="business-directory-grid">
+        {businesses.map(business => (
+          <article class="business-directory-card" data-category={business.category} data-city={business.city || ''} data-contributes={business.contributesToIB ? 'yes' : 'no'} data-search={`${business.name} ${business.description} ${business.city || ''} ${business.country || ''}`.toLocaleLowerCase('sq')}>
+            {business.city && <span class="business-city">{business.city}{business.country ? `, ${business.country}` : ''}</span>}
+            <h3>{business.name}</h3>
+            <p>{business.description}</p>
+            {business.website && <div class="business-links"><a href={business.website} target="_blank" rel="noreferrer">Faqja zyrtare <span aria-hidden="true">↗</span></a></div>}
+            {business.sponsor && <span class="sponsor-star" role="img" aria-label="Sponsor" title="Sponsor">★</span>}
+          </article>
         ))}
+      </div>
+      <p class="directory-empty" id="business-empty" hidden>Asnjë biznes nuk përputhet me filtrat.</p>
+    </div></section>
+
+    <section class="section tone-grey"><div class="container">
+      <section class="offers-catalog" aria-labelledby="offers-title">
+        <header class="offers-heading">
+          <div><h2 id="offers-title">Oferta nga bizneset.</h2></div>
+          <p>Përfitime, shërbime dhe mundësi të publikuara nga bizneset e rrjetit.</p>
+        </header>
+        {offers.length > 0 ? (
+          <div class="offers-table-wrap">
+            <table class="offers-table">
+              <thead><tr><th>Biznesi</th><th>Oferta</th><th>Lloji</th><th>Për kë</th><th>Vlefshmëria</th><th><span class="sr-only">Lidhja</span></th></tr></thead>
+              <tbody>{offers.map(offer => (
+                <tr>
+                  <td data-label="Biznesi"><strong>{offer.business}</strong></td>
+                  <td data-label="Oferta">{offer.title}</td>
+                  <td data-label="Lloji"><span class="offer-type">{offer.type}</span></td>
+                  <td data-label="Për kë">{offer.audience}</td>
+                  <td data-label="Vlefshmëria">{offer.validUntil || 'Pa afat'}</td>
+                  <td>{offer.url && <a href={offer.url} target="_blank" rel="noreferrer" aria-label={`Hap ofertën: ${offer.title}`}>Hap <span aria-hidden="true">↗</span></a>}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        ) : (
+          <p class="offers-empty">Nuk ka oferta aktive për momentin.</p>
+        )}
+      </section>
+    </div></section>
+
+    <section class="section tone-white"><div class="container">
+      <div class="business-network">
+        <DirectoryNetworkGraph kind="business" title="Bizneset në ekosistem." description="Eksploro si bizneset e komunitetit lidhen me anëtarët, qytetet dhe kategoritë e zhvillimit profesional." categories={categories} items={graphBusinesses} />
       </div>
     </div></section>
   </main>
   <Footer />
 </BaseLayout>
+<script>
+  const search=document.querySelector<HTMLInputElement>('#business-search'),category=document.querySelector<HTMLSelectElement>('#business-category'),city=document.querySelector<HTMLSelectElement>('#business-city'),contribution=document.querySelector<HTMLSelectElement>('#business-contribution'),count=document.querySelector<HTMLElement>('#business-result-count'),empty=document.querySelector<HTMLElement>('#business-empty'),cards=[...document.querySelectorAll<HTMLElement>('.business-directory-card')];
+  const filterBusinesses=()=>{const query=(search?.value||'').trim().toLocaleLowerCase('sq'),selectedCategory=category?.value||'',selectedCity=city?.value||'',selectedContribution=contribution?.value||'';let visible=0;cards.forEach(card=>{const show=(!query||(card.dataset.search||'').includes(query))&&(!selectedCategory||card.dataset.category===selectedCategory)&&(!selectedCity||card.dataset.city===selectedCity)&&(!selectedContribution||card.dataset.contributes===selectedContribution);card.hidden=!show;if(show)visible++});if(count)count.textContent=`${visible} ${visible===1?'biznes u gjet':'biznese u gjetën'}`;if(empty)empty.hidden=visible>0};
+  search?.addEventListener('input',filterBusinesses);category?.addEventListener('change',filterBusinesses);city?.addEventListener('change',filterBusinesses);contribution?.addEventListener('change',filterBusinesses);filterBusinesses();
+</script>
 <style>
-  .business-directory{margin-top:80px;padding-top:64px;border-top:1px solid var(--line)}.business-directory-heading{margin-bottom:28px}.business-directory-heading h2{margin:0;font-size:clamp(32px,4vw,46px);font-weight:400;letter-spacing:-.03em}.business-category-group{margin-top:44px}.business-category-group:first-of-type{margin-top:0}.business-category-title{margin:0 0 16px;color:var(--accent-dark);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.business-directory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.business-directory-card{display:flex;min-height:220px;flex-direction:column;padding:28px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 12px 35px rgba(23,24,29,.045)}.business-city{align-self:flex-start;padding:6px 10px;border-radius:999px;color:var(--accent-dark);background:var(--soft);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.business-directory-card h4{margin:20px 0 10px;font-size:22px;font-weight:400;line-height:1.15}.business-directory-card p{margin:0;color:var(--muted);font-size:14px;line-height:1.65}.business-links{margin-top:auto;padding-top:20px}.business-links a{color:var(--accent-dark);font-size:13px;font-weight:700}.business-links a:hover{text-decoration:underline;text-underline-offset:3px}@media(max-width:700px){.business-directory-grid{grid-template-columns:1fr}.business-directory-card{min-height:190px}}
+  .catalog-heading{display:grid;grid-template-columns:1fr minmax(300px,480px);gap:55px;align-items:end;margin-bottom:34px}.catalog-heading h2{margin:0;font-size:clamp(38px,5vw,58px);font-weight:400;line-height:1.05}.catalog-heading>p{margin:0;color:var(--muted);font-size:16px;line-height:1.7}.catalog-heading strong{color:var(--accent-dark)}
+  .directory-filters{display:grid;grid-template-columns:minmax(230px,1fr) repeat(3,minmax(165px,220px));margin-bottom:14px;padding:18px;border:1px solid rgba(116,71,97,.2);border-radius:14px;background:var(--soft)}.directory-filters>*{min-width:0}.directory-filters select{width:100%}.directory-result-count{margin:0 0 34px;color:var(--muted);font-size:13px}.directory-empty{margin:35px 0;color:var(--muted)}.business-directory-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.business-directory-card{position:relative;display:flex;min-height:174px;flex-direction:column;padding:20px 22px;border:1px solid var(--line);border-left:4px solid var(--card-accent,#744761);border-radius:8px;background:var(--card-bg,#fff);box-shadow:0 8px 24px rgba(23,24,29,.04)}.business-directory-card[hidden]{display:none}.business-directory-card[data-category="startup"]{--card-accent:#397b72;--card-bg:#f3faf8}.business-directory-card[data-category="established"]{--card-accent:#a26a2d;--card-bg:#fcf7ef}.business-directory-card[data-category="diaspora"]{--card-accent:#6b5aa8;--card-bg:#f7f5fc}.business-city{align-self:flex-start;padding:5px 8px;border-radius:4px;color:var(--ink);background:rgba(255,255,255,.72);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.business-directory-card h3{margin:14px 0 7px;font-size:20px;font-weight:400;line-height:1.15}.business-directory-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.business-links{margin-top:auto;padding:14px 34px 0 0}.business-links a{color:var(--accent-dark);font-size:12px;font-weight:700}.business-links a:hover{text-decoration:underline;text-underline-offset:3px}.sponsor-star{position:absolute;right:18px;bottom:16px;color:#b67a16;font-size:21px;line-height:1;text-shadow:0 1px 0 #fff}.offers-heading{display:grid;grid-template-columns:1fr minmax(280px,430px);gap:48px;align-items:end;margin-bottom:28px}.offers-heading h2{margin:0;font-size:clamp(32px,4vw,46px);font-weight:400}.offers-heading>p{margin:0;color:var(--muted);font-size:15px;line-height:1.65}.offers-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}.offers-table{width:100%;border-collapse:collapse;text-align:left}.offers-table th{padding:12px 16px;color:var(--muted);background:#f7f6f7;font-size:10px;text-transform:uppercase;letter-spacing:.08em}.offers-table td{padding:16px;border-top:1px solid var(--line);font-size:13px}.offers-table a{color:var(--accent-dark);font-weight:700}.offer-type{display:inline-block;padding:5px 8px;border-radius:4px;background:var(--soft);font-size:11px;font-weight:700}.offers-empty{margin:0;padding:28px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);background:#faf9fa;text-align:center}@media(max-width:980px){.business-directory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:1000px){.directory-filters{grid-template-columns:1fr 1fr}.directory-filters .member-search{grid-column:1/-1}}@media(max-width:760px){.catalog-heading,.directory-filters,.offers-heading{grid-template-columns:1fr}.catalog-heading{gap:18px}.offers-heading{gap:14px}.offers-table thead{display:none}.offers-table,.offers-table tbody,.offers-table tr,.offers-table td{display:block}.offers-table tr{padding:12px 16px;border-top:1px solid var(--line)}.offers-table tr:first-child{border-top:0}.offers-table td{display:grid;grid-template-columns:110px 1fr;gap:12px;padding:6px 0;border:0}.offers-table td[data-label]::before{content:attr(data-label);color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}}@media(max-width:700px){.business-directory-grid{grid-template-columns:1fr}.business-directory-card{min-height:160px}}
 </style>

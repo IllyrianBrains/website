@@ -1,0 +1,49 @@
+---
+import { cities } from '../data/cities';
+
+const searchableCities = cities
+  .map(({ city, country, slug, status }) => ({ city, country, slug, status }))
+  .sort((a, b) => a.city.localeCompare(b.city, 'sq'));
+---
+<section class="section city-search-section tone-white" aria-labelledby="city-search-title">
+  <div class="container city-search-layout">
+    <div class="city-search-copy">
+      <p class="eyebrow">Gjej komunitetin tënd</p>
+      <h2 id="city-search-title">Kërko një qytet.</h2>
+      <p>Shkruaj qytetin ose shtetin për të gjetur komunitetin Illyrian Brains më pranë teje.</p>
+    </div>
+    <div class="city-search-panel">
+      <label for="landing-city-search">Qyteti ose shteti</label>
+      <div class="city-search-field">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="landing-city-search" type="search" placeholder="P.sh. Berlin, Itali, New York…" autocomplete="off" aria-describedby="landing-city-status" />
+      </div>
+      <p class="city-search-status" id="landing-city-status">Fillo të shkruash për të parë qytetet.</p>
+      <div class="city-search-results" id="landing-city-results"></div>
+      <a class="city-search-all" href="/qytetet/">Shiko të gjitha qytetet <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ searchableCities }}>
+  const input = document.querySelector('#landing-city-search');
+  const results = document.querySelector('#landing-city-results');
+  const status = document.querySelector('#landing-city-status');
+  const normalize = (value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('sq');
+  const escapeHtml = (value) => value.replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character] || character));
+  input?.addEventListener('input', () => {
+    const query = normalize(input.value.trim());
+    if (!query) {
+      results.innerHTML = '';
+      status.textContent = 'Fillo të shkruash për të parë qytetet.';
+      return;
+    }
+    const matches = searchableCities.filter(item => normalize(`${item.city} ${item.country}`).includes(query)).slice(0, 6);
+    status.textContent = matches.length ? `${matches.length} rezultat${matches.length === 1 ? '' : 'e'} të shfaqura` : 'Nuk u gjet asnjë qytet.';
+    results.innerHTML = matches.map(item => `<a href="/qytetet/${encodeURIComponent(item.slug)}/"><span><strong>${escapeHtml(item.city)}</strong><small>${escapeHtml(item.country)}${item.status === 'inactive' ? ' · Në zhvillim' : ''}</small></span><b aria-hidden="true">→</b></a>`).join('');
+  });
+</script>
+
+<style>
+  .city-search-section{padding-block:72px}.city-search-layout{display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(45px,8vw,110px);align-items:start}.city-search-copy h2{margin:0;font-size:clamp(40px,5vw,60px);font-weight:400;line-height:1}.city-search-copy>p:last-child{max-width:470px;margin:24px 0 0;color:var(--muted);font-size:16px;line-height:1.7}.city-search-panel{padding:26px;border:1px solid var(--line);border-radius:16px;background:var(--soft)}.city-search-panel>label{display:block;margin-bottom:9px;color:var(--ink);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.city-search-field{display:grid;grid-template-columns:22px 1fr;gap:11px;align-items:center;padding:14px 16px;border:1px solid #b8b8bd;border-radius:9px;background:#fff}.city-search-field:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(116,71,97,.1)}.city-search-field svg{width:20px;fill:none;stroke:var(--accent);stroke-width:1.8}.city-search-field input{min-width:0;border:0;outline:0;background:transparent;font:500 16px var(--font-body)}.city-search-status{margin:12px 2px;color:var(--muted);font-size:12px}.city-search-results{display:grid;background:#fff}.city-search-results a{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:13px 14px;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}.city-search-results a:hover{color:var(--accent-dark);background:#faf7f9}.city-search-results strong,.city-search-results small{display:block}.city-search-results strong{font-size:15px}.city-search-results small{margin-top:3px;color:var(--muted);font-size:12px}.city-search-results b{color:var(--accent);font-weight:400}.city-search-all{display:flex;justify-content:space-between;margin-top:16px;color:var(--accent-dark);font-size:13px;font-weight:700;text-decoration:none}@media(max-width:760px){.city-search-section{padding-block:52px}.city-search-layout{grid-template-columns:1fr;gap:28px}.city-search-panel{padding:18px}}@media(max-width:420px){.city-search-panel{padding:14px}.city-search-field{padding:13px 12px}.city-search-field input{font-size:15px}}
+</style>

@@ -78,7 +78,7 @@ const totalCitiesWithPeople = mapCities.filter(city => city.memberCount > 0).len
 <BaseLayout title="Harta · Illyrian Brains" description="Anëtarët, organizatat partnere dhe bizneset e rrjetit Illyrian Brains, qytet pas qyteti, në një hartë të vetme.">
   <Header />
   <main class="network-page">
-    <section class="section tone-dark"><div class="container city-page">
+    <section class="section tone-dark page-hero page-hero--map"><div class="container city-page">
       <p class="eyebrow">Illyrian Brains Network</p>
       <h1>Harta e komunitetit.</h1>
       <p class="about-body">Anëtarët, organizatat partnere dhe bizneset e rrjetit, të vendosura sipas qytetit ku janë. Zgjidh një qytet për të parë kush është aty.</p>
@@ -91,7 +91,9 @@ const totalCitiesWithPeople = mapCities.filter(city => city.memberCount > 0).len
         <div><strong>{partners.length}</strong><span>OJF Partnere</span></div>
         <div><strong>{totalCitiesWithPeople}</strong><span>Qytete me anëtarë</span></div>
       </div>
+    </div></section>
 
+    <section class="section tone-grey"><div class="container">
       <div class="map-legend">
         {cityRegions.map(region => <span class="map-legend-item"><span class="map-legend-dot" style={`background:${region.color}`} aria-hidden="true"></span>{region.name}</span>)}
       </div>
@@ -197,5 +199,4 @@ const totalCitiesWithPeople = mapCities.filter(city => city.memberCount > 0).len
   .map-popup-orgs li { display: flex; align-items: baseline; gap: 6px; font-size: 12px; }
   .map-popup-orgs a { color: var(--accent-dark); font-weight: 700; }
   .map-popup-orgs em { color: var(--muted); font-size: 10px; font-style: normal; text-transform: uppercase; letter-spacing: .06em; }
-  .map-layer-filters{display:flex;align-items:center;justify-content:space-between;gap:28px;margin:28px 0 16px;padding:18px 20px;border:1px solid var(--line);border-radius:12px;background:var(--soft)}.map-layer-filters .eyebrow{margin:0 0 3px}.map-layer-filters>div>span{color:var(--muted);font-size:11px}.map-layer-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}.map-layer-actions button{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:#fff;font:700 12px var(--font-body);cursor:pointer;transition:.18s ease}.map-layer-actions button.is-active{color:#fff;border-color:var(--ink);background:var(--ink)}.map-layer-dot{width:8px;height:8px;border-radius:50%;background:#9a9ba3}.map-layer-dot.member{background:#744761}.map-layer-dot.business{background:#293f52}.map-layer-dot.ngo{background:#b98545}@media(max-width:720px){.map-layer-filters{align-items:flex-start;flex-direction:column}.map-layer-actions{justify-content:flex-start}}
 </style>

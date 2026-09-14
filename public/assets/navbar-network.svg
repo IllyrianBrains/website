@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="88" viewBox="0 0 280 88">
+  <defs>
+    <linearGradient id="fade-a" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#c9aebd" stop-opacity=".42"/>
+      <stop offset="1" stop-color="#c9aebd" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fade-b" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#ffffff" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke-width="1">
+    <path d="M38 31 L2 13" stroke="url(#fade-a)"/>
+    <path d="M38 31 L79 4" stroke="url(#fade-b)"/>
+    <path d="M142 67 L96 85" stroke="url(#fade-a)"/>
+    <path d="M142 67 L177 34" stroke="url(#fade-b)"/>
+    <path d="M238 24 L199 3" stroke="url(#fade-a)"/>
+    <path d="M238 24 L279 54" stroke="url(#fade-b)"/>
+  </g>
+  <g fill="#c9aebd">
+    <circle cx="38" cy="31" r="2"/>
+    <circle cx="142" cy="67" r="1.7"/>
+    <circle cx="238" cy="24" r="2"/>
+  </g>
+</svg>

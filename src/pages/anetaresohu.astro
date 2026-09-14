@@ -4,19 +4,44 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { jobs } from '../data/jobs';
 import SectionTitle from '../components/SectionTitle.astro';
+
+const joinPaths = [
+  { title: 'Anëtarësohu', what: 'Lidhu me profesionistë shqiptarë, evente dhe grupe lokale.', how: ['Krijo profilin në forum.', 'Gjej qytetin ose grupin tënd.'], action: 'Krijo profilin', href: 'https://forum.illyrianbrains.org/signup', external: true },
+  { title: 'Jep donacion', what: 'Mbështet aktivitetet dhe projektet që e mbajnë komunitetin aktiv.', how: ['Na shkruaj si dëshiron të kontribuosh.', 'Merr udhëzimet dhe konfirmimin.'], action: 'Pyet për donacion', href: 'mailto:illyrianbrains@gmail.com?subject=Donacion%20p%C3%ABr%20Illyrian%20Brains' },
+  { title: 'Bashkëpuno si OJF', what: 'Krijo me ne evente, projekte ose shkëmbime ekspertize.', how: ['Prezanto organizatën dhe idenë.', 'Përcaktojmë së bashku bashkëpunimin.'], action: 'Prezanto OJF-në', href: 'mailto:illyrianbrains@gmail.com?subject=Bashk%C3%ABpunim%20si%20OJF' },
+  { title: 'Bashkëpuno si biznes', what: 'Publiko oferta, krijo mundësi ose mbështet rrjetin si sponsor.', how: ['Dërgo profilin e biznesit.', 'Përshkruaj ofertën ose kontributin.'], action: 'Prezanto biznesin', href: 'mailto:illyrianbrains@gmail.com?subject=Bashk%C3%ABpunim%20si%20biznes' },
+  { title: 'Bëhu vullnetar', what: 'Kontribuo me kohë dhe ekspertizë në ekipet e rrjetit.', how: ['Zgjidh një rol të hapur.', 'Na kontakto për një bisedë të shkurtër.'], action: 'Shiko rolet', href: '#rolet' },
+  { title: 'Organizo qytetin tënd', what: 'Ndërto një komunitet lokal dhe organizo takime të rregullta.', how: ['Na trego qytetin dhe ekipin fillestar.', 'Planifikojmë së bashku takimin e parë.'], action: 'Propozo qytetin', href: 'mailto:illyrianbrains@gmail.com?subject=Organizim%20i%20qytetit' },
+];
 ---
-<BaseLayout title="Anëtarësohu · Illyrian Brains" description="Bashkohuni ekipit vullnetar të Illyrian Brains — pozicione të hapura në qytete, teknologji dhe komunikim.">
+<BaseLayout title="Bashkohu · Illyrian Brains" description="Anëtarësohu, kontribuo ose bashkëpuno me rrjetin Illyrian Brains.">
   <Header />
   <main>
-    <section class="section tone-dark">
+    <section class="section tone-dark page-hero page-hero--join">
       <div class="container city-page">
-        <h1>Anëtarësohu</h1>
-        <p class="about-body">Ne jemi një rrjet profesionistësh, studiuesish, sipërmarrësish, studentësh dhe krijuesish që besojnë në fuqinë e bashkëpunimit. Në qytete dhe vende të ndryshme të botës, lidhim njerëz, ndajmë njohuri dhe mbështesim iniciativa që forcojnë komunitetin profesional shqiptar kudo që ndodhet.</p>
+        <h1>Bashkohu</h1>
+        <p class="about-body">Lidhim profesionistë shqiptarë kudo në botë për të ndarë dije dhe për të bashkëpunuar.</p>
       </div>
     </section>
 
-    <section class="section tone-grey">
+    <section class="section tone-white">
+      <div class="container">
+        <div class="join-paths">
+          {joinPaths.map((path, index) => (
+            <section class="join-path">
+              <header class="join-path-heading"><span>{String(index + 1).padStart(2, '0')}</span><h2>{path.title}</h2></header>
+              <div class="join-path-info"><p class="join-path-label">Çfarë është</p><p>{path.what}</p></div>
+              <div class="join-path-info"><p class="join-path-label">Si funksionon</p><ol>{path.how.map(step => <li>{step}</li>)}</ol></div>
+              <div class="join-path-cta"><a href={path.href} target={path.external ? '_blank' : undefined} rel={path.external ? 'noreferrer' : undefined}>{path.action} <span aria-hidden="true">→</span></a></div>
+            </section>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section tone-grey" id="rolet">
       <div class="container city-page">
+        <SectionTitle kicker="Vullnetarizëm" title="Rolet e hapura." text="Gjej një rol ku ekspertiza dhe koha jote mund të bëjnë ndryshim." />
         <div class="job-list">
           {jobs.map((job) => (
             <article class="job-card">
@@ -41,3 +66,7 @@ import SectionTitle from '../components/SectionTitle.astro';
   </main>
   <Footer />
 </BaseLayout>
+<style>
+  .join-paths{display:grid;gap:12px}.join-path{--path-accent:#744761;display:grid;grid-template-columns:minmax(190px,.75fr) minmax(250px,1.15fr) minmax(280px,1.1fr) minmax(150px,.55fr);gap:clamp(24px,4vw,52px);align-items:start;padding:36px 32px;border:1px solid color-mix(in srgb,var(--path-accent) 24%,var(--line));border-left:4px solid var(--path-accent);border-radius:8px;background:var(--path-bg,#faf7f9)}.join-path:nth-child(1){--path-accent:#397b72;--path-bg:#f2faf8}.join-path:nth-child(2){--path-accent:#a26a2d;--path-bg:#fcf7ef}.join-path:nth-child(3){--path-accent:#4c7a3d;--path-bg:#f4f9f1}.join-path:nth-child(4){--path-accent:#536f9b;--path-bg:#f3f6fa}.join-path:nth-child(5){--path-accent:#744761;--path-bg:#faf5f8}.join-path:nth-child(6){--path-accent:#6b5aa8;--path-bg:#f7f5fc}.join-path-heading span,.join-path-label{color:var(--path-accent);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}.join-path-heading h2{margin:12px 0 0;font-size:clamp(25px,3vw,36px);font-weight:400;line-height:1.1}.join-path-info>p:not(.join-path-label){margin:10px 0 0;color:var(--muted);font-size:14px;line-height:1.7}.join-path-info ol{margin:10px 0 0;padding-left:20px;color:var(--muted);font-size:13px;line-height:1.7}.join-path-info li{padding-left:4px}.join-path-meta{display:grid;gap:11px;margin:20px 0 0;padding-top:16px;border-top:1px solid color-mix(in srgb,var(--path-accent) 20%,transparent)}.join-path-meta div{display:grid;grid-template-columns:70px 1fr;gap:10px}.join-path-meta dt{color:var(--path-accent);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.join-path-meta dd{margin:0;color:var(--muted);font-size:12px;line-height:1.5}.join-path-cta{align-self:center;justify-self:end}.join-path-cta a{display:inline-flex;align-items:center;justify-content:space-between;gap:18px;min-width:150px;padding:11px 13px;border:1px solid var(--path-accent);border-radius:6px;color:var(--path-accent);font-size:12px;font-weight:700;transition:color .2s ease,background .2s ease}.join-path-cta a:hover{color:#fff;background:var(--path-accent)}.job-list{margin-top:36px}@media(max-width:1050px){.join-path{grid-template-columns:minmax(170px,.7fr) 1fr 1fr}.join-path-cta{grid-column:2/-1;justify-self:start}}@media(max-width:700px){.join-path{grid-template-columns:1fr;gap:20px;padding:28px 22px}.join-path-cta{grid-column:1;justify-self:start}.join-path-cta a{min-width:180px}}
+  .join-path-heading h2{font-size:clamp(30px,3.2vw,42px)}.join-path-info>p:not(.join-path-label){font-size:16px;line-height:1.65}.join-path-info ol{font-size:15px;line-height:1.75}.join-path-cta a{min-width:170px;padding:13px 15px;font-size:14px}
+</style>

@@ -1,26 +1,96 @@
 ---
 import { cities } from '../data/cities';
 import { cityRegions } from '../data/regions';
+import { directoryMembers as members } from '../data/members';
+import { businesses } from '../data/businesses';
+import { partners } from '../data/partners';
 
 const regionBySlug = new Map(cityRegions.flatMap(region => region.citySlugs.map(slug => [slug, region])));
 const citiesWithRegion = cities.map(city => {
   const region = regionBySlug.get(city.slug);
   return { ...city, region: region?.name ?? '', color: region?.color ?? '#744761' };
 });
+
+// Members/businesses/partners record city as free text (from the forum sync, or
+// hand-entered), which doesn't always match the name used in cities.csv — e.g. an
+// English exonym ("Rome") vs. the local spelling ("Roma"). Normalize and alias
+// known cases so they land on the right marker instead of being silently dropped.
+// (Mirrors the matching in harta.astro, which has the richer standalone map.)
+const normalize = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const cityAliases: Record<string, string> = {
+  florence: 'firenze',
+  genoa: 'genova',
+  milan: 'milano',
+  rome: 'roma',
+  nuremberg: 'nurnberg',
+  'city of london': 'london',
+  'greater london': 'london',
+};
+const cityByKey = new Map<string, (typeof citiesWithRegion)[number]>();
+for (const city of citiesWithRegion) {
+  const keys = new Set([normalize(city.slug), ...city.city.split('/').map(part => normalize(part))]);
+  keys.forEach(key => cityByKey.set(key, city));
+}
+function matchCity(name?: string) {
+  if (!name) return undefined;
+  const key = normalize(name);
+  return cityByKey.get(cityAliases[key] ?? key);
+}
+
+const membersByCity = new Map<string, number>();
+for (const member of members) {
+  const city = matchCity(member.city);
+  if (city) membersByCity.set(city.slug, (membersByCity.get(city.slug) ?? 0) + 1);
+}
+
+const businessesByCity = new Map<string, { name: string; website?: string }[]>();
+for (const business of businesses) {
+  const city = matchCity(business.city);
+  if (!city) continue;
+  const list = businessesByCity.get(city.slug) ?? [];
+  list.push({ name: business.name, website: business.website });
+  businessesByCity.set(city.slug, list);
+}
+
+const partnersByCity = new Map<string, { name: string; website?: string; type: 'partner' | 'ngo' }[]>();
+for (const partner of partners) {
+  const city = matchCity(partner.city);
+  if (!city) continue;
+  const list = partnersByCity.get(city.slug) ?? [];
+  list.push({ name: partner.name, website: partner.website || partner.linkedin, type: partner.type });
+  partnersByCity.set(city.slug, list);
+}
+
+const mapCities = citiesWithRegion.map(city => ({
+  ...city,
+  memberCount: membersByCity.get(city.slug) ?? 0,
+  businesses: businessesByCity.get(city.slug) ?? [],
+  partners: partnersByCity.get(city.slug) ?? [],
+}));
 ---
-<section class="section community-map-section tone-dark" id="community">
+<section class="section community-map-section tone-white" id="community">
   <div class="container">
     <div class="community-map-heading">
       <div><p class="eyebrow">Komuniteti</p><h2>Qytetet e rrjetit.</h2></div>
-      <p>Një pamje e qyteteve nga vijnë njerëzit e komunitetit tonë dhe profesionistët e rrjetit Illyrian Brains — secili rajon me ngjyrën e vet.</p>
+      <p>Anëtarët, organizatat partnere dhe bizneset e komunitetit, sipas qytetit ku janë — secili rajon me ngjyrën e vet.</p>
     </div>
 
     <div class="map-legend">
       {cityRegions.map(region => <span class="map-legend-item"><span class="map-legend-dot" style={`background:${region.color}`} aria-hidden="true"></span>{region.name}</span>)}
     </div>
 
+    <div class="map-layer-filters" aria-label="Filtro çfarë përfshihet në hartë">
+      <div><p class="eyebrow">Përfshi në hartë</p><span id="map-filter-status">4 nga 4 lloje aktive</span></div>
+      <div class="map-layer-actions">
+        <button type="button" class="is-active" data-map-layer="city" aria-pressed="true"><i class="map-layer-dot city"></i>Qytete</button>
+        <button type="button" class="is-active" data-map-layer="member" aria-pressed="true"><i class="map-layer-dot member"></i>Anëtarë</button>
+        <button type="button" class="is-active" data-map-layer="business" aria-pressed="true"><i class="map-layer-dot business"></i>Biznese</button>
+        <button type="button" class="is-active" data-map-layer="ngo" aria-pressed="true"><i class="map-layer-dot ngo"></i>OJF Partnere</button>
+      </div>
+    </div>
+
     <div class="community-map-layout">
-      <div id="community-map" data-cities={JSON.stringify(citiesWithRegion)} aria-label="Harta e qyteteve të Illyrian Brains, ngjyrosur sipas rajonit"></div>
+      <div id="community-map" data-cities={JSON.stringify(mapCities)} aria-label="Harta e anëtarëve, bizneseve dhe organizatave partnere të Illyrian Brains, sipas qytetit"></div>
     </div>
 
     <div class="community-map-cta">
@@ -38,17 +108,59 @@ const citiesWithRegion = cities.map(city => {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);
 
+      const activeLayers = new Set(['city', 'member', 'business', 'ngo']);
+      const layerButtons = Array.from(document.querySelectorAll('[data-map-layer]'));
+      const filterStatus = document.querySelector('#map-filter-status');
+      const orgsOf = (city) => [
+        ...city.partners.filter(() => activeLayers.has('ngo')).map((partner) => ({ ...partner, tag: 'Organizatë Partnere' })),
+        ...city.businesses.filter(() => activeLayers.has('business')).map((business) => ({ ...business, tag: 'Biznes' })),
+      ];
+      const popupHtml = (city) => {
+        const orgs = orgsOf(city);
+        const orgList = orgs.length
+          ? `<ul class="map-popup-orgs">${orgs.map((org) => `<li>${org.website ? `<a href="${org.website}" target="_blank" rel="noreferrer">${org.name}</a>` : org.name} <em>${org.tag}</em></li>`).join('')}</ul>`
+          : '';
+        const memberCount = activeLayers.has('member') ? city.memberCount : 0;
+        const summaryParts = [];
+        if (activeLayers.has('member')) summaryParts.push(`${memberCount} anëtar${memberCount === 1 ? '' : 'ë'}`);
+        if (orgs.length) summaryParts.push(`${orgs.length} organizata`);
+        const summary = summaryParts.join(' · ') || 'Vetëm qyteti';
+        return `<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>${summary}</small>${orgList}<a class="map-popup-link" href="/qytetet/${city.slug}/">Shiko qytetin ↗</a></div>`;
+      };
+
       const markers = cityData.map((city) => {
         const isInactive = city.status === 'inactive';
+        const total = city.memberCount + city.businesses.length + city.partners.length;
+        const radius = Math.min(22, 7 + Math.sqrt(total) * 3.4);
         const marker = L.circleMarker([city.lat, city.lng], {
-          radius: 10, color: '#fff', weight: 2, opacity: .9,
+          radius, color: '#fff', weight: 2, opacity: .9,
           fillColor: isInactive ? '#9a9ba3' : city.color, fillOpacity: isInactive ? .5 : .85
         })
-          .bindTooltip(`<div class="map-city-tooltip"><strong>${city.city}</strong><span>${city.country}${isInactive ? ' · jo aktive' : ''}</span></div>`, { direction: 'top', offset: [0, -10], opacity: .96 })
-          .bindPopup(`<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>${city.region}${isInactive ? ' · Jo aktive' : ''}</small><a class="map-popup-link" href="/qytetet/">Shiko drejtorinë e qyteteve ↗</a></div>`);
-        marker.addTo(map);
+          .bindTooltip(`<div class="map-city-tooltip"><strong>${city.city}</strong><span>${city.memberCount} anëtarë${isInactive ? ' · jo aktive' : ''}</span></div>`, { direction: 'top', offset: [0, -10], opacity: .96 })
+          .bindPopup(popupHtml(city));
         return { city, marker };
       });
+      const refreshMarkers = () => {
+        markers.forEach(({ city, marker }) => {
+          const hasMembers = activeLayers.has('member') && city.memberCount > 0;
+          const hasOrganizations = (activeLayers.has('ngo') && city.partners.length > 0) || (activeLayers.has('business') && city.businesses.length > 0);
+          const show = activeLayers.has('city') || hasMembers || hasOrganizations;
+          if (show) {
+            if (!map.hasLayer(marker)) marker.addTo(map);
+            marker.setPopupContent(popupHtml(city));
+          } else if (map.hasLayer(marker)) map.removeLayer(marker);
+        });
+        if (filterStatus) filterStatus.textContent = `${activeLayers.size} nga 4 lloje aktive`;
+      };
+      layerButtons.forEach((button) => button.addEventListener('click', () => {
+        const layer = button.dataset.mapLayer;
+        if (!layer) return;
+        if (activeLayers.has(layer)) activeLayers.delete(layer); else activeLayers.add(layer);
+        button.classList.toggle('is-active', activeLayers.has(layer));
+        button.setAttribute('aria-pressed', String(activeLayers.has(layer)));
+        refreshMarkers();
+      }));
+      refreshMarkers();
       // Fit to the European cluster specifically rather than every marker — most
       // cities are in Europe, and including the North American / Middle East
       // outliers in the bounds zooms the map out so far that the view is mostly
@@ -57,7 +169,6 @@ const citiesWithRegion = cities.map(city => {
       const europeMarkers = markers.filter(({ city }) => isEurope(city)).map(({ marker }) => marker);
       const fitMarkers = europeMarkers.length ? europeMarkers : markers.map(({ marker }) => marker);
       if (fitMarkers.length) map.fitBounds(L.featureGroup(fitMarkers).getBounds(), { padding: [34, 34] });
-
     }
   </script>
 </section>

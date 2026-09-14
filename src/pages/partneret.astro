@@ -3,48 +3,68 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import DirectoryNetworkGraph from '../components/DirectoryNetworkGraph.astro';
-import { partners, partnerCategoryLabels } from '../data/partners';
+import { partners, partnerCategoryLabels, partnerCollaborationTypes } from '../data/partners';
 
 const categories = Object.entries(partnerCategoryLabels).map(([id, label]) => ({ id, label }));
-const graphPartners = partners.map((partner, index) => ({ id: `partner-${index}`, label: partner.name, category: partner.category, url: partner.website || partner.linkedin }));
-const partnersByCategory = categories
-  .map(category => ({ ...category, partners: partners.filter(partner => partner.category === category.id) }))
-  .filter(group => group.partners.length > 0);
+const graphPartners = partners.map((partner, index) => ({ id: `partner-${index}`, label: partner.name, category: partner.category, city: partner.city, url: partner.website || partner.linkedin }));
+const partnerCities = [...new Set(partners.map(partner => partner.city).filter((city): city is string => Boolean(city)))].sort((a, b) => a.localeCompare(b, 'sq'));
 ---
 <BaseLayout title="OJF Partnere · Illyrian Brains" description="Organizatat partnere që bashkëpunojnë me rrjetin Illyrian Brains.">
   <Header />
   <main class="network-page">
-    <section class="section tone-dark"><div class="container city-page">
-      <p class="eyebrow">Illyrian Brains Network</p><h1>OJF Partnere.</h1><p class="about-body">Organizatat që bashkëpunojnë me komunitetin Illyrian Brains.</p>
+    <p class="construction-note construction-banner"><span class="construction-icon" aria-hidden="true">🚧</span><span><strong>Në ndërtim e sipër.</strong> Katalogu i OJF-ve po plotësohet vazhdimisht me organizata të reja.</span></p>
+    <section class="section tone-dark page-hero page-hero--partners"><div class="container city-page">
+      <h1>OJF Partnere.</h1><p class="about-body">Organizatat që bashkëpunojnë me komunitetin Illyrian Brains.</p>
     </div></section>
 
     <section class="section tone-white"><div class="container">
-      <DirectoryNetworkGraph kind="partner" title="Organizatat që na lidhin." description="Eksploro si organizatat partnere lidhen me anëtarët, qytetet dhe fushat e bashkëpunimit të Illyrian Brains." categories={categories} items={graphPartners} />
-      <div class="partner-directory">
-        <div class="partner-directory-heading"><p class="eyebrow">Bashkëpunimet</p><h2>OJF Partnere</h2></div>
-        {partnersByCategory.map(group => (
-          <div class="partner-category-group">
-            <h3 class="partner-category-title">{group.label}</h3>
-            <div class="partner-directory-grid">
-              {group.partners.map(partner => (
-                <article class="partner-directory-card">
-                  {partner.city && <span class="partner-city">{partner.city}</span>}
-                  <h3>{partner.name}</h3>
-                  <p>{partner.description}</p>
-                  <div class="partner-links">
-                    {partner.website && <a href={partner.website} target="_blank" rel="noreferrer">Faqja zyrtare <span aria-hidden="true">↗</span></a>}
-                    {partner.linkedin && <a href={partner.linkedin} target="_blank" rel="noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>}
-                  </div>
-                </article>
-              ))}
+      <div class="catalog-heading">
+        <div><h2>Gjej organizatën e duhur.</h2></div>
+        <p><strong>Përdor kërkimin dhe filtrat më poshtë</strong> për të parë OJF-të sipas emrit, kategorisë, qytetit ose bashkëpunimit me IB.</p>
+      </div>
+      <div class="directory-filters member-filters" aria-label="Filtro katalogun e OJF-ve">
+        <div class="member-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="partner-search" type="search" placeholder="Kërko OJF…" aria-label="Kërko OJF"/></div>
+        <select id="partner-category" aria-label="Filtro sipas kategorisë"><option value="">Të gjitha kategoritë</option>{categories.map(category => <option value={category.id}>{category.label}</option>)}</select>
+        <select id="partner-city" aria-label="Filtro sipas qytetit"><option value="">Të gjitha qytetet</option>{partnerCities.map(city => <option value={city}>{city}</option>)}</select>
+        <select id="partner-collaboration" aria-label="Filtro sipas bashkëpunimit me IB"><option value="">Të gjitha bashkëpunimet</option>{partnerCollaborationTypes.map(type => <option value={type}>{type}</option>)}</select>
+      </div>
+      <p class="directory-result-count" id="partner-result-count"></p>
+      <div class="partner-directory-grid">
+        {partners.map(partner => (
+          <article class="partner-directory-card" data-category={partner.category} data-city={partner.city || ''} data-collaboration={partner.collaborationType} data-search={`${partner.name} ${partner.description} ${partner.city || ''} ${partner.collaborationType}`.toLocaleLowerCase('sq')}>
+            {partner.city && <span class="partner-city">{partner.city}</span>}
+            <h3>{partner.name}</h3>
+            <p>{partner.description}</p>
+            <div class="partner-collaboration"><span>Bashkëpunimi me IB</span><strong>{partner.collaborationType}</strong></div>
+            <div class="partner-links">
+              {partner.website && <a href={partner.website} target="_blank" rel="noreferrer">Faqja zyrtare <span aria-hidden="true">↗</span></a>}
+              {partner.linkedin && <a href={partner.linkedin} target="_blank" rel="noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>}
             </div>
-          </div>
+            {partner.sponsor && <span class="sponsor-star" role="img" aria-label="Sponsor" title="Sponsor">★</span>}
+          </article>
         ))}
+      </div>
+      <p class="directory-empty" id="partner-empty" hidden>Asnjë OJF nuk përputhet me filtrat.</p>
+    </div></section>
+
+    <section class="section tone-grey"><div class="container">
+      <div class="partner-network">
+        <DirectoryNetworkGraph kind="partner" title="Organizatat që na lidhin." description="Eksploro si organizatat partnere lidhen me anëtarët, qytetet dhe fushat e bashkëpunimit të Illyrian Brains." categories={categories} items={graphPartners} />
       </div>
     </div></section>
   </main>
   <Footer />
 </BaseLayout>
+<script>
+  const search=document.querySelector<HTMLInputElement>('#partner-search'),category=document.querySelector<HTMLSelectElement>('#partner-category'),city=document.querySelector<HTMLSelectElement>('#partner-city'),collaboration=document.querySelector<HTMLSelectElement>('#partner-collaboration'),count=document.querySelector<HTMLElement>('#partner-result-count'),empty=document.querySelector<HTMLElement>('#partner-empty'),cards=[...document.querySelectorAll<HTMLElement>('.partner-directory-card')];
+  const filterPartners=()=>{const query=(search?.value||'').trim().toLocaleLowerCase('sq'),selectedCategory=category?.value||'',selectedCity=city?.value||'',selectedCollaboration=collaboration?.value||'';let visible=0;cards.forEach(card=>{const show=(!query||(card.dataset.search||'').includes(query))&&(!selectedCategory||card.dataset.category===selectedCategory)&&(!selectedCity||card.dataset.city===selectedCity)&&(!selectedCollaboration||card.dataset.collaboration===selectedCollaboration);card.hidden=!show;if(show)visible++});if(count)count.textContent=`${visible} ${visible===1?'OJF u gjet':'OJF u gjetën'}`;if(empty)empty.hidden=visible>0};
+  search?.addEventListener('input',filterPartners);category?.addEventListener('change',filterPartners);city?.addEventListener('change',filterPartners);collaboration?.addEventListener('change',filterPartners);filterPartners();
+</script>
 <style>
-  .partner-directory{margin-top:80px;padding-top:64px;border-top:1px solid var(--line)}.partner-directory-heading{margin-bottom:28px}.partner-directory-heading h2{margin:0;font-size:clamp(32px,4vw,46px);font-weight:400;letter-spacing:-.03em}.partner-category-group{margin-top:44px}.partner-category-title{margin:0 0 16px;color:var(--accent-dark);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.partner-directory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.partner-directory-card{display:flex;min-height:270px;flex-direction:column;padding:28px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 12px 35px rgba(23,24,29,.045)}.partner-city{color:var(--muted);font-size:12px;font-weight:600}.partner-directory-card h3{margin:24px 0 10px;font-size:25px;line-height:1.15}.partner-directory-card p{margin:0;color:var(--muted);font-size:14px;line-height:1.65}.partner-links{display:flex;flex-wrap:wrap;gap:18px;margin-top:auto;padding-top:24px}.partner-links a{color:var(--accent-dark);font-size:13px;font-weight:700}.partner-links a:hover{text-decoration:underline;text-underline-offset:3px}@media(max-width:700px){.partner-directory-grid{grid-template-columns:1fr}.partner-directory-card{min-height:240px}}
+  .catalog-heading{display:grid;grid-template-columns:1fr minmax(300px,480px);gap:55px;align-items:end;margin-bottom:34px}.catalog-heading h2{margin:0;font-size:clamp(38px,5vw,58px);font-weight:400;line-height:1.05}.catalog-heading>p{margin:0;color:var(--muted);font-size:16px;line-height:1.7}.catalog-heading strong{color:var(--accent-dark)}
+  .directory-filters{display:grid;grid-template-columns:minmax(240px,1fr) repeat(2,minmax(180px,240px));margin-bottom:14px;padding:18px;border:1px solid rgba(116,71,97,.2);border-radius:14px;background:var(--soft)}.directory-filters>*{min-width:0}.directory-filters select{width:100%}.directory-result-count{margin:0 0 34px;color:var(--muted);font-size:13px}.directory-empty{margin:35px 0;color:var(--muted)}.partner-directory-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.partner-directory-card{position:relative;display:flex;min-height:174px;flex-direction:column;padding:20px 22px;border:1px solid var(--line);border-left:4px solid var(--card-accent,#744761);border-radius:8px;background:var(--card-bg,#fff);box-shadow:0 8px 24px rgba(23,24,29,.04)}.partner-directory-card[hidden]{display:none}.partner-directory-card[data-category="advocacy"]{--card-accent:#a64f55;--card-bg:#fcf4f4}.partner-directory-card[data-category="education"]{--card-accent:#397b72;--card-bg:#f3faf8}.partner-directory-card[data-category="culture"]{--card-accent:#a26a2d;--card-bg:#fcf7ef}.partner-directory-card[data-category="environment"]{--card-accent:#4c7a3d;--card-bg:#f4f9f1}.partner-directory-card[data-category="diaspora"]{--card-accent:#6b5aa8;--card-bg:#f7f5fc}.partner-city{align-self:flex-start;padding:5px 8px;border-radius:4px;color:var(--ink);background:rgba(255,255,255,.72);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.partner-directory-card h3{margin:14px 0 7px;font-size:20px;font-weight:400;line-height:1.15}.partner-directory-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.partner-links{display:flex;flex-wrap:wrap;gap:15px;margin-top:auto;padding:14px 34px 0 0}.partner-links a{color:var(--accent-dark);font-size:12px;font-weight:700}.partner-links a:hover{text-decoration:underline;text-underline-offset:3px}.sponsor-star{position:absolute;right:18px;bottom:16px;color:#b67a16;font-size:21px;line-height:1;text-shadow:0 1px 0 #fff}@media(max-width:980px){.partner-directory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:760px){.catalog-heading{grid-template-columns:1fr;gap:18px}.directory-filters{grid-template-columns:1fr}}@media(max-width:700px){.partner-directory-grid{grid-template-columns:1fr}.partner-directory-card{min-height:160px}}
+  .directory-filters{grid-template-columns:minmax(220px,1fr) repeat(3,minmax(150px,210px))}
+  .partner-collaboration{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(23,24,29,.1)}
+  .partner-collaboration span{color:var(--muted);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+  .partner-collaboration strong{color:var(--card-accent,#744761);font-size:11px;text-align:right}
 </style>

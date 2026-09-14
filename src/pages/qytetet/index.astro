@@ -11,6 +11,7 @@ const countries = [...new Set(cities.map(city => city.country))].sort((a,b) => a
 <BaseLayout title="Qytetet · Illyrian Brains" description="Zbulo komunitetet lokale të rrjetit Illyrian Brains, qytet pas qyteti.">
   <Header />
   <main class="network-page">
+    <p class="construction-note construction-banner"><span class="construction-icon" aria-hidden="true">🚧</span><span><strong>Në ndërtim e sipër.</strong> Katalogu i qyteteve po plotësohet vazhdimisht me komunitete të reja.</span></p>
     <section class="section tone-dark city-hero"><div class="container city-page">
       <p class="eyebrow">Illyrian Brains Network</p><h1>Qytetet e rrjetit.</h1><p class="about-body">Qytetet janë pika e nisjes së rrjetit: aty lindin njohjet, aktivitetet dhe bashkëpunimet lokale. Zgjidh një qytet për t'u njohur me komunitetin pranë teje.</p>
     </div></section>
@@ -22,6 +23,9 @@ const countries = [...new Set(cities.map(city => city.country))].sort((a,b) => a
       <div class="community-map-layout">
         <div id="community-map" data-cities={JSON.stringify(directoryCities)} aria-label="Harta e qyteteve, ngjyrosur sipas rajonit"></div>
       </div>
+    </div></section>
+
+    <section class="section tone-grey"><div class="container">
       <div class="city-directory-stats"><strong id="city-stat-total">{directoryCities.length}</strong><span>qytete në rrjet</span></div>
       <div class="member-filters city-filters">
         <div class="member-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="city-search" type="search" placeholder="Kërko qytet ose shtet…" aria-label="Kërko qytete"/></div>

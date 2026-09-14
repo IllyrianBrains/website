@@ -24,7 +24,7 @@ const teamCities = [...new Set(team.map(member => member.city).filter((city): ci
     </div></section>
 
     <section class="section tone-white team-directory-intro" id="drejtoria-e-ekipeve"><div class="container">
-      <header class="team-directory-heading"><div><p class="eyebrow">Drejtoria e ekipeve</p><h2>Njerëzit që e bëjnë punën të mundur.</h2></div><p>Çdo grup paraqitet më poshtë me të gjithë anëtarët e tij, sipas të dhënave publike të forumit.</p></header>
+      <header class="team-directory-heading"><div><p class="eyebrow">Katalogu i ekipeve</p><h2>Njerëzit që e bëjnë punën të mundur.</h2></div><p>Çdo grup paraqitet më poshtë me të gjithë anëtarët e tij, sipas të dhënave publike të forumit.</p></header>
       <div class="member-filters team-filters">
         <div class="member-search team-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="team-search" type="search" placeholder="Kërko një person…" aria-label="Kërko në ekipe"/></div>
         <select id="team-group" aria-label="Filtro sipas grupit"><option value="">Të gjitha grupet</option>{forumGroups.map(group => <option value={group.forum}>{group.label}</option>)}</select>

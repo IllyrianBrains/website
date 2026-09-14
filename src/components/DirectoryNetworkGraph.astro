@@ -1,6 +1,6 @@
 ---
 interface GraphCategory { id: string; label: string; }
-interface GraphItem { id: string; label: string; category: string; url?: string; }
+interface GraphItem { id: string; label: string; category: string; city?: string; url?: string; }
 interface Props {
   kind: 'partner' | 'business';
   title: string;
@@ -11,26 +11,42 @@ interface Props {
 
 const { kind, title, description, categories, items = [] } = Astro.props;
 const graphId = `${kind}-directory-graph`;
-const elements = [
+
+// Only draw categories/hubs that actually have something in them — an empty
+// category node with no edges just reads as a stray floating box.
+const usedCategories = categories.filter(category => items.some(item => item.category === category.id));
+const hasCities = items.some(item => item.city);
+
+const elements = items.length === 0 ? [] : [
   { data: { id: 'members', label: 'Anëtarët', type: 'network' } },
-  { data: { id: 'cities', label: 'Qytetet', type: 'network' } },
-  ...categories.map(category => ({ data: { id: category.id, label: category.label, type: 'category' } })),
+  ...(hasCities ? [{ data: { id: 'cities', label: 'Qytetet', type: 'network' } }] : []),
+  ...usedCategories.map(category => ({ data: { id: category.id, label: category.label, type: 'category' } })),
   ...items.map(item => ({ data: { id: item.id, label: item.label, type: 'organization', url: item.url || '' } })),
+  // Wire every node into the graph from a shared root so nothing is left floating:
+  // members -> category -> organization, plus organization -> cities where known.
+  ...usedCategories.map(category => ({ data: { id: `members-${category.id}`, source: 'members', target: category.id } })),
   ...items.map(item => ({ data: { id: `${item.category}-${item.id}`, source: item.category, target: item.id } })),
+  ...items.filter(item => item.city).map(item => ({ data: { id: `${item.id}-cities`, source: item.id, target: 'cities' } })),
 ];
+// Scale the canvas to how much there actually is to show, instead of always
+// reserving a tall, mostly-empty area for a handful of nodes.
+const nodeCount = elements.filter(element => !('source' in element.data)).length;
+const graphHeight = Math.max(300, Math.min(620, nodeCount * 85 + 140));
 ---
+{items.length > 0 && (
 <section class="directory-network" aria-labelledby={`${graphId}-title`}>
   <header class="directory-network-heading">
-    <div><p class="eyebrow">Harta e ekosistemit</p><h2 id={`${graphId}-title`}>{title}</h2></div>
+    <div><h2 id={`${graphId}-title`}>{title}</h2></div>
     <p>{description}</p>
   </header>
   <div class="directory-network-toolbar">
-    <div class="directory-network-legend"><span><i class="network"></i>Komuniteti</span><span><i class="category"></i>Kategoria</span>{items.length > 0 && <span><i class="organization"></i>Organizata</span>}</div>
+    <div class="directory-network-legend"><span><i class="network"></i>Komuniteti</span><span><i class="category"></i>Kategoria</span><span><i class="organization"></i>Organizata</span></div>
     <button type="button" data-graph-reset>Rivendos pamjen</button>
   </div>
-  <div id={graphId} class="directory-network-graph" data-elements={JSON.stringify(elements)} role="img" aria-label={`Graf interaktiv i lidhjeve në drejtorinë e ${kind === 'partner' ? 'partnerëve' : 'bizneseve'}`}></div>
+  <div id={graphId} class="directory-network-graph" style={`height:${graphHeight}px`} data-elements={JSON.stringify(elements)} role="img" aria-label={`Graf interaktiv i lidhjeve në drejtorinë e ${kind === 'partner' ? 'partnerëve' : 'bizneseve'}`}></div>
   <p class="directory-network-note" data-graph-note>Zgjidh një nyje për të parë lidhjet e saj.</p>
 </section>
+)}
 
 <script>
   import cytoscape from 'cytoscape';
@@ -84,5 +100,5 @@ const elements = [
 </script>
 
 <style>
-  .directory-network{padding:12px 0}.directory-network-heading{display:grid;grid-template-columns:1fr minmax(290px,460px);gap:55px;align-items:end}.directory-network-heading h2{max-width:650px;margin:0;font-size:clamp(38px,5vw,58px);font-weight:400;line-height:1.05;letter-spacing:-.035em}.directory-network-heading>p{margin:0;color:var(--muted);font-size:16px;line-height:1.7}.directory-network-toolbar{display:flex;align-items:center;justify-content:space-between;gap:25px;margin:38px 0 14px}.directory-network-legend{display:flex;flex-wrap:wrap;gap:18px}.directory-network-legend span{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.directory-network-legend i{display:block;width:12px;height:12px;border-radius:50%;background:#744761}.directory-network-legend .network{border-radius:1px;background:#293f52;transform:rotate(45deg)}.directory-network-legend .category{width:17px;border-radius:3px;background:#b98545}.directory-network-legend .organization{width:17px;border:2px solid #744761;border-radius:3px;background:#fff}.directory-network-toolbar button{padding:9px 13px;border:1px solid var(--line);border-radius:6px;color:var(--ink);background:#fff;font:600 12px var(--font-body);cursor:pointer}.directory-network-graph{height:min(65vh,620px);min-height:480px;border:1px solid var(--line);border-radius:18px;background-color:#faf9fa;background-image:linear-gradient(#17181d0b 1px,transparent 1px),linear-gradient(90deg,#17181d0b 1px,transparent 1px);background-size:24px 24px;box-shadow:0 18px 50px #17181d0c}.directory-network-note{margin:13px 0 0;color:var(--muted);font-size:13px}.directory-network-note strong,.directory-network-note a{color:var(--accent-dark)}.directory-network-note a{font-weight:700}@media(max-width:760px){.directory-network-heading{grid-template-columns:1fr;gap:20px}.directory-network-toolbar{align-items:flex-start;flex-direction:column}.directory-network-graph{min-height:520px}}
+  .directory-network{padding:12px 0}.directory-network-heading{display:grid;grid-template-columns:1fr minmax(290px,460px);gap:55px;align-items:end}.directory-network-heading h2{max-width:650px;margin:0;font-size:clamp(38px,5vw,58px);font-weight:400;line-height:1.05;letter-spacing:-.035em}.directory-network-heading>p{margin:0;color:var(--muted);font-size:16px;line-height:1.7}.directory-network-toolbar{display:flex;align-items:center;justify-content:space-between;gap:25px;margin:38px 0 14px}.directory-network-legend{display:flex;flex-wrap:wrap;gap:18px}.directory-network-legend span{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.directory-network-legend i{display:block;width:12px;height:12px;border-radius:50%;background:#744761}.directory-network-legend .network{border-radius:1px;background:#293f52;transform:rotate(45deg)}.directory-network-legend .category{width:17px;border-radius:3px;background:#b98545}.directory-network-legend .organization{width:17px;border:2px solid #744761;border-radius:3px;background:#fff}.directory-network-toolbar button{padding:9px 13px;border:1px solid var(--line);border-radius:6px;color:var(--ink);background:#fff;font:600 12px var(--font-body);cursor:pointer}.directory-network-graph{max-height:65vh;border:1px solid var(--line);border-radius:18px;background-color:#faf9fa;background-image:linear-gradient(#17181d0b 1px,transparent 1px),linear-gradient(90deg,#17181d0b 1px,transparent 1px);background-size:24px 24px;box-shadow:0 18px 50px #17181d0c}.directory-network-note{margin:13px 0 0;color:var(--muted);font-size:13px}.directory-network-note strong,.directory-network-note a{color:var(--accent-dark)}.directory-network-note a{font-weight:700}@media(max-width:760px){.directory-network-heading{grid-template-columns:1fr;gap:20px}.directory-network-toolbar{align-items:flex-start;flex-direction:column}}
 </style>
