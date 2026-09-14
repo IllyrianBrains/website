@@ -18,6 +18,37 @@ const businessCities = [...new Set(businesses.map(business => business.city).fil
       <h1>Bizneset e rrjetit.</h1><p class="about-body">Bizneset e themeluara dhe drejtuara nga anëtarët e komunitetit — një hapësirë për t'i njohur dhe mbështetur.</p>
     </div></section>
 
+    <section class="business-collaboration" aria-labelledby="business-collaboration-title"><div class="container">
+      <div class="business-collaboration-heading">
+        <p class="eyebrow">Bashkëpunimi me bizneset</p>
+        <h2 id="business-collaboration-title">Çfarë mund të bëjmë së bashku.</h2>
+        <p>Lidhim biznesin tuaj me një rrjet global profesionistësh shqiptarë për të krijuar mundësi, për të ndarë ekspertizë dhe për të rritur ndikimin në komunitet.</p>
+      </div>
+      <div class="business-collaboration-grid">
+        <article class="business-collaboration-card business-card-plum">
+          <span class="business-card-number" aria-hidden="true">01</span>
+          <div>
+            <h3>Partneritete dhe evente</h3>
+            <p>Bashkëkrijojmë evente, programe dhe sponsorizime që e afrojnë biznesin tuaj me profesionistë dhe komunitete në shumë qytete.</p>
+          </div>
+        </article>
+        <article class="business-collaboration-card business-card-blue">
+          <span class="business-card-number" aria-hidden="true">02</span>
+          <div>
+            <h3>Talente dhe ekspertizë</h3>
+            <p>Ju lidhim me profesionistë, mentorë dhe bashkëpunëtorë të mundshëm për të shkëmbyer dije dhe për të zhvilluar ide të reja.</p>
+          </div>
+        </article>
+        <article class="business-collaboration-card business-card-ochre">
+          <span class="business-card-number" aria-hidden="true">03</span>
+          <div>
+            <h3>Oferta për komunitetin</h3>
+            <p>Promovojmë shërbime, përfitime dhe mundësi të dedikuara për anëtarët, duke rritur dukshmërinë dhe besimin te marka juaj.</p>
+          </div>
+        </article>
+      </div>
+    </div></section>
+
     <section class="section tone-white"><div class="container">
       <div class="catalog-heading">
         <div><h2>Gjej biznesin e duhur.</h2></div>
@@ -86,6 +117,7 @@ const businessCities = [...new Set(businesses.map(business => business.city).fil
   search?.addEventListener('input',filterBusinesses);category?.addEventListener('change',filterBusinesses);city?.addEventListener('change',filterBusinesses);contribution?.addEventListener('change',filterBusinesses);filterBusinesses();
 </script>
 <style>
+  .business-collaboration{padding:96px 0 104px;border-bottom:1px solid var(--line);background:#f7f6f4}.business-collaboration-heading{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,430px);column-gap:70px;align-items:end;margin-bottom:44px}.business-collaboration-heading .eyebrow{grid-column:1/-1;margin-bottom:15px}.business-collaboration-heading h2{max-width:650px;margin:0;font-size:clamp(42px,5.3vw,66px);font-weight:400;line-height:.98;letter-spacing:-.045em}.business-collaboration-heading>p:last-child{margin:0;color:var(--muted);font-size:16px;line-height:1.7}.business-collaboration-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.business-collaboration-card{--business-card:#744761;position:relative;display:flex;min-height:330px;flex-direction:column;justify-content:space-between;overflow:hidden;padding:27px 29px 30px;border-radius:12px;color:#fff;background:var(--business-card);box-shadow:0 14px 35px rgba(23,24,29,.12);transition:transform .22s ease,box-shadow .22s ease}.business-collaboration-card::after{content:'';position:absolute;right:-52px;top:-62px;width:180px;height:180px;border:1px solid rgba(255,255,255,.16);border-radius:50%}.business-collaboration-card:hover{transform:translateY(-5px);box-shadow:0 20px 42px rgba(23,24,29,.18)}.business-card-plum{--business-card:#744761}.business-card-blue{--business-card:#365d70}.business-card-ochre{--business-card:#a56f32}.business-card-number{position:relative;z-index:1;display:grid;width:36px;height:36px;place-items:center;border:1px solid rgba(255,255,255,.45);border-radius:50%;font-size:10px;font-weight:800;letter-spacing:.08em}.business-collaboration-card>div{position:relative;z-index:1}.business-collaboration-card h3{max-width:280px;margin:0 0 13px;font-size:clamp(25px,2.2vw,31px);font-weight:400;line-height:1.05;letter-spacing:-.025em}.business-collaboration-card p{max-width:310px;margin:0;color:rgba(255,255,255,.78);font-size:14px;line-height:1.65}@media(max-width:900px){.business-collaboration-heading{grid-template-columns:1fr;gap:20px}.business-collaboration-grid{grid-template-columns:1fr}.business-collaboration-card{min-height:250px}}@media(max-width:600px){.business-collaboration{padding:72px 0 78px}.business-collaboration-heading{margin-bottom:30px}.business-collaboration-heading h2{font-size:clamp(38px,11vw,48px)}.business-collaboration-heading>p:last-child{font-size:15px}.business-collaboration-card{min-height:235px;padding:24px}.business-collaboration-card h3{font-size:27px}}
   .catalog-heading{display:grid;grid-template-columns:1fr minmax(300px,480px);gap:55px;align-items:end;margin-bottom:34px}.catalog-heading h2{margin:0;font-size:clamp(38px,5vw,58px);font-weight:400;line-height:1.05}.catalog-heading>p{margin:0;color:var(--muted);font-size:16px;line-height:1.7}.catalog-heading strong{color:var(--accent-dark)}
   .directory-filters{display:grid;grid-template-columns:minmax(230px,1fr) repeat(3,minmax(165px,220px));margin-bottom:14px;padding:18px;border:1px solid rgba(116,71,97,.2);border-radius:14px;background:var(--soft)}.directory-filters>*{min-width:0}.directory-filters select{width:100%}.directory-result-count{margin:0 0 34px;color:var(--muted);font-size:13px}.directory-empty{margin:35px 0;color:var(--muted)}.business-directory-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.business-directory-card{position:relative;display:flex;min-height:174px;flex-direction:column;padding:20px 22px;border:1px solid var(--line);border-left:4px solid var(--card-accent,#744761);border-radius:8px;background:var(--card-bg,#fff);box-shadow:0 8px 24px rgba(23,24,29,.04)}.business-directory-card[hidden]{display:none}.business-directory-card[data-category="startup"]{--card-accent:#397b72;--card-bg:#f3faf8}.business-directory-card[data-category="established"]{--card-accent:#a26a2d;--card-bg:#fcf7ef}.business-directory-card[data-category="diaspora"]{--card-accent:#6b5aa8;--card-bg:#f7f5fc}.business-city{align-self:flex-start;padding:5px 8px;border-radius:4px;color:var(--ink);background:rgba(255,255,255,.72);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.business-directory-card h3{margin:14px 0 7px;font-size:20px;font-weight:400;line-height:1.15}.business-directory-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.business-links{margin-top:auto;padding:14px 34px 0 0}.business-links a{color:var(--accent-dark);font-size:12px;font-weight:700}.business-links a:hover{text-decoration:underline;text-underline-offset:3px}.sponsor-star{position:absolute;right:18px;bottom:16px;color:#b67a16;font-size:21px;line-height:1;text-shadow:0 1px 0 #fff}.offers-heading{display:grid;grid-template-columns:1fr minmax(280px,430px);gap:48px;align-items:end;margin-bottom:28px}.offers-heading h2{margin:0;font-size:clamp(32px,4vw,46px);font-weight:400}.offers-heading>p{margin:0;color:var(--muted);font-size:15px;line-height:1.65}.offers-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}.offers-table{width:100%;border-collapse:collapse;text-align:left}.offers-table th{padding:12px 16px;color:var(--muted);background:#f7f6f7;font-size:10px;text-transform:uppercase;letter-spacing:.08em}.offers-table td{padding:16px;border-top:1px solid var(--line);font-size:13px}.offers-table a{color:var(--accent-dark);font-weight:700}.offer-type{display:inline-block;padding:5px 8px;border-radius:4px;background:var(--soft);font-size:11px;font-weight:700}.offers-empty{margin:0;padding:28px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);background:#faf9fa;text-align:center}@media(max-width:980px){.business-directory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:1000px){.directory-filters{grid-template-columns:1fr 1fr}.directory-filters .member-search{grid-column:1/-1}}@media(max-width:760px){.catalog-heading,.directory-filters,.offers-heading{grid-template-columns:1fr}.catalog-heading{gap:18px}.offers-heading{gap:14px}.offers-table thead{display:none}.offers-table,.offers-table tbody,.offers-table tr,.offers-table td{display:block}.offers-table tr{padding:12px 16px;border-top:1px solid var(--line)}.offers-table tr:first-child{border-top:0}.offers-table td{display:grid;grid-template-columns:110px 1fr;gap:12px;padding:6px 0;border:0}.offers-table td[data-label]::before{content:attr(data-label);color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}}@media(max-width:700px){.business-directory-grid{grid-template-columns:1fr}.business-directory-card{min-height:160px}}
 </style>
