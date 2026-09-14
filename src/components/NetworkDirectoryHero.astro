@@ -1,0 +1,56 @@
+---
+interface Props {
+  kind: 'cities' | 'members' | 'partners' | 'businesses' | 'join';
+  eyebrow: string;
+  title: string;
+  description: string;
+}
+
+const { kind, eyebrow, title, description } = Astro.props;
+const visualLabels = {
+  cities: 'Komunitete kudo në botë',
+  members: 'Ekspertizë që na lidh',
+  partners: 'Ndikim përmes bashkëpunimit',
+  businesses: 'Një ekosistem që rritet',
+  join: 'Gjej mënyrën tënde për t’u përfshirë',
+};
+---
+<section class:list={['network-directory-hero', `network-directory-hero--${kind}`]}>
+  <div class="container network-directory-hero-inner">
+    <div class="network-directory-hero-copy">
+      <p class="eyebrow">{eyebrow}</p>
+      <h1>{title}</h1>
+      <p>{description}</p>
+    </div>
+    <div class="network-directory-visual" aria-hidden="true">
+      <span class="visual-index">IB / 0{kind === 'cities' ? '1' : kind === 'members' ? '2' : kind === 'partners' ? '3' : kind === 'businesses' ? '4' : '5'}</span>
+      {kind === 'cities' && <svg viewBox="0 0 440 300"><path class="route" d="M48 213C105 133 151 207 203 140S313 77 392 113"/><path class="route faint" d="M74 74c63 59 89 28 132 83s91 79 163 54"/><g class="nodes"><circle cx="48" cy="213" r="8"/><circle cx="116" cy="166" r="5"/><circle cx="203" cy="140" r="9"/><circle cx="290" cy="91" r="5"/><circle cx="392" cy="113" r="8"/><circle cx="74" cy="74" r="5"/><circle cx="369" cy="211" r="6"/></g><g class="rings"><circle cx="203" cy="140" r="27"/><circle cx="392" cy="113" r="20"/></g></svg>}
+      {kind === 'members' && <svg viewBox="0 0 440 300"><g class="connections"><path d="M95 87 220 145 350 78M95 87l18 132 107-74 105 76 25-143M113 219l212 2"/></g><g class="people"><circle cx="95" cy="87" r="28"/><circle cx="220" cy="145" r="38"/><circle cx="350" cy="78" r="24"/><circle cx="113" cy="219" r="22"/><circle cx="325" cy="221" r="29"/></g><g class="cores"><circle cx="95" cy="87" r="6"/><circle cx="220" cy="145" r="8"/><circle cx="350" cy="78" r="5"/><circle cx="113" cy="219" r="5"/><circle cx="325" cy="221" r="6"/></g></svg>}
+      {kind === 'partners' && <svg viewBox="0 0 440 300"><g class="partner-rings"><circle cx="170" cy="150" r="81"/><circle cx="270" cy="150" r="81"/><circle cx="220" cy="150" r="34"/></g><path class="partner-axis" d="M58 150h324M220 38v224"/><g class="partner-nodes"><circle cx="89" cy="150" r="6"/><circle cx="351" cy="150" r="6"/><circle cx="220" cy="69" r="6"/><circle cx="220" cy="231" r="6"/></g></svg>}
+      {kind === 'businesses' && <svg viewBox="0 0 440 300"><path class="growth-line" d="M48 235 126 194 195 206 274 125 390 67"/><path class="growth-fill" d="M48 235 126 194 195 206 274 125 390 67v190H48Z"/><g class="growth-nodes"><circle cx="48" cy="235" r="6"/><circle cx="126" cy="194" r="6"/><circle cx="195" cy="206" r="6"/><circle cx="274" cy="125" r="7"/><circle cx="390" cy="67" r="8"/></g><path class="grid-line" d="M48 257h342M48 207h342M48 157h342M48 107h342"/></svg>}
+      {kind === 'join' && <svg viewBox="0 0 440 300"><g class="join-path-lines"><path d="M55 65C128 65 134 150 220 150M55 150h165M55 235c73 0 79-85 165-85M385 65c-73 0-79 85-165 85M385 150H220M385 235c-73 0-79-85-165-85"/></g><g class="join-path-nodes"><circle cx="55" cy="65" r="7"/><circle cx="55" cy="150" r="7"/><circle cx="55" cy="235" r="7"/><circle cx="385" cy="65" r="7"/><circle cx="385" cy="150" r="7"/><circle cx="385" cy="235" r="7"/><circle cx="220" cy="150" r="30"/></g><path class="join-arrow" d="m208 150 9 9 17-19"/></svg>}
+      <p>{visualLabels[kind]}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .network-directory-hero{--hero-tone:#c9aebd;position:relative;isolation:isolate;overflow:hidden;min-height:520px;display:flex;align-items:center;padding:84px 0 90px;color:#fff;background-color:var(--night);background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:16px 16px}
+  .network-directory-hero::before{content:'';position:absolute;z-index:-1;inset:0;background:radial-gradient(circle at 82% 45%,color-mix(in srgb,var(--hero-tone) 18%,transparent),transparent 31%)}
+  .network-directory-hero::after{content:'';position:absolute;z-index:-1;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--hero-tone),transparent);opacity:.55}
+  .network-directory-hero--cities{--hero-tone:#8ca7b4}.network-directory-hero--members{--hero-tone:#c9aebd}.network-directory-hero--partners{--hero-tone:#d0a57e}.network-directory-hero--businesses{--hero-tone:#8eaaa0}
+  .network-directory-hero--join{--hero-tone:#d8b2c7}
+  .network-directory-hero-inner{display:grid;grid-template-columns:minmax(0,.92fr) minmax(390px,.78fr);gap:clamp(60px,9vw,130px);align-items:center}
+  .network-directory-hero-copy .eyebrow{margin:0 0 18px;color:var(--hero-tone)}
+  .network-directory-hero-copy h1{max-width:700px;margin:0;font-size:clamp(52px,6.2vw,78px);font-weight:300;line-height:.96;letter-spacing:-.05em}
+  .network-directory-hero-copy>p:last-child{max-width:620px;margin:27px 0 0;color:rgba(255,255,255,.68);font-size:18px;line-height:1.72}
+  .network-directory-visual{position:relative;min-height:330px;overflow:hidden;border:1px solid rgba(255,255,255,.13);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));box-shadow:0 30px 65px rgba(0,0,0,.23),inset 0 1px rgba(255,255,255,.05)}
+  .network-directory-visual::before{content:'';position:absolute;inset:12px;border:1px solid color-mix(in srgb,var(--hero-tone) 23%,transparent);border-radius:12px;pointer-events:none}
+  .network-directory-visual svg{position:absolute;inset:35px 20px 38px;width:calc(100% - 40px);height:calc(100% - 73px);fill:none;stroke:var(--hero-tone);stroke-width:1.5}
+  .visual-index{position:absolute;z-index:2;top:29px;left:31px;color:var(--hero-tone);font-size:9px;font-weight:800;letter-spacing:.16em}
+  .network-directory-visual>p{position:absolute;right:30px;bottom:25px;margin:0;color:rgba(255,255,255,.5);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.13em}
+  .route{stroke-width:2}.route.faint{opacity:.28}.nodes{fill:var(--hero-tone);stroke:var(--night);stroke-width:4}.rings{opacity:.35}.connections{opacity:.48}.people{fill:rgba(255,255,255,.035);stroke-width:1.3}.cores{fill:var(--hero-tone);stroke:none}.partner-rings{fill:rgba(255,255,255,.018);stroke-width:1.4}.partner-rings circle:last-child{fill:color-mix(in srgb,var(--hero-tone) 18%,transparent)}.partner-axis{opacity:.18}.partner-nodes{fill:var(--hero-tone);stroke:none}.growth-line{stroke-width:3}.growth-fill{fill:color-mix(in srgb,var(--hero-tone) 10%,transparent);stroke:none}.growth-nodes{fill:var(--hero-tone);stroke:var(--night);stroke-width:4}.grid-line{opacity:.13;stroke-width:1}
+  .join-path-lines{opacity:.55;stroke-width:1.7}.join-path-nodes{fill:var(--hero-tone);stroke:var(--night);stroke-width:4}.join-path-nodes circle:last-child{fill:color-mix(in srgb,var(--hero-tone) 20%,var(--night));stroke:var(--hero-tone);stroke-width:2}.join-arrow{stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  @media(max-width:900px){.network-directory-hero{min-height:0;padding:78px 0}.network-directory-hero-inner{grid-template-columns:1fr;gap:48px}.network-directory-visual{min-height:300px}}
+  @media(max-width:600px){.network-directory-hero{padding:64px 0 68px}.network-directory-hero-inner{gap:38px}.network-directory-hero-copy h1{font-size:clamp(43px,13vw,57px)}.network-directory-hero-copy>p:last-child{margin-top:22px;font-size:16px}.network-directory-visual{min-height:245px;border-radius:14px}.network-directory-visual svg{inset:38px 12px 32px;width:calc(100% - 24px);height:calc(100% - 70px)}.network-directory-visual>p{right:22px;bottom:20px}}
+</style>

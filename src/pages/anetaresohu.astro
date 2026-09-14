@@ -4,6 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { jobs } from '../data/jobs';
 import SectionTitle from '../components/SectionTitle.astro';
+import NetworkDirectoryHero from '../components/NetworkDirectoryHero.astro';
 
 const joinPaths = [
   { title: 'Anëtarësohu', what: 'Lidhu me profesionistë shqiptarë, evente dhe grupe lokale.', how: ['Krijo profilin në forum.', 'Gjej qytetin ose grupin tënd.'], action: 'Krijo profilin', href: 'https://forum.illyrianbrains.org/signup', external: true },
@@ -17,15 +18,15 @@ const joinPaths = [
 <BaseLayout title="Bashkohu · Illyrian Brains" description="Anëtarësohu, kontribuo ose bashkëpuno me rrjetin Illyrian Brains.">
   <Header />
   <main>
-    <section class="section tone-dark page-hero page-hero--join">
-      <div class="container city-page">
-        <h1>Bashkohu</h1>
-        <p class="about-body">Lidhim profesionistë shqiptarë kudo në botë për të ndarë dije dhe për të bashkëpunuar.</p>
-      </div>
-    </section>
+    <NetworkDirectoryHero kind="join" eyebrow="Bëhu pjesë e rrjetit" title="Bashkohu." description="Zgjidh mënyrën që të përshtatet — si anëtar, vullnetar, organizatë apo biznes — dhe ndërto diçka me një komunitet shqiptar pa kufij." />
 
     <section class="section tone-white">
       <div class="container">
+        <header class="join-overview">
+          <p class="eyebrow">Gjashtë mënyra për t’u përfshirë</p>
+          <h2>Ku dëshiron të kontribuosh?</h2>
+          <p>Çdo rrugë nis me një hap të thjeshtë. Zgjidh opsionin që përputhet me kohën, përvojën ose idenë tënde.</p>
+        </header>
         <div class="join-paths">
           {joinPaths.map((path, index) => (
             <section class="join-path">
@@ -69,4 +70,7 @@ const joinPaths = [
 <style>
   .join-paths{display:grid;gap:12px}.join-path{--path-accent:#744761;display:grid;grid-template-columns:minmax(190px,.75fr) minmax(250px,1.15fr) minmax(280px,1.1fr) minmax(150px,.55fr);gap:clamp(24px,4vw,52px);align-items:start;padding:36px 32px;border:1px solid color-mix(in srgb,var(--path-accent) 24%,var(--line));border-left:4px solid var(--path-accent);border-radius:8px;background:var(--path-bg,#faf7f9)}.join-path:nth-child(1){--path-accent:#397b72;--path-bg:#f2faf8}.join-path:nth-child(2){--path-accent:#a26a2d;--path-bg:#fcf7ef}.join-path:nth-child(3){--path-accent:#4c7a3d;--path-bg:#f4f9f1}.join-path:nth-child(4){--path-accent:#536f9b;--path-bg:#f3f6fa}.join-path:nth-child(5){--path-accent:#744761;--path-bg:#faf5f8}.join-path:nth-child(6){--path-accent:#6b5aa8;--path-bg:#f7f5fc}.join-path-heading span,.join-path-label{color:var(--path-accent);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}.join-path-heading h2{margin:12px 0 0;font-size:clamp(25px,3vw,36px);font-weight:400;line-height:1.1}.join-path-info>p:not(.join-path-label){margin:10px 0 0;color:var(--muted);font-size:14px;line-height:1.7}.join-path-info ol{margin:10px 0 0;padding-left:20px;color:var(--muted);font-size:13px;line-height:1.7}.join-path-info li{padding-left:4px}.join-path-meta{display:grid;gap:11px;margin:20px 0 0;padding-top:16px;border-top:1px solid color-mix(in srgb,var(--path-accent) 20%,transparent)}.join-path-meta div{display:grid;grid-template-columns:70px 1fr;gap:10px}.join-path-meta dt{color:var(--path-accent);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.join-path-meta dd{margin:0;color:var(--muted);font-size:12px;line-height:1.5}.join-path-cta{align-self:center;justify-self:end}.join-path-cta a{display:inline-flex;align-items:center;justify-content:space-between;gap:18px;min-width:150px;padding:11px 13px;border:1px solid var(--path-accent);border-radius:6px;color:var(--path-accent);font-size:12px;font-weight:700;transition:color .2s ease,background .2s ease}.join-path-cta a:hover{color:#fff;background:var(--path-accent)}.job-list{margin-top:36px}@media(max-width:1050px){.join-path{grid-template-columns:minmax(170px,.7fr) 1fr 1fr}.join-path-cta{grid-column:2/-1;justify-self:start}}@media(max-width:700px){.join-path{grid-template-columns:1fr;gap:20px;padding:28px 22px}.join-path-cta{grid-column:1;justify-self:start}.join-path-cta a{min-width:180px}}
   .join-path-heading h2{font-size:clamp(30px,3.2vw,42px)}.join-path-info>p:not(.join-path-label){font-size:16px;line-height:1.65}.join-path-info ol{font-size:15px;line-height:1.75}.join-path-cta a{min-width:170px;padding:13px 15px;font-size:14px}
+  .join-overview{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,430px);gap:0 70px;align-items:end;margin-bottom:48px}.join-overview .eyebrow{grid-column:1/-1;margin-bottom:15px}.join-overview h2{margin:0;font-size:clamp(42px,5vw,64px);font-weight:400;line-height:.98;letter-spacing:-.045em}.join-overview>p:last-child{margin:0;color:var(--muted);font-size:16px;line-height:1.7}.join-paths{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.join-path{position:relative;grid-template-columns:1fr 1fr;grid-template-areas:'heading heading' 'what how' 'cta cta';gap:24px 32px;min-height:390px;padding:31px;border:1px solid color-mix(in srgb,var(--path-accent) 24%,var(--line));border-top:4px solid var(--path-accent);border-left-width:1px;border-radius:14px;background:linear-gradient(145deg,var(--path-bg,#faf7f9),#fff);box-shadow:0 12px 30px rgba(23,24,29,.045);transition:transform .22s ease,box-shadow .22s ease}.join-path::after{content:'';position:absolute;right:24px;top:24px;width:8px;height:8px;border-radius:50%;background:var(--path-accent);box-shadow:0 0 0 7px color-mix(in srgb,var(--path-accent) 10%,transparent)}.join-path:hover{transform:translateY(-4px);box-shadow:0 18px 38px rgba(23,24,29,.09)}.join-path-heading{grid-area:heading;padding-right:32px}.join-path-heading h2{margin-top:10px;font-size:clamp(31px,3vw,41px)}.join-path-info:nth-of-type(1){grid-area:what}.join-path-info:nth-of-type(2){grid-area:how}.join-path-cta{grid-area:cta;align-self:end;justify-self:stretch;margin-top:auto;padding-top:21px;border-top:1px solid color-mix(in srgb,var(--path-accent) 18%,transparent)}.join-path-cta a{width:100%;min-width:0;border:0;border-radius:7px;color:#fff;background:var(--path-accent)}.join-path-cta a:hover{filter:brightness(.9)}
+  @media(max-width:900px){.join-overview{grid-template-columns:1fr;gap:20px}.join-paths{grid-template-columns:1fr}.join-path{min-height:360px}}
+  @media(max-width:600px){.join-overview{margin-bottom:32px}.join-overview h2{font-size:clamp(38px,11vw,48px)}.join-overview>p:last-child{font-size:15px}.join-path{grid-template-columns:1fr;grid-template-areas:'heading' 'what' 'how' 'cta';min-height:0;gap:20px;padding:26px 23px}.join-path-cta{grid-column:auto}}
 </style>
