@@ -1,12 +1,13 @@
 ---
 interface Props {
   kind: 'cities' | 'members' | 'partners' | 'businesses' | 'join';
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description: string;
+  showVisual?: boolean;
 }
 
-const { kind, eyebrow, title, description } = Astro.props;
+const { kind, eyebrow, title, description, showVisual = true } = Astro.props;
 const visualLabels = {
   cities: 'Komunitete kudo në botë',
   members: 'Ekspertizë që na lidh',
@@ -15,14 +16,14 @@ const visualLabels = {
   join: 'Gjej mënyrën tënde për t’u përfshirë',
 };
 ---
-<section class:list={['network-directory-hero', `network-directory-hero--${kind}`]}>
+<section class:list={['network-directory-hero', `network-directory-hero--${kind}`, {'network-directory-hero--no-visual': !showVisual}]}>
   <div class="container network-directory-hero-inner">
     <div class="network-directory-hero-copy">
-      <p class="eyebrow">{eyebrow}</p>
+      {eyebrow && <p class="eyebrow">{eyebrow}</p>}
       <h1>{title}</h1>
       <p>{description}</p>
     </div>
-    <div class="network-directory-visual" aria-hidden="true">
+    {showVisual && <div class="network-directory-visual" aria-hidden="true">
       <span class="visual-index">IB / 0{kind === 'cities' ? '1' : kind === 'members' ? '2' : kind === 'partners' ? '3' : kind === 'businesses' ? '4' : '5'}</span>
       {kind === 'cities' && <svg viewBox="0 0 440 300"><path class="route" d="M48 213C105 133 151 207 203 140S313 77 392 113"/><path class="route faint" d="M74 74c63 59 89 28 132 83s91 79 163 54"/><g class="nodes"><circle cx="48" cy="213" r="8"/><circle cx="116" cy="166" r="5"/><circle cx="203" cy="140" r="9"/><circle cx="290" cy="91" r="5"/><circle cx="392" cy="113" r="8"/><circle cx="74" cy="74" r="5"/><circle cx="369" cy="211" r="6"/></g><g class="rings"><circle cx="203" cy="140" r="27"/><circle cx="392" cy="113" r="20"/></g></svg>}
       {kind === 'members' && <svg viewBox="0 0 440 300"><g class="connections"><path d="M95 87 220 145 350 78M95 87l18 132 107-74 105 76 25-143M113 219l212 2"/></g><g class="people"><circle cx="95" cy="87" r="28"/><circle cx="220" cy="145" r="38"/><circle cx="350" cy="78" r="24"/><circle cx="113" cy="219" r="22"/><circle cx="325" cy="221" r="29"/></g><g class="cores"><circle cx="95" cy="87" r="6"/><circle cx="220" cy="145" r="8"/><circle cx="350" cy="78" r="5"/><circle cx="113" cy="219" r="5"/><circle cx="325" cy="221" r="6"/></g></svg>}
@@ -30,7 +31,7 @@ const visualLabels = {
       {kind === 'businesses' && <svg viewBox="0 0 440 300"><path class="growth-line" d="M48 235 126 194 195 206 274 125 390 67"/><path class="growth-fill" d="M48 235 126 194 195 206 274 125 390 67v190H48Z"/><g class="growth-nodes"><circle cx="48" cy="235" r="6"/><circle cx="126" cy="194" r="6"/><circle cx="195" cy="206" r="6"/><circle cx="274" cy="125" r="7"/><circle cx="390" cy="67" r="8"/></g><path class="grid-line" d="M48 257h342M48 207h342M48 157h342M48 107h342"/></svg>}
       {kind === 'join' && <svg viewBox="0 0 440 300"><g class="join-path-lines"><path d="M55 65C128 65 134 150 220 150M55 150h165M55 235c73 0 79-85 165-85M385 65c-73 0-79 85-165 85M385 150H220M385 235c-73 0-79-85-165-85"/></g><g class="join-path-nodes"><circle cx="55" cy="65" r="7"/><circle cx="55" cy="150" r="7"/><circle cx="55" cy="235" r="7"/><circle cx="385" cy="65" r="7"/><circle cx="385" cy="150" r="7"/><circle cx="385" cy="235" r="7"/><circle cx="220" cy="150" r="30"/></g><path class="join-arrow" d="m208 150 9 9 17-19"/></svg>}
       <p>{visualLabels[kind]}</p>
-    </div>
+    </div>}
   </div>
 </section>
 
@@ -41,6 +42,7 @@ const visualLabels = {
   .network-directory-hero--cities{--hero-tone:#8ca7b4}.network-directory-hero--members{--hero-tone:#c9aebd}.network-directory-hero--partners{--hero-tone:#d0a57e}.network-directory-hero--businesses{--hero-tone:#8eaaa0}
   .network-directory-hero--join{--hero-tone:#d8b2c7}
   .network-directory-hero-inner{display:grid;grid-template-columns:minmax(0,.92fr) minmax(390px,.78fr);gap:clamp(60px,9vw,130px);align-items:center}
+  .network-directory-hero--no-visual .network-directory-hero-inner{grid-template-columns:1fr}
   .network-directory-hero-copy .eyebrow{margin:0 0 18px;color:var(--hero-tone)}
   .network-directory-hero-copy h1{max-width:700px;margin:0;font-size:clamp(52px,6.2vw,78px);font-weight:300;line-height:.96;letter-spacing:-.05em}
   .network-directory-hero-copy>p:last-child{max-width:620px;margin:27px 0 0;color:rgba(255,255,255,.68);font-size:18px;line-height:1.72}

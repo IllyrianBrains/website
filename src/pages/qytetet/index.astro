@@ -12,8 +12,8 @@ const countries = [...new Set(cities.map(city => city.country))].sort((a,b) => a
 <BaseLayout title="Qytetet · Illyrian Brains" description="Zbulo komunitetet lokale të rrjetit Illyrian Brains, qytet pas qyteti.">
   <Header />
   <main class="network-page">
-    <p class="construction-note construction-banner"><span class="construction-icon" aria-hidden="true">🚧</span><span><strong>Në ndërtim e sipër.</strong> Katalogu i qyteteve po plotësohet vazhdimisht me komunitete të reja.</span></p>
-    <NetworkDirectoryHero kind="cities" eyebrow="Illyrian Brains Network" title="Qytetet e rrjetit." description="Qytetet janë pika e nisjes së rrjetit: aty lindin njohjet, aktivitetet dhe bashkëpunimet lokale. Zgjidh një qytet për t'u njohur me komunitetin pranë teje." />
+    <p class="construction-note construction-banner"><span class="construction-icon" aria-hidden="true">🚧</span><span><strong>Në ndërtim e sipër.</strong></span></p>
+    <NetworkDirectoryHero kind="cities" title="Qytetet e rrjetit." description="Qytetet janë pika e nisjes së rrjetit: aty lindin njohjet, aktivitetet dhe bashkëpunimet lokale. Zgjidh një qytet për t'u njohur me komunitetin pranë teje." showVisual={false} />
 
     <section class="section tone-white" id="qytetet"><div class="container">
       <div class="map-legend" id="city-map-legend">

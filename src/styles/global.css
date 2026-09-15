@@ -218,7 +218,7 @@ button.map-legend-item.is-active { color: #fff; background: var(--accent); borde
 .community-map-cta { margin-top: 30px; text-align: center; }
 
 .construction-note{display:flex;align-items:flex-start;gap:12px;margin:0 0 34px;padding:16px 20px;border:1px solid rgba(191,138,7,.35);border-radius:10px;color:#7a5a05;background:#fdf6e0}.construction-note span:last-child{font-size:14px;line-height:1.6}.construction-note strong{color:#6b4400}.construction-icon{flex:0 0 auto;font-size:19px;line-height:1.5}
-.construction-banner { position: relative; z-index: 4; align-items: center; width: 100%; margin: 0; padding: 13px max(28px, calc((100vw - var(--max)) / 2)); border-width: 0 0 1px; border-radius: 0; color: #493400; background: #f5cf59; box-shadow: 0 8px 24px rgba(14,12,7,.2); }
+.construction-banner { position: relative; z-index: 4; align-items: center; justify-content: center; width: 100%; margin: 0; padding: 13px max(28px, calc((100vw - var(--max)) / 2)); border-width: 0 0 1px; border-radius: 0; color: #493400; background: #f5cf59; box-shadow: 0 8px 24px rgba(14,12,7,.2); }
 .construction-banner span:last-child { font-size: 16px; line-height: 1.45; }
 .construction-banner strong { margin-right: 5px; color: #2f2200; font-size: 17px; }
 
