@@ -1,0 +1,113 @@
+---
+// Memory match — city ↔ country, real cities from the network.
+const memoryPairs = [
+  { city: 'Berlin', country: 'Gjermani' },
+  { city: 'Tiranë', country: 'Shqipëri' },
+  { city: 'Milano', country: 'Itali' },
+  { city: 'Londër', country: 'Mbretëria e Bashkuar' },
+  { city: 'Nju Jork', country: 'SHBA' },
+  { city: 'Vjenë', country: 'Austri' },
+];
+---
+<section class="section tone-grey play-panel" id="perputh-ciftet" data-play-panel>
+  <div class="container">
+    <a class="play-back" href="#lojerat">← Të gjitha lojërat</a>
+    <h2 class="playground-heading">Përputh Çiftet</h2>
+    <p class="about-body">Kthe kartat dhe përputh çdo qytet me vendin e tij. Sa më pak lëvizje, aq më mirë.</p>
+    <div class="memory-game" id="memory-game" data-pairs={JSON.stringify(memoryPairs)}>
+      <div class="memory-status">
+        <span>Lëvizje: <strong id="memory-moves">0</strong></span>
+        <button class="memory-restart" id="memory-restart" type="button">Rifillo ↺</button>
+      </div>
+      <div class="memory-grid" id="memory-grid"></div>
+      <p class="quiz-result" id="memory-result" role="status"></p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const memoryGameEl = document.querySelector<HTMLElement>('#memory-game');
+  if (memoryGameEl) {
+    const pairs: { city: string; country: string }[] = JSON.parse(memoryGameEl.dataset.pairs || '[]');
+    const gridEl = document.querySelector<HTMLElement>('#memory-grid');
+    const movesEl = document.querySelector<HTMLElement>('#memory-moves');
+    const resultEl = document.querySelector<HTMLElement>('#memory-result');
+    const restartBtn = document.querySelector<HTMLButtonElement>('#memory-restart');
+
+    type Card = { pairId: number; text: string };
+    let cards: Card[] = [];
+    let flipped: number[] = [];
+    let matched: Set<number> = new Set();
+    let moves = 0;
+    let locked = false;
+
+    const shuffle = <T,>(arr: T[]): T[] => {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    };
+
+    const render = () => {
+      if (!gridEl) return;
+      gridEl.innerHTML = cards.map((card, index) => {
+        const isFlipped = flipped.includes(index) || matched.has(index);
+        return `<button class="memory-card${isFlipped ? ' is-flipped' : ''}${matched.has(index) ? ' is-matched' : ''}" type="button" data-index="${index}" ${matched.has(index) ? 'disabled' : ''}>
+          <span class="memory-card-face">?</span>
+          <span class="memory-card-back">${card.text}</span>
+        </button>`;
+      }).join('');
+      gridEl.querySelectorAll<HTMLButtonElement>('.memory-card').forEach((btn) => {
+        btn.addEventListener('click', () => handleFlip(Number(btn.dataset.index)));
+      });
+    };
+
+    const handleFlip = (index: number) => {
+      if (locked || flipped.includes(index) || matched.has(index)) return;
+      flipped.push(index);
+      render();
+      if (flipped.length === 2) {
+        moves += 1;
+        if (movesEl) movesEl.textContent = String(moves);
+        locked = true;
+        const [a, b] = flipped;
+        if (cards[a].pairId === cards[b].pairId) {
+          matched.add(a);
+          matched.add(b);
+          flipped = [];
+          locked = false;
+          render();
+          if (matched.size === cards.length && resultEl) {
+            resultEl.textContent = `🎉 Fitove me ${moves} lëvizje!`;
+          }
+        } else {
+          setTimeout(() => {
+            flipped = [];
+            locked = false;
+            render();
+          }, 800);
+        }
+      }
+    };
+
+    const start = () => {
+      const deck: Card[] = pairs.flatMap((pair, pairId) => [
+        { pairId, text: pair.city },
+        { pairId, text: pair.country },
+      ]);
+      cards = shuffle(deck);
+      flipped = [];
+      matched = new Set();
+      moves = 0;
+      locked = false;
+      if (movesEl) movesEl.textContent = '0';
+      if (resultEl) resultEl.textContent = '';
+      render();
+    };
+
+    restartBtn?.addEventListener('click', start);
+    start();
+  }
+</script>

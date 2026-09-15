@@ -1,0 +1,98 @@
+---
+---
+<section class="section tone-grey play-panel" id="investo" data-play-panel>
+  <div class="container">
+    <a class="play-back" href="#lojerat">← Të gjitha lojërat</a>
+    <h2 class="playground-heading">Investo në Vend</h2>
+    <p class="about-body">Ke 100 pikë buxheti për katër sektorë. Ndaji si të duash dhe shiko çfarë lloj vendi ndërton strategjia jote.</p>
+    <div class="invest-game" id="invest-game">
+      <div class="invest-sliders">
+        <div class="invest-row">
+          <label for="invest-arsim"><span class="invest-icon" aria-hidden="true">🎓</span> Arsimi</label>
+          <input type="range" id="invest-arsim" min="0" max="100" value="25" step="5" />
+          <output for="invest-arsim">25</output>
+        </div>
+        <div class="invest-row">
+          <label for="invest-shendetesia"><span class="invest-icon" aria-hidden="true">🏥</span> Shëndetësia</label>
+          <input type="range" id="invest-shendetesia" min="0" max="100" value="25" step="5" />
+          <output for="invest-shendetesia">25</output>
+        </div>
+        <div class="invest-row">
+          <label for="invest-infrastruktura"><span class="invest-icon" aria-hidden="true">🏗️</span> Infrastruktura</label>
+          <input type="range" id="invest-infrastruktura" min="0" max="100" value="25" step="5" />
+          <output for="invest-infrastruktura">25</output>
+        </div>
+        <div class="invest-row">
+          <label for="invest-teknologjia"><span class="invest-icon" aria-hidden="true">💡</span> Teknologjia</label>
+          <input type="range" id="invest-teknologjia" min="0" max="100" value="25" step="5" />
+          <output for="invest-teknologjia">25</output>
+        </div>
+      </div>
+      <div class="invest-total">Totali: <strong id="invest-total">100</strong> / 100</div>
+      <button class="partner-button" id="invest-submit" type="button">Shiko rezultatin</button>
+      <div class="invest-bars" id="invest-bars" aria-hidden="true"></div>
+      <p class="quiz-result" id="invest-result" role="status"></p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const investIds = ['arsim', 'shendetesia', 'infrastruktura', 'teknologjia'];
+  const investLabels: Record<string, string> = { arsim: 'Arsimi', shendetesia: 'Shëndetësia', infrastruktura: 'Infrastruktura', teknologjia: 'Teknologjia' };
+  const investIcons: Record<string, string> = { arsim: '🎓', shendetesia: '🏥', infrastruktura: '🏗️', teknologjia: '💡' };
+  const sliders = investIds.map((id) => document.querySelector<HTMLInputElement>(`#invest-${id}`));
+  const totalEl = document.querySelector<HTMLElement>('#invest-total');
+  const submitBtn = document.querySelector<HTMLButtonElement>('#invest-submit');
+  const resultEl = document.querySelector<HTMLElement>('#invest-result');
+  const barsEl = document.querySelector<HTMLElement>('#invest-bars');
+
+  const updateTotal = () => {
+    const total = sliders.reduce((sum, slider) => sum + Number(slider?.value ?? 0), 0);
+    if (totalEl) totalEl.textContent = String(total);
+    sliders.forEach((slider) => {
+      const output = slider?.parentElement?.querySelector('output');
+      if (output && slider) output.textContent = slider.value;
+    });
+    if (submitBtn) submitBtn.disabled = total !== 100;
+    if (totalEl) totalEl.style.color = total === 100 ? '' : '#c4232d';
+    if (resultEl) resultEl.textContent = '';
+    if (barsEl) barsEl.innerHTML = '';
+  };
+
+  sliders.forEach((slider) => slider?.addEventListener('input', updateTotal));
+  updateTotal();
+
+  submitBtn?.addEventListener('click', () => {
+    const values = investIds.map((id, index) => ({ id, label: investLabels[id], icon: investIcons[id], value: Number(sliders[index]?.value ?? 0) }));
+    const max = values.reduce((a, b) => (b.value > a.value ? b : a));
+    const min = values.reduce((a, b) => (b.value < a.value ? b : a));
+    let message: string;
+    let resultIcon: string;
+    if (max.value - min.value <= 15) {
+      message = 'Strategji e balancuar — zhvillim i qëndrueshëm në të gjitha drejtimet, pa varësi të theksuar nga një sektor i vetëm.';
+      resultIcon = '⚖️';
+    } else if (max.id === 'arsim') {
+      message = `Fokus te ${max.label} — kombet që investojnë në arsim ndërtojnë themelin për çdo gjë tjetër, por rezultatet vijnë ngadalë.`;
+      resultIcon = max.icon;
+    } else if (max.id === 'shendetesia') {
+      message = `Fokus te ${max.label} — një popullsi e shëndetshme është më produktive, por infrastruktura dhe teknologjia mund të mbeten pas.`;
+      resultIcon = max.icon;
+    } else if (max.id === 'infrastruktura') {
+      message = `Fokus te ${max.label} — themel i fortë për rritje afatgjatë, edhe pse përfitimet e menjëhershme janë të pakta.`;
+      resultIcon = max.icon;
+    } else {
+      message = `Fokus te ${max.label} — rritje e shpejtë dhe inovacion, por rrezik nëse arsimi dhe shëndetësia mbeten pas.`;
+      resultIcon = max.icon;
+    }
+    if (resultEl) resultEl.textContent = `${resultIcon} ${message}`;
+    if (barsEl) {
+      barsEl.innerHTML = values.map((v) => `
+        <div class="invest-bar-row">
+          <span class="invest-bar-label">${v.icon} ${v.label}</span>
+          <span class="invest-bar-track"><span class="invest-bar-fill" style="width:${v.value}%"></span></span>
+          <span class="invest-bar-value">${v.value}%</span>
+        </div>
+      `).join('');
+    }
+  });
+</script>

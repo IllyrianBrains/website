@@ -1,0 +1,97 @@
+---
+interface Quiz {
+  id: string;
+  icon: string;
+  title: string;
+  blurb: string;
+  questions: { q: string; options: string[]; correct: number }[];
+}
+
+interface Props {
+  quizzes: Quiz[];
+}
+
+const { quizzes } = Astro.props;
+---
+<section class="section tone-white play-panel quiz-panel" id="kuizet" data-play-panel>
+  <div class="container">
+    <a class="play-back" href="#lojerat">← Të gjitha lojërat</a>
+    <div class="quiz-grid">
+      {quizzes.map((quiz) => (
+        <article class="quiz-card" data-quiz={JSON.stringify(quiz.questions)} data-quiz-id={quiz.id}>
+          <div class="quiz-icon" aria-hidden="true">{quiz.icon}</div>
+          <p class="quiz-kicker">Kuiz i shpejtë · 5 pyetje</p>
+          <h3>{quiz.title}</h3>
+          <p class="quiz-blurb">{quiz.blurb}</p>
+          <p class="quiz-instruction">Zgjidh një përgjigje për çdo pyetje. Rezultati dhe përgjigjet e sakta shfaqen në fund.</p>
+          <form class="quiz-form">
+            {quiz.questions.map((question, qIndex) => (
+              <fieldset class="quiz-question">
+                <legend>{qIndex + 1}. {question.q}</legend>
+                {question.options.map((option, oIndex) => (
+                  <label class="quiz-option">
+                    <input type="radio" name={`${quiz.id}-q${qIndex}`} value={oIndex} required />
+                    <span class="quiz-option-text">{option}</span>
+                    <span class="quiz-option-feedback" aria-hidden="true"></span>
+                  </label>
+                ))}
+              </fieldset>
+            ))}
+            <button class="partner-button quiz-submit" type="submit">Shiko rezultatin</button>
+            <p class="quiz-result" role="status"></p>
+          </form>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.quiz-card').forEach((card) => {
+    const questions: { q: string; options: string[]; correct: number }[] = JSON.parse(card.dataset.quiz || '[]');
+    const form = card.querySelector<HTMLFormElement>('.quiz-form');
+    const result = card.querySelector<HTMLElement>('.quiz-result');
+    form?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      let score = 0;
+      const fieldsets = form.querySelectorAll('fieldset');
+      fieldsets.forEach((fieldset, index) => {
+        const name = fieldset.querySelector('input')?.getAttribute('name');
+        if (!name) return;
+        const selectedValue = new FormData(form).get(name);
+        const selectedIndex = selectedValue === null ? null : Number(selectedValue);
+        const correctIndex = questions[index].correct;
+        if (selectedIndex === correctIndex) score += 1;
+
+        fieldset.querySelectorAll<HTMLElement>('.quiz-option').forEach((option, oIndex) => {
+          const feedback = option.querySelector<HTMLElement>('.quiz-option-feedback');
+          option.classList.remove('is-correct', 'is-incorrect');
+          if (!feedback) return;
+          if (oIndex === correctIndex) {
+            option.classList.add('is-correct');
+            feedback.textContent = '✓';
+          } else if (oIndex === selectedIndex) {
+            option.classList.add('is-incorrect');
+            feedback.textContent = '✕';
+          } else {
+            feedback.textContent = '';
+          }
+        });
+      });
+      if (!result) return;
+      const total = questions.length;
+      let message = '';
+      if (score === total) message = `${score}/${total} — Perfekte! Je plotësisht i/e përditësuar.`;
+      else if (score >= total - 1) message = `${score}/${total} — Shumë mirë, pothuajse çdo gjë e saktë.`;
+      else if (score >= Math.ceil(total / 2)) message = `${score}/${total} — Mirë, por ka vend për më shumë eksplorim.`;
+      else message = `${score}/${total} — Fillim i mirë, kthehu të mësosh më shumë.`;
+      result.textContent = message;
+    });
+
+    form?.addEventListener('change', () => {
+      form.querySelectorAll('.quiz-option').forEach((option) => option.classList.remove('is-correct', 'is-incorrect'));
+      form.querySelectorAll('.quiz-option-feedback').forEach((feedback) => { feedback.textContent = ''; });
+      if (result) result.textContent = '';
+    });
+  });
+</script>

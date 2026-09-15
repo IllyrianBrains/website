@@ -1,0 +1,49 @@
+---
+const pitchOptions = {
+  role: ['inxhinier/e software', 'arkitekt/e', 'mjek/e', 'sipërmarrës/e', 'student/e', 'financier/e', 'dizajner/e'],
+  focus: ['inteligjencën artificiale', 'ndërtimin e qëndrueshëm', 'shëndetësinë publike', 'teknologjinë financiare', 'edukimin', 'krijimtarinë digjitale'],
+  goal: ['të gjej bashkëpunëtorë për një projekt', 'të gjej mundësi të reja pune', 'të mentoroj dikë që po fillon', 'të mësoj nga dikush më me përvojë', 'të zgjeroj rrjetin tim profesional'],
+};
+---
+<section class="section tone-white play-panel" id="pitch" data-play-panel>
+  <div class="container">
+    <a class="play-back" href="#lojerat">← Të gjitha lojërat</a>
+    <h2 class="playground-heading">Ndërto Pitch-in Tënd</h2>
+    <p class="about-body">Zgjidh rolin, fushën dhe qëllimin — merr një prezantim 10-sekondësh gati për eventin tjetër.</p>
+    <div class="pitch-builder">
+      <div class="pitch-fields">
+        <div class="pitch-field">
+          <label for="pitch-role">Roli</label>
+          <select id="pitch-role">
+            {pitchOptions.role.map((option) => <option value={option}>{option}</option>)}
+          </select>
+        </div>
+        <div class="pitch-field">
+          <label for="pitch-focus">Fusha</label>
+          <select id="pitch-focus">
+            {pitchOptions.focus.map((option) => <option value={option}>{option}</option>)}
+          </select>
+        </div>
+        <div class="pitch-field">
+          <label for="pitch-goal">Qëllimi</label>
+          <select id="pitch-goal">
+            {pitchOptions.goal.map((option) => <option value={option}>{option}</option>)}
+          </select>
+        </div>
+      </div>
+      <button class="partner-button" id="pitch-generate" type="button">Krijo pitch-in <span aria-hidden="true">✨</span></button>
+      <p class="pitch-output" id="pitch-output" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const pitchRole = document.querySelector<HTMLSelectElement>('#pitch-role');
+  const pitchFocus = document.querySelector<HTMLSelectElement>('#pitch-focus');
+  const pitchGoal = document.querySelector<HTMLSelectElement>('#pitch-goal');
+  const pitchOutput = document.querySelector<HTMLElement>('#pitch-output');
+  document.querySelector('#pitch-generate')?.addEventListener('click', () => {
+    if (!pitchOutput || !pitchRole || !pitchFocus || !pitchGoal) return;
+    pitchOutput.textContent = `„Përshëndetje! Jam ${pitchRole.value} me fokus te ${pitchFocus.value}. Aktualisht dua ${pitchGoal.value} — nëse kjo tingëllon si diçka jotja, le të flasim!“`;
+  });
+</script>

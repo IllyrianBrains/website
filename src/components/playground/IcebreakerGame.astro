@@ -1,0 +1,43 @@
+---
+const icebreakers = [
+  'Cili qytet i rrjetit IB do të doje më shumë ta vizitoje?',
+  'Cila është aftësia që po mëson këtë vit?',
+  'Cili libër apo podcast të ka ndryshuar mënyrën e të menduarit kohët e fundit?',
+  'Nëse do të kishe një mentor për 1 orë, çfarë do ta pyesje?',
+  'Cila është arritja e fundit që të ka bërë krenar/e?',
+  'Çfarë të bëri të bashkohesh me Illyrian Brains?',
+  'Cili projekt aktual po të emocionon më shumë në punë?',
+  'Çfarë do t’i thoshe vetes 5 vite më parë?',
+  'Cila është ëndrra jote profesionale afatgjatë?',
+  'Kush është dikush në rrjet që do të doje ta njihje më mirë?',
+];
+---
+<section class="section tone-dark play-panel" id="icebreaker" data-play-panel>
+  <div class="container">
+    <a class="play-back play-back-light" href="#lojerat">← Të gjitha lojërat</a>
+    <h2 class="playground-heading">Icebreaker Roulette</h2>
+    <p class="about-body">Shtyp butonin dhe merr një pyetje për ta hapur bisedën në takimin tjetër.</p>
+    <div class="icebreaker" id="icebreaker-widget" data-prompts={JSON.stringify(icebreakers)}>
+      <p class="icebreaker-prompt" id="icebreaker-prompt" aria-live="polite">Shtyp "Rrotullo" për të filluar.</p>
+      <button class="partner-button" id="icebreaker-button" type="button">Rrotullo <span aria-hidden="true">🎲</span></button>
+    </div>
+  </div>
+</section>
+
+<script>
+  const icebreakerEl = document.querySelector<HTMLElement>('#icebreaker-widget');
+  if (icebreakerEl) {
+    const prompts: string[] = JSON.parse(icebreakerEl.dataset.prompts || '[]');
+    const promptEl = document.querySelector<HTMLElement>('#icebreaker-prompt');
+    const button = document.querySelector<HTMLButtonElement>('#icebreaker-button');
+    let lastIndex = -1;
+    button?.addEventListener('click', () => {
+      let index = Math.floor(Math.random() * prompts.length);
+      if (prompts.length > 1) {
+        while (index === lastIndex) index = Math.floor(Math.random() * prompts.length);
+      }
+      lastIndex = index;
+      if (promptEl) promptEl.textContent = prompts[index];
+    });
+  }
+</script>

@@ -1,0 +1,134 @@
+---
+// Speed sort — quick reaction game classifying everyday situations.
+const speedSortItems = [
+  { text: 'Afati i aplikimit për vizë/leje skadon nesër', category: 'urgjente' },
+  { text: 'Shefi pret përgjigjen tënde për një email urgjent', category: 'urgjente' },
+  { text: 'Qiraja duhet paguar sot', category: 'urgjente' },
+  { text: 'Një koleg pret konfirmimin tënd për një takim pas 10 minutash', category: 'urgjente' },
+  { text: 'Dokumenti duhet dorëzuar sot në zyrën e emigracionit', category: 'urgjente' },
+  { text: 'Klienti pret përgjigje për një problem urgjent teknik', category: 'urgjente' },
+  { text: 'Duhet të konfirmosh praninë në intervistën e nesërme', category: 'urgjente' },
+  { text: 'Mund të mësosh fjalorin e ri javën tjetër', category: 'mund-te-prese' },
+  { text: 'Blerja e mobiljeve të reja për apartamentin', category: 'mund-te-prese' },
+  { text: 'Leximi i librit që sapo bleve', category: 'mund-te-prese' },
+  { text: 'Organizimi i fotove nga pushimet', category: 'mund-te-prese' },
+  { text: 'Përditësimi i CV-së për muajin e ardhshëm', category: 'mund-te-prese' },
+  { text: 'Eksplorimi i restoranteve të reja në qytet', category: 'mund-te-prese' },
+  { text: 'Mësimi i një recete të re gatimi', category: 'mund-te-prese' },
+];
+---
+<section class="section tone-dark play-panel" id="urgjente" data-play-panel>
+  <div class="container">
+    <a class="play-back play-back-light" href="#lojerat">← Të gjitha lojërat</a>
+    <h2 class="playground-heading">Urgjente apo Mund të Presë?</h2>
+    <p class="about-body">Klasifiko çdo situatë para se të mbarojë koha. Tri gabime dhe loja mbaron.</p>
+    <div class="speed-game" id="speed-game" data-items={JSON.stringify(speedSortItems)}>
+      <div class="speed-status">
+        <span class="speed-lives" id="speed-lives">❤️❤️❤️</span>
+        <span>Pikë: <strong id="speed-score">0</strong></span>
+      </div>
+      <div class="speed-timer-track"><span class="speed-timer-fill" id="speed-timer-fill"></span></div>
+      <p class="speed-prompt" id="speed-prompt">Shtyp "Fillo" për të nisur.</p>
+      <div class="speed-actions" id="speed-actions">
+        <button class="partner-button speed-btn" id="speed-start" type="button">Fillo lojën ▶</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const speedGameEl = document.querySelector<HTMLElement>('#speed-game');
+  if (speedGameEl) {
+    const items: { text: string; category: string }[] = JSON.parse(speedGameEl.dataset.items || '[]');
+    const promptEl = document.querySelector<HTMLElement>('#speed-prompt');
+    const actionsEl = document.querySelector<HTMLElement>('#speed-actions');
+    const scoreEl = document.querySelector<HTMLElement>('#speed-score');
+    const livesEl = document.querySelector<HTMLElement>('#speed-lives');
+    const timerFill = document.querySelector<HTMLElement>('#speed-timer-fill');
+    const ITEM_SECONDS = 4;
+
+    let queue: { text: string; category: string }[] = [];
+    let score = 0;
+    let lives = 3;
+    let timeoutId: number | undefined;
+    let playing = false;
+
+    const shuffle = <T,>(arr: T[]): T[] => {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    };
+
+    const updateStatus = () => {
+      if (scoreEl) scoreEl.textContent = String(score);
+      if (livesEl) livesEl.textContent = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+    };
+
+    const endGame = (message: string) => {
+      playing = false;
+      window.clearTimeout(timeoutId);
+      if (promptEl) promptEl.textContent = message;
+      if (timerFill) timerFill.style.transition = 'none';
+      if (timerFill) timerFill.style.width = '0%';
+      if (actionsEl) actionsEl.innerHTML = `<button class="partner-button speed-btn" id="speed-start" type="button">Luaj përsëri ↺</button>`;
+      actionsEl?.querySelector('#speed-start')?.addEventListener('click', startGame);
+    };
+
+    const nextItem = () => {
+      if (queue.length === 0) queue = shuffle(items);
+      const item = queue.shift();
+      if (!item) return;
+      if (promptEl) promptEl.textContent = item.text;
+      if (timerFill) {
+        timerFill.style.transition = 'none';
+        timerFill.style.width = '100%';
+        // Force reflow so the next transition actually animates from 100%.
+        void timerFill.offsetWidth;
+        timerFill.style.transition = `width ${ITEM_SECONDS}s linear`;
+        timerFill.style.width = '0%';
+      }
+      timeoutId = window.setTimeout(() => handleAnswer(null, item), ITEM_SECONDS * 1000);
+      if (actionsEl) {
+        actionsEl.innerHTML = `
+          <button class="partner-button speed-btn" data-choice="urgjente" type="button">Urgjente</button>
+          <button class="partner-button speed-btn speed-btn-secondary" data-choice="mund-te-prese" type="button">Mund të Presë</button>
+        `;
+        actionsEl.querySelectorAll<HTMLButtonElement>('.speed-btn').forEach((btn) => {
+          btn.addEventListener('click', () => handleAnswer(btn.dataset.choice ?? null, item));
+        });
+      }
+    };
+
+    const handleAnswer = (choice: string | null, item: { text: string; category: string }) => {
+      if (!playing) return;
+      window.clearTimeout(timeoutId);
+      if (choice === item.category) {
+        score += 1;
+        updateStatus();
+        nextItem();
+      } else {
+        lives -= 1;
+        updateStatus();
+        if (lives <= 0) {
+          endGame(`💥 Loja mbaroi — ${score} pikë gjithsej.`);
+        } else {
+          nextItem();
+        }
+      }
+    };
+
+    function startGame() {
+      score = 0;
+      lives = 3;
+      playing = true;
+      queue = shuffle(items);
+      updateStatus();
+      nextItem();
+    }
+
+    document.querySelector('#speed-start')?.addEventListener('click', startGame);
+  }
+</script>
