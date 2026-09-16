@@ -9,7 +9,7 @@ export interface CommunityCity {
   lat: number;
   lng: number;
   slug: string;
-  status: 'active' | 'inactive';
+  status: 'active' | 'paused' | 'inactive';
   lumaUrl?: string;
   activities?: string[];
   image?: string;
@@ -25,7 +25,7 @@ function citiesFromCsv(text: string): CommunityCity[] {
       lat: Number(col('lat')),
       lng: Number(col('lng')),
       slug: col('slug'),
-      status: status === 'inactive' ? 'inactive' : 'active',
+      status: status === 'inactive' ? 'inactive' : status === 'paused' ? 'paused' : 'active',
       lumaUrl: col('lumaUrl') || undefined,
       activities: activities.length ? activities : undefined,
       image: col('image') || undefined,
