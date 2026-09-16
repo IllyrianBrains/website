@@ -5,10 +5,44 @@ import Footer from '../components/Footer.astro';
 import DirectoryNetworkGraph from '../components/DirectoryNetworkGraph.astro';
 import NetworkDirectoryHero from '../components/NetworkDirectoryHero.astro';
 import { partners, partnerCategoryLabels, partnerCollaborationTypes } from '../data/partners';
+import { cities } from '../data/cities';
 
 const categories = Object.entries(partnerCategoryLabels).map(([id, label]) => ({ id, label }));
 const graphPartners = partners.map((partner, index) => ({ id: `partner-${index}`, label: partner.name, category: partner.category, city: partner.city, url: partner.website || partner.linkedin }));
 const partnerCities = [...new Set(partners.map(partner => partner.city).filter((city): city is string => Boolean(city)))].sort((a, b) => a.localeCompare(b, 'sq'));
+
+// Partners record city as free text (from hand-entered data), which doesn't always
+// match the name used in cities.csv — e.g. an English exonym ("Rome") vs. the local
+// spelling ("Roma"). Normalize and alias known cases so they land on the right marker
+// instead of being silently dropped. (Mirrors the matching in harta.astro.)
+const normalize = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const cityAliases: Record<string, string> = {
+  florence: 'firenze', genoa: 'genova', milan: 'milano', rome: 'roma',
+  nuremberg: 'nurnberg', 'city of london': 'london', 'greater london': 'london',
+};
+const cityByKey = new Map<string, (typeof cities)[number]>();
+for (const city of cities) {
+  const keys = new Set([normalize(city.slug), ...city.city.split('/').map(part => normalize(part))]);
+  keys.forEach(key => cityByKey.set(key, city));
+}
+function matchCity(name?: string) {
+  if (!name) return undefined;
+  const key = normalize(name);
+  return cityByKey.get(cityAliases[key] ?? key);
+}
+
+const partnersByCity = new Map<string, { name: string; website?: string }[]>();
+let unmappedPartners = 0;
+for (const partner of partners) {
+  const city = matchCity(partner.city);
+  if (!city) { unmappedPartners++; continue; }
+  const list = partnersByCity.get(city.slug) ?? [];
+  list.push({ name: partner.name, website: partner.website || partner.linkedin });
+  partnersByCity.set(city.slug, list);
+}
+const partnerMapCities = cities
+  .map(city => ({ city: city.city, country: city.country, lat: city.lat, lng: city.lng, slug: city.slug, partners: partnersByCity.get(city.slug) ?? [] }))
+  .filter(city => city.partners.length > 0);
 ---
 <BaseLayout title="OJF Partnere · Illyrian Brains" description="Organizatat partnere që bashkëpunojnë me rrjetin Illyrian Brains.">
   <Header />
@@ -50,9 +84,52 @@ const partnerCities = [...new Set(partners.map(partner => partner.city).filter((
         <DirectoryNetworkGraph kind="partner" title="Organizatat që na lidhin." description="Eksploro si organizatat partnere lidhen me anëtarët, qytetet dhe fushat e bashkëpunimit të Illyrian Brains." categories={categories} items={graphPartners} />
       </div>
     </div></section>
+
+    <section class="section tone-white"><div class="container">
+      <div class="community-map-heading">
+        <div><p class="eyebrow">Ku ndodhen</p><h2>OJF-të në hartë.</h2></div>
+        <p>Organizatat partnere të rrjetit, sipas qytetit ku janë të vendosura.</p>
+      </div>
+      <div class="community-map-layout">
+        <div id="community-map" data-cities={JSON.stringify(partnerMapCities)} aria-label="Harta e organizatave partnere të Illyrian Brains, sipas qytetit"></div>
+      </div>
+      {unmappedPartners > 0 && (
+        <p class="map-footnote">{unmappedPartners} OJF nuk k{unmappedPartners === 1 ? 'a' : 'anë'} qytet të specifikuar dhe nuk shfaqet në hartë.</p>
+      )}
+    </div></section>
   </main>
   <Footer />
 </BaseLayout>
+<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script is:inline>
+  const partnerMapElement = document.querySelector('#community-map');
+  if (partnerMapElement && window.L) {
+    const cityData = JSON.parse(partnerMapElement.dataset.cities || '[]');
+    const map = L.map(partnerMapElement, { scrollWheelZoom: true, doubleClickZoom: true, touchZoom: true, zoomControl: true }).setView([44, 8], 3);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    const popupHtml = (city) => {
+      const orgList = `<ul class="map-popup-orgs">${city.partners.map((p) => `<li>${p.website ? `<a href="${p.website}" target="_blank" rel="noreferrer">${p.name}</a>` : p.name}</li>`).join('')}</ul>`;
+      return `<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>${city.partners.length} OJF</small>${orgList}<a class="map-popup-link" href="/qytetet/${city.slug}/">Shiko qytetin ↗</a></div>`;
+    };
+    const markers = cityData.map((city) => L.circleMarker([city.lat, city.lng], {
+      radius: Math.min(22, 8 + Math.sqrt(city.partners.length) * 4), color: '#fff', weight: 2, opacity: .9, fillColor: '#b98545', fillOpacity: .85
+    })
+      .bindTooltip(`<div class="map-city-tooltip"><strong>${city.city}</strong><span>${city.partners.length} OJF</span></div>`, { direction: 'top', offset: [0, -10], opacity: .96 })
+      .bindPopup(popupHtml(city))
+      .addTo(map));
+    if (markers.length) map.fitBounds(L.featureGroup(markers).getBounds(), { padding: [40, 40] });
+  }
+</script>
+<style>
+  .community-map-heading h2 { font-size: clamp(38px, 5vw, 58px); }
+  .map-footnote { max-width: 68ch; margin-top: 18px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .map-popup-orgs { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 0; padding: 8px 0 0; border-top: 1px solid var(--line); list-style: none; }
+  .map-popup-orgs li { font-size: 12px; }
+  .map-popup-orgs a { color: var(--accent-dark); font-weight: 700; }
+</style>
 <script>
   const search=document.querySelector<HTMLInputElement>('#partner-search'),category=document.querySelector<HTMLSelectElement>('#partner-category'),city=document.querySelector<HTMLSelectElement>('#partner-city'),collaboration=document.querySelector<HTMLSelectElement>('#partner-collaboration'),count=document.querySelector<HTMLElement>('#partner-result-count'),empty=document.querySelector<HTMLElement>('#partner-empty'),cards=[...document.querySelectorAll<HTMLElement>('.partner-directory-card')];
   const filterPartners=()=>{const query=(search?.value||'').trim().toLocaleLowerCase('sq'),selectedCategory=category?.value||'',selectedCity=city?.value||'',selectedCollaboration=collaboration?.value||'';let visible=0;cards.forEach(card=>{const show=(!query||(card.dataset.search||'').includes(query))&&(!selectedCategory||card.dataset.category===selectedCategory)&&(!selectedCity||card.dataset.city===selectedCity)&&(!selectedCollaboration||card.dataset.collaboration===selectedCollaboration);card.hidden=!show;if(show)visible++});if(count)count.textContent=`${visible} ${visible===1?'OJF u gjet':'OJF u gjetën'}`;if(empty)empty.hidden=visible>0};

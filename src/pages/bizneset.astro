@@ -6,10 +6,44 @@ import DirectoryNetworkGraph from '../components/DirectoryNetworkGraph.astro';
 import NetworkDirectoryHero from '../components/NetworkDirectoryHero.astro';
 import { businesses, businessCategoryLabels } from '../data/businesses';
 import { offers } from '../data/offers';
+import { cities } from '../data/cities';
 
 const categories = Object.entries(businessCategoryLabels).map(([id, label]) => ({ id, label }));
 const graphBusinesses = businesses.map((business, index) => ({ id: `business-${index}`, label: business.name, category: business.category, city: business.city, url: business.website }));
 const businessCities = [...new Set(businesses.map(business => business.city).filter((city): city is string => Boolean(city)))].sort((a, b) => a.localeCompare(b, 'sq'));
+
+// Businesses record city as free text (from hand-entered data), which doesn't always
+// match the name used in cities.csv — e.g. an English exonym ("Rome") vs. the local
+// spelling ("Roma"). Normalize and alias known cases so they land on the right marker
+// instead of being silently dropped. (Mirrors the matching in harta.astro.)
+const normalize = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const cityAliases: Record<string, string> = {
+  florence: 'firenze', genoa: 'genova', milan: 'milano', rome: 'roma',
+  nuremberg: 'nurnberg', 'city of london': 'london', 'greater london': 'london',
+};
+const cityByKey = new Map<string, (typeof cities)[number]>();
+for (const city of cities) {
+  const keys = new Set([normalize(city.slug), ...city.city.split('/').map(part => normalize(part))]);
+  keys.forEach(key => cityByKey.set(key, city));
+}
+function matchCity(name?: string) {
+  if (!name) return undefined;
+  const key = normalize(name);
+  return cityByKey.get(cityAliases[key] ?? key);
+}
+
+const businessesByCity = new Map<string, { name: string; website?: string }[]>();
+let unmappedBusinesses = 0;
+for (const business of businesses) {
+  const city = matchCity(business.city);
+  if (!city) { unmappedBusinesses++; continue; }
+  const list = businessesByCity.get(city.slug) ?? [];
+  list.push({ name: business.name, website: business.website });
+  businessesByCity.set(city.slug, list);
+}
+const businessMapCities = cities
+  .map(city => ({ city: city.city, country: city.country, lat: city.lat, lng: city.lng, slug: city.slug, businesses: businessesByCity.get(city.slug) ?? [] }))
+  .filter(city => city.businesses.length > 0);
 ---
 <BaseLayout title="Bizneset · Illyrian Brains" description="Bizneset e themeluara dhe drejtuara nga anëtarët e komunitetit Illyrian Brains.">
   <Header />
@@ -75,9 +109,52 @@ const businessCities = [...new Set(businesses.map(business => business.city).fil
         <DirectoryNetworkGraph kind="business" title="Bizneset në ekosistem." description="Eksploro si bizneset e komunitetit lidhen me anëtarët, qytetet dhe kategoritë e zhvillimit profesional." categories={categories} items={graphBusinesses} />
       </div>
     </div></section>
+
+    <section class="section tone-grey"><div class="container">
+      <div class="community-map-heading">
+        <div><p class="eyebrow">Ku ndodhen</p><h2>Bizneset në hartë.</h2></div>
+        <p>Bizneset e rrjetit, sipas qytetit ku janë të vendosura.</p>
+      </div>
+      <div class="community-map-layout">
+        <div id="community-map" data-cities={JSON.stringify(businessMapCities)} aria-label="Harta e bizneseve të Illyrian Brains, sipas qytetit"></div>
+      </div>
+      {unmappedBusinesses > 0 && (
+        <p class="map-footnote">{unmappedBusinesses} biznes{unmappedBusinesses === 1 ? '' : 'e'} nuk k{unmappedBusinesses === 1 ? 'a' : 'anë'} qytet të specifikuar dhe nuk shfaqet në hartë.</p>
+      )}
+    </div></section>
   </main>
   <Footer />
 </BaseLayout>
+<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script is:inline>
+  const businessMapElement = document.querySelector('#community-map');
+  if (businessMapElement && window.L) {
+    const cityData = JSON.parse(businessMapElement.dataset.cities || '[]');
+    const map = L.map(businessMapElement, { scrollWheelZoom: true, doubleClickZoom: true, touchZoom: true, zoomControl: true }).setView([44, 8], 3);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    const popupHtml = (city) => {
+      const orgList = `<ul class="map-popup-orgs">${city.businesses.map((b) => `<li>${b.website ? `<a href="${b.website}" target="_blank" rel="noreferrer">${b.name}</a>` : b.name}</li>`).join('')}</ul>`;
+      return `<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>${city.businesses.length} biznes${city.businesses.length === 1 ? '' : 'e'}</small>${orgList}<a class="map-popup-link" href="/qytetet/${city.slug}/">Shiko qytetin ↗</a></div>`;
+    };
+    const markers = cityData.map((city) => L.circleMarker([city.lat, city.lng], {
+      radius: Math.min(22, 8 + Math.sqrt(city.businesses.length) * 4), color: '#fff', weight: 2, opacity: .9, fillColor: '#293f52', fillOpacity: .85
+    })
+      .bindTooltip(`<div class="map-city-tooltip"><strong>${city.city}</strong><span>${city.businesses.length} biznes${city.businesses.length === 1 ? '' : 'e'}</span></div>`, { direction: 'top', offset: [0, -10], opacity: .96 })
+      .bindPopup(popupHtml(city))
+      .addTo(map));
+    if (markers.length) map.fitBounds(L.featureGroup(markers).getBounds(), { padding: [40, 40] });
+  }
+</script>
+<style>
+  .community-map-heading h2 { font-size: clamp(38px, 5vw, 58px); }
+  .map-footnote { max-width: 68ch; margin-top: 18px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .map-popup-orgs { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 0; padding: 8px 0 0; border-top: 1px solid var(--line); list-style: none; }
+  .map-popup-orgs li { font-size: 12px; }
+  .map-popup-orgs a { color: var(--accent-dark); font-weight: 700; }
+</style>
 <script>
   const search=document.querySelector<HTMLInputElement>('#business-search'),category=document.querySelector<HTMLSelectElement>('#business-category'),city=document.querySelector<HTMLSelectElement>('#business-city'),contribution=document.querySelector<HTMLSelectElement>('#business-contribution'),count=document.querySelector<HTMLElement>('#business-result-count'),empty=document.querySelector<HTMLElement>('#business-empty'),cards=[...document.querySelectorAll<HTMLElement>('.business-directory-card')];
   const filterBusinesses=()=>{const query=(search?.value||'').trim().toLocaleLowerCase('sq'),selectedCategory=category?.value||'',selectedCity=city?.value||'',selectedContribution=contribution?.value||'';let visible=0;cards.forEach(card=>{const show=(!query||(card.dataset.search||'').includes(query))&&(!selectedCategory||card.dataset.category===selectedCategory)&&(!selectedCity||card.dataset.city===selectedCity)&&(!selectedContribution||card.dataset.contributes===selectedContribution);card.hidden=!show;if(show)visible++});if(count)count.textContent=`${visible} ${visible===1?'biznes u gjet':'biznese u gjetën'}`;if(empty)empty.hidden=visible>0};
