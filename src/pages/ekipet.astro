@@ -28,7 +28,7 @@ const teamCities = [...new Set(team.map(member => member.city).filter((city): ci
       <div class="member-filters team-filters">
         <div class="member-search team-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="team-search" type="search" placeholder="Kërko një person…" aria-label="Kërko në ekipe"/></div>
         <select id="team-group" aria-label="Filtro sipas grupit"><option value="">Të gjitha grupet</option>{forumGroups.map(group => <option value={group.forum}>{group.label}</option>)}</select>
-        <select id="team-city" aria-label="Filtro sipas qytetit"><option value="">Të gjitha qytetet</option>{teamCities.map(city => <option value={city}>{city}</option>)}</select>
+        <select id="team-city" aria-label="Filtro sipas qytetit"><option value="">Të gjithë qytetet</option>{teamCities.map(city => <option value={city}>{city}</option>)}</select>
       </div>
       <p class="result-count" id="team-result-count">{team.length} anëtarë të veçantë</p>
     </div></section>

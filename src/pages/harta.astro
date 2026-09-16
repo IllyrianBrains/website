@@ -61,7 +61,7 @@ for (const partner of partners) {
   const city = matchCity(partner.city);
   if (!city) continue;
   const list = partnersByCity.get(city.slug) ?? [];
-  list.push({ name: partner.name, website: partner.website || partner.linkedin, type: partner.type });
+  list.push({ name: partner.name, website: partner.website || partner.linkedin || partner.instagram, type: partner.type });
   partnersByCity.set(city.slug, list);
 }
 

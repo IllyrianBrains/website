@@ -58,19 +58,24 @@ const graphHeight = Math.max(300, Math.min(620, nodeCount * 85 + 140));
     const note = section?.querySelector<HTMLElement>('[data-graph-note]');
     const reset = section?.querySelector<HTMLButtonElement>('[data-graph-reset]');
     const elements = JSON.parse(container.dataset.elements || '[]');
+    // On narrow containers, sibling node labels sit close enough together that
+    // they can overlap even though avoidOverlap keeps the node shapes themselves
+    // apart (it doesn't know about label bounding boxes). Tighter text wrapping
+    // plus more spacing between siblings keeps labels legible on mobile.
+    const isNarrow = container.clientWidth < 480;
     const cy = cytoscape({
       container,
       elements,
       style: [
-        { selector: 'node', style: { label: 'data(label)', 'font-family': 'Inter, sans-serif', 'font-size': 12, 'font-weight': 700, color: '#505158', 'text-valign': 'bottom', 'text-margin-y': 10, 'text-wrap': 'wrap', 'text-max-width': 110, width: 42, height: 42, 'background-color': '#b58ca1', 'border-width': 4, 'border-color': '#f4edf1' } },
+        { selector: 'node', style: { label: 'data(label)', 'font-family': 'Inter, sans-serif', 'font-size': 12, 'font-weight': 700, color: '#505158', 'text-valign': 'bottom', 'text-margin-y': 10, 'text-wrap': 'wrap', 'text-max-width': isNarrow ? 80 : 110, width: 42, height: 42, 'background-color': '#b58ca1', 'border-width': 4, 'border-color': '#f4edf1' } },
         { selector: 'node[type="network"]', style: { shape: 'diamond', width: 54, height: 54, color: '#293f52', 'background-color': '#293f52', 'border-color': '#e3e9ed' } },
         { selector: 'node[type="category"]', style: { shape: 'round-rectangle', width: 64, height: 42, color: '#6b4a25', 'background-color': '#b98545', 'border-color': '#f3e7d8' } },
-        { selector: 'node[type="organization"]', style: { shape: 'round-rectangle', width: 72, height: 48, color: '#744761', 'background-color': '#ffffff', 'border-width': 3, 'border-color': '#744761', 'text-max-width': 130 } },
+        { selector: 'node[type="organization"]', style: { shape: 'round-rectangle', width: 72, height: 48, color: '#744761', 'background-color': '#ffffff', 'border-width': 3, 'border-color': '#744761', 'text-max-width': isNarrow ? 80 : 130 } },
         { selector: 'edge', style: { width: 1.5, 'line-color': '#c8bdc3', 'curve-style': 'bezier', opacity: .7 } },
         { selector: '.faded', style: { opacity: .12 } },
         { selector: '.focused', style: { 'border-width': 6, 'border-color': '#d9b2c6', 'z-index': 10 } },
       ],
-      layout: { name: 'breadthfirst', directed: true, circle: false, animate: false, fit: true, padding: 65, spacingFactor: 1.25, avoidOverlap: true },
+      layout: { name: 'breadthfirst', directed: true, circle: false, animate: false, fit: true, padding: 65, spacingFactor: isNarrow ? 1.7 : 1.25, avoidOverlap: true },
       minZoom: .55,
       maxZoom: 2.4,
       wheelSensitivity: .25,

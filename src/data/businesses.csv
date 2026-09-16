@@ -1,4 +1,5 @@
-name,category,city,country,description,website,sponsor
-Bliss,startup,Tirana,Shqipëri,"Platformë e shëndetit mendor që ofron terapi dhe këshillim online në shqip me psikologë dhe coach të kualifikuar.",https://bliss.al,true
-TOKË Architects,startup,London,Mbretëria e Bashkuar,"Studio arkitekture dhe dizajni të brendshëm, e fokusuar në hapësira që respektojnë komunitetin dhe mjedisin.",https://tokearchitects.co.uk/,
-Dynamics Hub,startup,Tirana,Shqipëri,"Platformë punësimi dhe komuniteti për konsulentë Microsoft Dynamics 365, e themeluar nga një shqiptar që u rikthye në Shqipëri.",https://www.dynamicshub.net/,
+name,category,city,country,description,website,sponsor,instagram,stage
+Bliss,health,Tirana,Shqipëri,"Platformë e shëndetit mendor që ofron terapi dhe këshillim online në shqip me psikologë dhe coach të kualifikuar.",https://bliss.al,true,,startup
+TOKË Architects,architecture,London,Mbretëria e Bashkuar,"Studio arkitekture dhe dizajni të brendshëm, e fokusuar në hapësira që respektojnë komunitetin dhe mjedisin.",https://tokearchitects.co.uk/,,,startup
+Dynamics Hub,technology,Tirana,Shqipëri,"Platformë punësimi dhe komuniteti për konsulentë Microsoft Dynamics 365, e themeluar nga një shqiptar që u rikthye në Shqipëri.",https://www.dynamicshub.net/,,,startup
+Consultaxion,finance,Tirana,Shqipëri,"Konsulencë për taksa dhe kontabilitet për individë dhe biznese.",,,https://www.instagram.com/consultaxion,startup

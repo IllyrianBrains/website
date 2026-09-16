@@ -57,7 +57,7 @@ for (const partner of partners) {
   const city = matchCity(partner.city);
   if (!city) continue;
   const list = partnersByCity.get(city.slug) ?? [];
-  list.push({ name: partner.name, website: partner.website || partner.linkedin, type: partner.type });
+  list.push({ name: partner.name, website: partner.website || partner.linkedin || partner.instagram, type: partner.type });
   partnersByCity.set(city.slug, list);
 }
 
@@ -94,7 +94,7 @@ const mapCities = citiesWithRegion.map(city => ({
     </div>
 
     <div class="community-map-cta">
-      <a class="partner-button" href="/qytetet/">Shiko të gjitha qytetet <span aria-hidden="true">↗</span></a>
+      <a class="partner-button" href="/qytetet/">Shiko të gjithë qytetet <span aria-hidden="true">↗</span></a>
     </div>
   </div>
   <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

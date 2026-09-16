@@ -23,7 +23,7 @@ const contributions = [...new Set(members.flatMap(member => member.groups))].sor
         <div class="member-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="member-search" type="search" placeholder="Kërko sipas emrit…" aria-label="Kërko anëtarë"/></div>
         <select id="filter-expertise" aria-label="Filtro sipas fushës së ekspertizës"><option value="">Të gjitha fushat</option>{expertiseAreas.map(area => <option value={area}>{area}</option>)}</select>
         <select id="filter-contribution" aria-label="Filtro sipas kontributit në IB"><option value="">Të gjitha kontributet</option>{contributions.map(value => <option value={value}>{value}</option>)}</select>
-        <select id="filter-city" aria-label="Filtro sipas qytetit"><option value="">Të gjitha qytetet</option>{memberCities.map(city => <option value={city}>{city}</option>)}</select>
+        <select id="filter-city" aria-label="Filtro sipas qytetit"><option value="">Të gjithë qytetet</option>{memberCities.map(city => <option value={city}>{city}</option>)}</select>
       </div>
       <div class="member-stats"><div><strong id="stat-total">{members.length}</strong><span>Anëtarë të listuar</span></div><div><strong>{memberCities.length}</strong><span>Qytete</span></div><div><strong>5000+</strong><span>Madhësia e rrjetit</span></div></div>
       <p class="result-count" id="result-count"></p><div class="member-grid" id="member-grid" data-members={JSON.stringify(members)}></div>
