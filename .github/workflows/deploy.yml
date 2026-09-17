@@ -32,6 +32,8 @@ jobs:
         uses: withastro/action@v3
         with:
           node-version: 22
+        env:
+          MEMBERS_SHEET_CSV_URL: ${{ secrets.MEMBERS_SHEET_CSV_URL }}
 
   deploy:
     needs: build

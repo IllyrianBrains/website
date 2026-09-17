@@ -4,6 +4,20 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import JoinCTA from '../../components/JoinCTA.astro';
 import { cities, defaultCityImage } from '../../data/cities';
+import { directoryMembers } from '../../data/members';
+
+const memberByUsername = new Map(directoryMembers.map((member) => [member.username.toLowerCase(), member]));
+// Forum posts used to mention organizers as "@username", linking to their forum
+// profile — the forum integration is gone, so instead link mentions we can still
+// resolve to the site's own member directory, pre-filtered to that person.
+const mentionPattern = /(?<!\w)@([A-Za-z][\w.-]{0,32})/g;
+const linkMemberMentions = (html: string) => html.replace(mentionPattern, (match, rawUsername: string) => {
+  const trailingPunct = rawUsername.match(/[.,;:)]+$/)?.[0] || '';
+  const username = trailingPunct ? rawUsername.slice(0, -trailingPunct.length) : rawUsername;
+  const member = memberByUsername.get(username.toLowerCase());
+  if (!member) return match;
+  return `<a class="city-mention" href="/anetaret/?search=${encodeURIComponent(member.username)}">@${username}</a>${trailingPunct}`;
+});
 
 const htmlFiles = import.meta.glob('../../data/cities-content/*.html', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 const contentBySlug: Record<string, string> = {};
@@ -17,6 +31,7 @@ export function getStaticPaths() {
 }
 
 const { city } = Astro.props;
+const cityMembers = directoryMembers.filter(member => member.city === city.city).sort((a,b) => a.name.localeCompare(b.name,'sq'));
 const rawCommunityHtml = contentBySlug[city.slug] || '';
 const getImageAttribute = (tag: string, name: string) => tag.match(new RegExp(`${name}=["']([^"']*)["']`, 'i'))?.[1] || '';
 const cityPhotos = [...rawCommunityHtml.matchAll(/<img\b[^>]*>/gi)].map(match => ({ src: getImageAttribute(match[0], 'src'), alt: getImageAttribute(match[0], 'alt') })).filter(photo => photo.src);
@@ -27,10 +42,10 @@ const communityHtml = rawCommunityHtml
 const sectionPattern = /<h[23][^>]*>([\s\S]*?)<\/h[23]>/gi;
 const matches = communityHtml ? [...communityHtml.matchAll(sectionPattern)] : [];
 const cleanTitle = (html: string) => html.replace(/<[^>]+>/g, '').trim();
-const communityIntro = communityHtml ? communityHtml.slice(0, matches[0]?.index ?? communityHtml.length).trim() : '';
+const communityIntro = communityHtml ? linkMemberMentions(communityHtml.slice(0, matches[0]?.index ?? communityHtml.length).trim()) : '';
 const communitySections = matches.map((match, index) => ({
   title: cleanTitle(match[1]),
-  html: communityHtml.slice((match.index ?? 0) + match[0].length, matches[index + 1]?.index ?? communityHtml.length).trim(),
+  html: linkMemberMentions(communityHtml.slice((match.index ?? 0) + match[0].length, matches[index + 1]?.index ?? communityHtml.length).trim()),
 })).filter(section => section.title || section.html);
 ---
 <BaseLayout title={`Illyrian Brains ${city.city}`} description={`Komuniteti shqiptar i profesionistëve në ${city.city}.`}>
@@ -63,6 +78,7 @@ const communitySections = matches.map((match, index) => ({
           <p class="eyebrow">Në këtë faqe</p>
           <a href="#rreth-komunitetit">Rreth komunitetit</a>
           {communitySections.map((section, index) => <a href={`#seksioni-${index + 1}`}>{section.title}</a>)}
+          {cityMembers.length > 0 && <a href="#njerezit">Pjesë e rrjetit</a>}
           {city.activities && city.activities.length > 0 && <a href="#aktivitetet">Aktivitetet</a>}
           {cityPhotos.length > 0 && <a href="#galeria">Galeria</a>}
         </aside>
@@ -81,7 +97,25 @@ const communitySections = matches.map((match, index) => ({
             </section>
           ))}
 
-          {city.activities && city.activities.length > 0 && <section class="city-content-section" id="aktivitetet"><span class="city-section-number">{String(communitySections.length + 1).padStart(2, '0')}</span><h2>Komunitetet dhe aktivitetet</h2><ul class="city-activities">{city.activities.map((activity) => <li>{activity}</li>)}</ul></section>}
+          {cityMembers.length > 0 && (
+            <section class="city-content-section" id="njerezit">
+              <span class="city-section-number">{String(communitySections.length + 1).padStart(2, '0')}</span>
+              <h2>Pjesë e rrjetit.</h2>
+              <div class="member-grid city-people-grid" id="city-people-grid" data-members={JSON.stringify(cityMembers)}>
+                {cityMembers.map(member => (
+                  <button class="member-card city-people-card" type="button" data-username={member.username}>
+                    <div class="member-card-top">
+                      {member.avatar ? <img class="member-avatar" src={member.avatar} alt="" loading="lazy" /> : <span class="member-avatar member-avatar-fallback">{member.name.split(' ').map(part => part[0]).join('').slice(0,2).toUpperCase()}</span>}
+                      <div><p class="member-card-name">{member.name}</p><p class="member-card-role">{member.title || member.fieldsOfExpertise?.join(' · ') || `@${member.username}`}</p></div>
+                    </div>
+                    <span class="member-card-action">Shiko profilin <span aria-hidden="true">→</span></span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {city.activities && city.activities.length > 0 && <section class="city-content-section" id="aktivitetet"><span class="city-section-number">{String(communitySections.length + (cityMembers.length > 0 ? 2 : 1)).padStart(2, '0')}</span><h2>Komunitetet dhe aktivitetet</h2><ul class="city-activities">{city.activities.map((activity) => <li>{activity}</li>)}</ul></section>}
 
           {cityPhotos.length > 0 && (
             <section class="city-content-section city-gallery-section" id="galeria">
@@ -99,7 +133,37 @@ const communitySections = matches.map((match, index) => ({
     <JoinCTA />
   </main>
   <Footer />
+  {cityMembers.length > 0 && (
+    <>
+      <div class="member-drawer-overlay" id="city-member-overlay"></div>
+      <aside class="member-drawer" id="city-member-drawer" aria-hidden="true"><div class="member-drawer-inner" id="city-member-drawer-content"></div></aside>
+    </>
+  )}
 </BaseLayout>
+
+<script>
+  const grid = document.querySelector<HTMLElement>('#city-people-grid');
+  const overlay = document.querySelector<HTMLElement>('#city-member-overlay');
+  const drawer = document.querySelector<HTMLElement>('#city-member-drawer');
+  const content = document.querySelector<HTMLElement>('#city-member-drawer-content');
+  if (grid && overlay && drawer && content) {
+    const members = JSON.parse(grid.dataset.members || '[]');
+    const escapeHtml = (value: string) => value.replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character] || character));
+    const initials = (name: string) => name.split(' ').map((part: string) => part[0]).join('').slice(0,2).toUpperCase();
+    const fields = (member: any) => member.fieldsOfExpertise || [];
+    const close = () => { drawer.classList.remove('open'); overlay.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); document.body.style.overflow = ''; };
+    grid.addEventListener('click', event => {
+      const username = (event.target as HTMLElement).closest<HTMLElement>('.city-people-card')?.dataset.username;
+      const member = members.find((item: any) => item.username === username);
+      if (!member) return;
+      content.innerHTML = `<button class="member-drawer-close" type="button" aria-label="Mbyll profilin">✕</button>${member.avatar ? `<img class="member-drawer-avatar" src="${escapeHtml(member.avatar)}" alt="">` : `<span class="member-drawer-avatar member-avatar-fallback">${escapeHtml(initials(member.name))}</span>`}<h2>${escapeHtml(member.name)}</h2><p class="member-drawer-role">${escapeHtml(member.title || fields(member).join(' · ') || `@${member.username}`)}</p>${member.bio ? `<p class="member-drawer-bio">${escapeHtml(member.bio)}</p>` : ''}<div class="member-tags">${fields(member).map((value: string) => `<span class="member-pill member-pill-accent">${escapeHtml(value)}</span>`).join('')}${member.city ? `<span class="member-pill">${escapeHtml(member.city)}</span>` : ''}<span class="member-pill">Anëtar që nga ${member.since}</span></div><div class="member-drawer-actions">${member.website ? `<a class="partner-button" href="${encodeURI(member.website)}" target="_blank" rel="noreferrer">Faqja personale <span aria-hidden="true">↗</span></a>` : ''}${member.linkedin ? `<a class="partner-button" href="${encodeURI(member.linkedin)}" target="_blank" rel="noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>` : ''}</div>`;
+      drawer.classList.add('open'); overlay.classList.add('open'); drawer.setAttribute('aria-hidden','false'); document.body.style.overflow = 'hidden';
+      content.querySelector('.member-drawer-close')?.addEventListener('click', close);
+    });
+    overlay.addEventListener('click', close);
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
+  }
+</script>
 
 <style>
   .city-detail-hero { overflow: hidden; padding-top: 54px; }
