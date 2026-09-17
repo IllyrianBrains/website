@@ -1,5 +1,5 @@
-// Local forum snapshot. Anëtarët comes from trust_level_0; staff affiliations
-// come from Bordi, Staff-Ekipet, Staff-Nismat and Staff-Qytetet.
+// Fetched fresh from a private Google Sheet at dev/build time — see
+// scripts/sync-members-sheet.mjs. members.json is gitignored, not committed.
 
 import rawMembers from './members.json';
 
@@ -12,16 +12,14 @@ export interface Member {
   bio?: string;
   title?: string;
   website?: string;
-  profileSynced?: boolean;
+  linkedin?: string;
   since: number;
   avatar?: string;
   groups: string[];
+  team?: string[];
   inDirectory: boolean;
-  profileUrl: string;
+  profileUrl?: string;
 }
 
 export const members: Member[] = rawMembers;
-const trustLevelMembers = members.filter(member => member.inDirectory);
-// Keep the last usable directory visible if an authenticated trust_level_0
-// refresh has not been completed yet.
-export const directoryMembers: Member[] = trustLevelMembers.length ? trustLevelMembers : members;
+export const directoryMembers: Member[] = members.filter(member => member.inDirectory);

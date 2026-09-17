@@ -1,19 +1,322 @@
 ---
+import { marked } from 'marked';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
+import ideas from '../../data/ideas.json';
+
+// Idea descriptions are Markdown — real Markdown for forum-migrated ideas
+// (see scripts/migrate-ideas-forum.py), plain text with no special syntax
+// for form submissions, which Markdown renders unchanged. Raw HTML in a
+// description is escaped rather than passed through — descriptions can come
+// from a public form, so a pasted script tag must not run — while leaving
+// CommonMark autolinks (<https://…>) alone, since those aren't raw HTML.
+marked.use({ renderer: { html(token) {
+  const raw = typeof token === 'string' ? token : token.text;
+  return raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+} } });
+function stripTags(html) {
+  return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+// The card shows a plain-text excerpt, not the rendered Markdown — a rich
+// forum post's headings/lists/tables read as clutter squeezed into a list
+// row. The full rendering lives on the idea's own page (ide/[slug].astro).
+const EXCERPT_LENGTH = 220;
+const renderedIdeas = ideas.map((idea) => {
+  const descriptionText = stripTags(marked.parse(idea.description));
+  const excerpt = descriptionText.length > EXCERPT_LENGTH
+    ? descriptionText.slice(0, EXCERPT_LENGTH).replace(/\s+\S*$/, '') + '…'
+    : descriptionText;
+  const publishedDate = idea.date && !isNaN(Date.parse(idea.date))
+    ? new Date(idea.date).toLocaleDateString('sq-AL', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
+  return { ...idea, descriptionText, excerpt, publishedDate };
+});
+
+// Ideas submitted through the form carry the submitter's own email. Migrated
+// forum ideas don't (Discourse never exposes member emails) — those route to
+// the org inbox instead, so every idea stays respondable rather than some
+// having a reply button and others not.
+const ORG_EMAIL = 'illyrianbrains@gmail.com';
+
+// "Shto idenë tënde" opens a pre-filled email to the org inbox instead of a
+// Google Form — submissions get added to ideas.json by hand from there.
+const shareIdeaMailto = `mailto:${ORG_EMAIL}?subject=${encodeURIComponent('Ide e re nga rrjeti')}&body=${encodeURIComponent('Përshëndetje,\n\nDua të ndaj një ide:\n\nTitulli:\nPërshkrimi:\nKategoria (Kërkoj punë / Ofroj ndihmë / Grup aktiviteti / Bashkëpunim):\n\nA dëshiron që emri yt të shfaqet publikisht? (po/jo):')}`;
+
+// Ties each "Kategoria" answer to a color already used elsewhere on the site,
+// so the category reads at a glance. Unmatched/blank categories (e.g. a form
+// response left it empty) fall back to --muted grey.
+const AREA_COLORS = {
+  'Kërkoj punë': '#744761',
+  'Ofroj ndihmë': '#3f7a54',
+  'Grup aktiviteti': '#b98545',
+  Bashkëpunim: '#293f52',
+};
+function areaColor(area) {
+  return AREA_COLORS[area] || '#66676c';
+}
+const categories = [...new Set(ideas.map((idea) => idea.area).filter(Boolean))];
 ---
-<BaseLayout title="Ide · Illyrian Brains" description="Ide — një hapësirë për të mbledhur ide dhe informacion nga komuniteti i Illyrian Brains.">
+<BaseLayout title="Ndaj Ide · Illyrian Brains" description="Ide, kërkesa dhe oferta nga anëtarët e rrjetit — për njëri-tjetrin, jo për organizatën. Ndaji me një email te illyrianbrains@gmail.com.">
   <Header />
   <main>
     <section class="section tone-dark page-hero page-hero--ideas">
       <div class="container city-page">
-        <p class="eyebrow">Projektet</p>
-        <h1>Ide</h1>
-        <p class="about-body">Një hapësirë për të mbledhur ide dhe informacion nga komuniteti — vend ku çdo anëtar mund të propozojë atë që rrjeti duhet të ndërtojë më pas.</p>
-        <p class="about-body">Përmbajtja për këtë projekt do të shtohet së shpejti.</p>
+        <p class="eyebrow">Laboratori</p>
+        <h1>Ndaj Ide</h1>
+        <p class="about-body">Nga rrjeti, për rrjetin. Dikush kërkon punë, dikush ofron ndihmë, dikush do të nisë një grup të ri në qytetin e vet. Këtu i gjen dhe i ndan — thjesht na dërgo një email.</p>
+        <a class="partner-button ideas-hero-cta" href={shareIdeaMailto}>Shto idenë tënde <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section class="section tone-grey ideas-how-section">
+      <div class="container city-page">
+        <div class="ideas-how">
+          <div class="ideas-how-step">
+            <span class="ideas-how-number">1</span>
+            <h3>Ndaje</h3>
+            <p>Na shkruaj një email — titull, përshkrim, kategoria. Zgjedh vetë nëse emri yt shfaqet publikisht.</p>
+          </div>
+          <div class="ideas-how-step">
+            <span class="ideas-how-number">2</span>
+            <h3>Komuniteti përgjigjet</h3>
+            <p>Çdo ide ka një buton "Përgjigju me email" — kushdo i interesuar të kontakton drejtpërdrejt.</p>
+          </div>
+          <div class="ideas-how-step">
+            <span class="ideas-how-number">3</span>
+            <h3>E zgjidhur</h3>
+            <p>Kur ideja gjen atë që kërkonte — punë, grup, bashkëpunëtor — shënohet "E zgjidhur", që lista të mbetet e freskët për kërkesat ende aktive.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tone-white" id="idete">
+      <div class="container city-page">
+        <div class="catalog-heading">
+          <div><h2>Gjej idenë e duhur.</h2></div>
+          <p><strong>Përdor kërkimin dhe filtrin më poshtë</strong> për të parë idetë sipas fjalës kyçe ose kategorisë.</p>
+        </div>
+        {ideas.length === 0 ? (
+          <p class="about-body">Ende nuk ka ide të shtuara. Bëhu i pari me email-in më poshtë.</p>
+        ) : (
+          <>
+            <div class="member-filters" aria-label="Filtro katalogun e ideve">
+              <div class="member-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="idea-search" type="search" placeholder="Kërko sipas fjalës kyçe…" aria-label="Kërko ide"/></div>
+              <select id="idea-category" aria-label="Filtro sipas kategorisë"><option value="">Të gjitha kategoritë</option>{categories.map((area) => <option value={area}>{area}</option>)}</select>
+              <select id="idea-sort" aria-label="Rendit idetë"><option value="latest">Më të rejat</option><option value="earliest">Më të vjetrat</option></select>
+            </div>
+            <p class="idea-result-count" id="idea-result-count"></p>
+            <ul class="idea-list">
+              {renderedIdeas.map((idea, index) => {
+                const number = index + 1;
+                const mailto = idea.email
+                  ? `mailto:${idea.email}?subject=${encodeURIComponent(`Ide #${number} · ${idea.title}`)}&body=${encodeURIComponent(`Përshëndetje,\n\nPo të shkruaj për idenë #${number} "${idea.title}" që ndave në Illyrian Brains.`)}`
+                  : `mailto:${ORG_EMAIL}?subject=${encodeURIComponent(`Ide #${number} · ${idea.title}`)}&body=${encodeURIComponent(`Përshëndetje,\n\nKjo ide (#${number} "${idea.title}") është nga arkivi i forumit dhe s'ka email të drejtpërdrejtë — a mund të na e përcillni autorit?`)}`;
+                return (
+                  <li
+                    class="idea-row"
+                    style={idea.area ? `--area-color:${areaColor(idea.area)}` : ''}
+                    data-category={idea.area || ''}
+                    data-date={idea.date || ''}
+                    data-search={`${idea.title} ${idea.descriptionText}`.toLocaleLowerCase('sq')}
+                  >
+                    <span class="idea-row-number">#{number}</span>
+                    <div class="idea-row-badges">
+                      {idea.area && <span class="idea-row-area">{idea.area}</span>}
+                    </div>
+                    <h3 class="idea-row-title"><a href={`/projektet/ide/${idea.slug}/`}>{idea.title}</a></h3>
+                    <p class="idea-row-desc">{idea.excerpt}</p>
+                    {(idea.name || idea.publishedDate) && (
+                      <p class="idea-row-byline">
+                        {idea.name && <>— {idea.name}</>}
+                        {idea.name && idea.publishedDate && ' · '}
+                        {idea.publishedDate}
+                      </p>
+                    )}
+                    <div class="idea-row-foot">
+                      <a class="idea-row-more" href={`/projektet/ide/${idea.slug}/`}>Lexo më shumë <span aria-hidden="true">→</span></a>
+                      <div class="idea-row-foot-right">
+                        <a class="idea-row-reply" href={mailto}>Përgjigju me email <span aria-hidden="true">↗</span></a>
+                        <span class={`idea-status ${idea.resolved ? 'is-resolved' : 'is-open'}`}>{idea.resolved ? 'E zgjidhur' : 'Ende aktive'}</span>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+            <p class="directory-empty" id="idea-empty" hidden>Asnjë ide nuk përputhet me filtrat.</p>
+            <div class="idea-pagination" id="idea-pagination"></div>
+          </>
+        )}
+      </div>
+    </section>
+
+    <section class="section tone-dark ideas-cta-section">
+      <div class="container city-page ideas-cta">
+        <div class="ideas-cta-copy">
+          <p class="eyebrow">Shto një ide</p>
+          <h2>Hidhe kërkesën ose idenë tënde në kavanoz.</h2>
+          <p class="about-body">Kërkon punë? Do të nisësh një grup? Ke diçka për t'i ofruar dikujt tjetër në rrjet? Na shkruaj një email te <strong>illyrianbrains@gmail.com</strong> — pak minuta. Mund të zgjedhësh të mos shfaqësh emrin tënd publikisht.</p>
+          <a class="partner-button" href={shareIdeaMailto}>Shto idenë tënde <span aria-hidden="true">↗</span></a>
+        </div>
+        <svg class="ideas-jar" viewBox="0 0 140 170" aria-hidden="true">
+          <rect x="22" y="28" width="96" height="20" rx="6" fill="#5d374d" />
+          <rect x="32" y="46" width="76" height="12" fill="#c9aebd" />
+          <path d="M32,58 L32,128 A16,16 0 0 0 48,144 L92,144 A16,16 0 0 0 108,128 L108,58 Z" fill="rgba(255,255,255,.06)" stroke="#c9aebd" stroke-width="2.5" />
+          <g transform="rotate(-11 58 103)">
+            <rect x="44" y="93" width="28" height="20" rx="4" fill="#c9aebd" />
+            <line x1="49" y1="100" x2="65" y2="100" stroke="#5d374d" stroke-width="1.6" stroke-linecap="round" />
+            <line x1="49" y1="105" x2="60" y2="105" stroke="#5d374d" stroke-width="1.6" stroke-linecap="round" />
+          </g>
+          <g transform="rotate(8 80 112)">
+            <rect x="66" y="102" width="28" height="20" rx="4" fill="#744761" />
+            <line x1="71" y1="109" x2="87" y2="109" stroke="#f0e3ea" stroke-width="1.6" stroke-linecap="round" />
+            <line x1="71" y1="114" x2="82" y2="114" stroke="#f0e3ea" stroke-width="1.6" stroke-linecap="round" />
+          </g>
+          <g transform="rotate(-4 65 124)">
+            <rect x="50" y="114" width="30" height="20" rx="4" fill="#f6f5f5" />
+            <line x1="55" y1="121" x2="71" y2="121" stroke="#5d374d" stroke-width="1.6" stroke-linecap="round" />
+            <line x1="55" y1="126" x2="66" y2="126" stroke="#5d374d" stroke-width="1.6" stroke-linecap="round" />
+          </g>
+          <g stroke="#c9aebd" stroke-width="2" stroke-linecap="round">
+            <path d="M118 14 L118 24 M113 19 L123 19" />
+            <path d="M25 12 L25 18 M22 15 L28 15" />
+          </g>
+        </svg>
       </div>
     </section>
   </main>
   <Footer />
 </BaseLayout>
+
+<script>
+  const PAGE_SIZE = 10;
+  const ideaSearch = document.querySelector<HTMLInputElement>('#idea-search');
+  const ideaCategory = document.querySelector<HTMLSelectElement>('#idea-category');
+  const ideaSort = document.querySelector<HTMLSelectElement>('#idea-sort');
+  const ideaCount = document.querySelector<HTMLElement>('#idea-result-count');
+  const ideaEmpty = document.querySelector<HTMLElement>('#idea-empty');
+  const ideaPagination = document.querySelector<HTMLElement>('#idea-pagination');
+  const ideaRows = [...document.querySelectorAll<HTMLElement>('.idea-row')];
+  let currentPage = 1;
+
+  function renderPagination(totalPages: number) {
+    if (!ideaPagination) return;
+    if (totalPages <= 1) { ideaPagination.innerHTML = ''; return; }
+    const pageButton = (page: number, label: string, disabled = false, extraClass = '') =>
+      `<button type="button" data-page="${page}" class="${page === currentPage ? 'is-active' : ''} ${extraClass}" ${disabled ? 'disabled' : ''}>${label}</button>`;
+    let html = pageButton(currentPage - 1, '‹ Mbrapa', currentPage === 1, 'idea-pagination-nav');
+    for (let page = 1; page <= totalPages; page++) html += pageButton(page, String(page));
+    html += pageButton(currentPage + 1, 'Para ›', currentPage === totalPages, 'idea-pagination-nav');
+    html += `<span class="idea-pagination-label">Faqja ${currentPage} nga ${totalPages}</span>`;
+    ideaPagination.innerHTML = html;
+    ideaPagination.querySelectorAll<HTMLButtonElement>('button:not(:disabled)').forEach((button) => {
+      button.addEventListener('click', () => {
+        currentPage = Number(button.dataset.page);
+        filterIdeas();
+        document.querySelector('#idete')?.scrollIntoView({ block: 'start' });
+      });
+    });
+  }
+
+  function filterIdeas() {
+    const query = (ideaSearch?.value || '').trim().toLocaleLowerCase('sq');
+    const category = ideaCategory?.value || '';
+    const sort = ideaSort?.value || 'latest';
+    const matched = ideaRows.filter((row) => (!query || (row.dataset.search || '').includes(query)) && (!category || row.dataset.category === category));
+    matched.sort((a, b) => {
+      const dateA = Date.parse(a.dataset.date || '');
+      const dateB = Date.parse(b.dataset.date || '');
+      if (isNaN(dateA) && isNaN(dateB)) return 0;
+      if (isNaN(dateA)) return 1; // undated rows sink to the bottom either way
+      if (isNaN(dateB)) return -1;
+      return sort === 'earliest' ? dateA - dateB : dateB - dateA;
+    });
+    const totalPages = Math.max(1, Math.ceil(matched.length / PAGE_SIZE));
+    currentPage = Math.min(currentPage, totalPages);
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const pageRows = new Set(matched.slice(start, start + PAGE_SIZE));
+    ideaRows.forEach((row) => { row.hidden = !pageRows.has(row); });
+    if (ideaCount) ideaCount.textContent = `${matched.length} ${matched.length === 1 ? 'ide u gjet' : 'ide u gjetën'}`;
+    if (ideaEmpty) ideaEmpty.hidden = matched.length > 0;
+    renderPagination(totalPages);
+  }
+  ideaSearch?.addEventListener('input', () => { currentPage = 1; filterIdeas(); });
+  ideaCategory?.addEventListener('change', () => { currentPage = 1; filterIdeas(); });
+  ideaSort?.addEventListener('change', () => { currentPage = 1; filterIdeas(); });
+  filterIdeas();
+</script>
+
+<style>
+  .ideas-hero-cta { margin-top: 26px; }
+
+  .ideas-how-section { padding-block: clamp(40px, 6vw, 60px); }
+  .ideas-how { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+  .ideas-how-step { position: relative; padding-left: 44px; }
+  .ideas-how-number { position: absolute; left: 0; top: 0; display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid rgba(116,71,97,.3); border-radius: 50%; color: var(--accent-dark); font-size: 13px; font-weight: 800; }
+  .ideas-how-step h3 { margin: 0 0 6px; font-size: 16px; font-weight: 700; }
+  .ideas-how-step p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+  @media (max-width: 760px) {
+    .ideas-how { grid-template-columns: 1fr; gap: 22px; }
+  }
+
+  .catalog-heading { display: grid; grid-template-columns: 1fr minmax(280px, 420px); gap: 40px; align-items: end; margin-bottom: 28px; }
+  .catalog-heading h2 { margin: 0; font-size: clamp(32px, 4.2vw, 46px); font-weight: 400; line-height: 1.08; }
+  .catalog-heading p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
+  .catalog-heading strong { color: var(--accent-dark); }
+  .idea-result-count { margin: 14px 0 22px; color: var(--muted); font-size: 13px; }
+  .directory-empty { margin: 30px 0; color: var(--muted); }
+  @media (max-width: 760px) {
+    .catalog-heading { grid-template-columns: 1fr; gap: 14px; }
+  }
+
+  .idea-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; margin: 32px 0 0; padding-top: 22px; border-top: 1px solid var(--line); }
+  .idea-pagination :global(.idea-pagination-label) { margin-left: 8px; color: var(--muted); font-size: 13px; }
+  .idea-pagination :global(button) { min-width: 34px; height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: #fff; font: 700 13px var(--font-body); cursor: pointer; transition: color .15s ease, background-color .15s ease, border-color .15s ease; }
+  .idea-pagination :global(button.idea-pagination-nav) { min-width: auto; color: var(--accent-dark); }
+  .idea-pagination :global(button:hover:not(:disabled)) { color: #fff; border-color: var(--accent); background: var(--accent); }
+  .idea-pagination :global(button.is-active) { color: #fff; border-color: var(--accent); background: var(--accent); }
+  .idea-pagination :global(button:disabled) { opacity: .4; cursor: default; }
+
+  .idea-list { display: flex; flex-direction: column; gap: 14px; margin: 8px 0 0; padding: 0; list-style: none; }
+  .idea-row { position: relative; padding: 22px 68px 20px 22px; border: 1px solid var(--line); border-left: 4px solid var(--area-color, var(--line)); border-radius: 12px; background: #fff; box-shadow: 0 2px 10px rgba(23,24,29,.04); transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease; }
+  .idea-row-number { position: absolute; top: 20px; right: 20px; color: var(--muted); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .idea-row[hidden] { display: none; }
+  .idea-row:hover { box-shadow: 0 14px 30px rgba(23,24,29,.09); transform: translateY(-2px); border-color: rgba(116,71,97,.25); }
+  .idea-row-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px; }
+  .idea-row-area { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--area-color, var(--muted)); color: #fff; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+  .idea-row-title { margin: 0 0 7px; font-size: 18px; font-weight: 700; line-height: 1.3; }
+  .idea-row-title a { color: var(--ink); text-decoration: none; }
+  .idea-row-title a:hover { color: var(--area-color, var(--accent-dark)); text-decoration: underline; text-underline-offset: 3px; }
+  .idea-row-desc { margin: 0; max-width: 68ch; color: var(--muted); font-size: 14px; line-height: 1.65; }
+  .idea-row-byline { margin: 8px 0 0; color: var(--muted); font-size: 12px; font-style: italic; }
+  .idea-row-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; }
+  .idea-row-foot-right { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .idea-row-more { display: inline-flex; align-items: center; gap: 6px; color: var(--area-color, var(--accent-dark)); font-size: 12px; font-weight: 700; }
+  .idea-row-more:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .idea-row-reply { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border: 1px solid var(--area-color, var(--line)); border-radius: 999px; color: var(--area-color, var(--accent-dark)); font-size: 12px; font-weight: 700; transition: background-color .15s ease, color .15s ease; }
+  .idea-row-reply:hover { color: #fff; background: var(--area-color, var(--accent-dark)); }
+  .idea-status { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .idea-status::before { content: '✓'; font-size: 11px; font-weight: 900; line-height: 1; }
+  .idea-status.is-open { color: #6b6c72; background: rgba(102,103,108,.1); }
+  .idea-status.is-resolved { color: #237049; background: rgba(47,140,90,.12); }
+  .idea-status.is-resolved::before { color: #2f9e63; }
+  @media (max-width: 560px) {
+    .idea-row { padding: 20px 16px 18px; }
+    .idea-row-number { position: static; display: block; margin-bottom: 8px; }
+  }
+
+  .ideas-cta-section { padding-block: clamp(55px, 8vw, 90px); }
+  .ideas-cta { display: grid; grid-template-columns: minmax(0, 1fr) minmax(150px, 220px); gap: clamp(30px, 6vw, 70px); align-items: center; }
+  .ideas-cta-copy .eyebrow { margin-bottom: 10px; }
+  .ideas-cta-copy h2 { margin: 0 0 14px; font-size: clamp(30px, 3.6vw, 42px); font-weight: 400; line-height: 1.1; color: #fff; }
+  .ideas-cta-copy .about-body { color: rgba(255,255,255,.68); }
+  .ideas-cta-copy .partner-button { margin-top: 22px; }
+  .ideas-jar { width: 100%; max-width: 220px; justify-self: center; }
+  @media (max-width: 700px) {
+    .ideas-cta { grid-template-columns: 1fr; text-align: center; }
+    .ideas-jar { max-width: 160px; }
+  }
+</style>

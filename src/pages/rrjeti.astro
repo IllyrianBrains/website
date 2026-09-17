@@ -3,14 +3,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { cityRegions } from '../data/regions';
-import { directoryMembers as members } from '../data/members';
 const cityCount = cityRegions.flatMap(region => region.citySlugs).length;
 ---
-<BaseLayout title="Rrjeti · Illyrian Brains" description="Eksploro qytetet, anëtarët, organizatat partnere dhe bizneset e rrjetit Illyrian Brains.">
+<BaseLayout title="Rrjeti · Illyrian Brains" description="Eksploro qytetet, organizatat partnere dhe bizneset e rrjetit Illyrian Brains.">
   <Header />
   <main class="network-page">
     <section class="section tone-dark network-overview"><div class="container network-overview-grid">
-      <div class="network-overview-copy"><h1>Një rrjet profesionistësh.</h1><p>Shih ku jemi, njih profesionistët e komunitetit dhe zbulo fushat që na lidhin.</p><nav class="network-jump" aria-label="Seksionet e rrjetit"><a href="/qytetet/"><span>01</span> Qytetet</a><a href="/anetaret/"><span>02</span> Anëtarët</a><a href="/partneret/"><span>03</span> OJF Partnere</a><a href="/bizneset/"><span>04</span> Bizneset</a></nav></div>
+      <div class="network-overview-copy"><h1>Një rrjet profesionistësh.</h1><p>Shih ku jemi, njih profesionistët e komunitetit dhe zbulo fushat që na lidhin.</p><nav class="network-jump" aria-label="Seksionet e rrjetit"><a href="/qytetet/"><span>01</span> Qytetet</a><a href="/partneret/"><span>02</span> OJF Partnere</a><a href="/bizneset/"><span>03</span> Bizneset</a></nav></div>
     </div></section>
 
     <section class="section tone-white"><div class="container network-intro-grid">
@@ -21,21 +20,14 @@ const cityCount = cityRegions.flatMap(region => region.citySlugs).length;
         <div class="network-intro-stat"><strong>{cityCount}</strong><span>qytete në rrjet</span></div>
         <span class="network-intro-link">Shiko qytetet <span aria-hidden="true">↗</span></span>
       </a>
-      <a class="network-intro-card" href="/anetaret/">
-        <p class="eyebrow">02 · Komuniteti i gjerë</p>
-        <h2>Anëtarët</h2>
-        <p>Njih profesionistët e komunitetit nga grupet publike të forumit.</p>
-        <div class="network-intro-stat"><strong>{members.length}</strong><span>anëtarë të listuar</span></div>
-        <span class="network-intro-link">Shiko anëtarët <span aria-hidden="true">↗</span></span>
-      </a>
       <a class="network-intro-card" href="/partneret/">
-        <p class="eyebrow">03 · Bashkëpunimet</p>
+        <p class="eyebrow">02 · Bashkëpunimet</p>
         <h2>OJF Partnere</h2>
         <p>Organizatat që bashkëpunojnë me rrjetin Illyrian Brains.</p>
         <span class="network-intro-link">Shiko organizatat partnere <span aria-hidden="true">↗</span></span>
       </a>
       <a class="network-intro-card" href="/bizneset/">
-        <p class="eyebrow">04 · Ekonomia e diasporës</p>
+        <p class="eyebrow">03 · Ekonomia e diasporës</p>
         <h2>Bizneset</h2>
         <p>Bizneset e themeluara dhe drejtuara nga anëtarët e komunitetit.</p>
         <span class="network-intro-link">Shiko bizneset <span aria-hidden="true">↗</span></span>

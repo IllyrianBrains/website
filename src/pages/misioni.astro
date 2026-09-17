@@ -17,10 +17,10 @@ const focusAreas = [
     <section class="section tone-dark page-hero page-hero--mission">
       <div class="container city-page">
         <h1>Misioni</h1>
-        <p class="about-body">Illyrian Brains është një rrjet që synon bashkëpunimin e profesionistëve shqiptarë nëpër botë. Rrjeti ka si qëllim krijimin dhe zhvillimin e një strukture sociale të bashkatdhetarëve nëpër botë duke praktikuar aktivitete kulturore, shoqërore dhe shkencore.</p>
+        <p class="about-body">Illyrian Brains është një rrjet që bashkon profesionistë shqiptarë nëpër botë, duke krijuar dhe zhvilluar një strukturë sociale të bashkatdhetarëve përmes aktiviteteve kulturore, shoqërore dhe shkencore.</p>
         <p class="about-body">IB vlerëson harmoninë dhe bashkëpunimin, sfidon konceptet e vjetra, fuqizon komunitetet lokale dhe mbështet arritjet e gjithësecilit.</p>
-        <p class="about-body">IB nuk është organizatë politike; e brendshme apo e jashtme, nacionaliste apo e çfarëdolloji; IB nuk është organizatë fitimprurëse, nuk angazhohet në asnjë lloj aktiviteti që synon të gjenerojë të ardhura; IB nuk është organizatë fetare apo spirituale.</p>
-        <p class="about-body">Rrjeti nuk promovon tematikat e sipërmendura, pasi ato mund të shkaktojnë përçarje mes pjesëmarrësve dhe synimi është bashkimi i tyre. Gjithçka që krijohet brenda kësaj kornize është e pranueshme dhe në liri të plotë për pjesëmarrësit.</p>
+        <p class="about-body">IB nuk është organizatë politike — as e brendshme, as e jashtme, as nacionaliste apo e çfarëdo lloji tjetër — dhe as fitimprurëse: nuk angazhohet në asnjë aktivitet që synon të gjenerojë të ardhura. Nuk është gjithashtu organizatë fetare apo spirituale.</p>
+        <p class="about-body">Rrjeti nuk i promovon këto tematika, pasi mund të shkaktojnë përçarje mes pjesëmarrësve — kur synimi është bashkimi i tyre. Brenda kësaj kornize, çdo gjë tjetër është e pranueshme dhe në liri të plotë për pjesëmarrësit.</p>
         <p class="about-body">Rrjeti ka besim tek profesionistët shqiptarë dhe tek aftësia e tyre për të ndikuar pozitivisht në shoqëritë ku jetojnë. Illyrian Brains është një ftesë për të ndarë sfida dhe suksese me miq të rinj që flasin gjuhën tënde.</p>
       </div>
     </section>
@@ -29,14 +29,17 @@ const focusAreas = [
       <div class="container city-page">
         <div class="city-block">
           <h2>Fokus</h2>
-          {focusAreas.map((area) => (
-            <div class="focus-area">
-              <h3>{area.id}. {area.title}</h3>
-              <ul class="about-body">
-                {area.items.map((item) => <li>{item}</li>)}
-              </ul>
-            </div>
-          ))}
+          <div class="focus-grid">
+            {focusAreas.map((area) => (
+              <div class="focus-card">
+                <span class="focus-card-id">{area.id}</span>
+                <h3>{area.title}</h3>
+                <ul>
+                  {area.items.map((item) => <li>{item}</li>)}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

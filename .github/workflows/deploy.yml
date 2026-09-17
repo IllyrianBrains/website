@@ -20,6 +20,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Sync members from sheet
+        run: node scripts/sync-members-sheet.mjs
+        env:
+          MEMBERS_SHEET_CSV_URL: ${{ secrets.MEMBERS_SHEET_CSV_URL }}
       - name: Build
         uses: withastro/action@v3
         with:

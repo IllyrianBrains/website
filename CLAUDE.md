@@ -39,7 +39,8 @@ they're leftover — check the relevant sibling repo instead.
   `CommunityMap`, `JoinCTA`, `Guidelines`, `NetworkGraphic`, `WhatWeDo`, `EventCards`)
 - `src/layouts/BaseLayout.astro` — shared `<head>`/shell, wraps every page
 - `src/data/` — typed content: `cities.ts` (`CommunityCity`), `regions.ts`, `team.ts`,
-  `jobs.ts`, `members.ts` + `members.json`, `statuti.ts`, `events.ts`
+  `jobs.ts`, `members.ts` + `members.json` (gitignored, see Content sync below),
+  `statuti.ts`, `events.ts`
 - `src/data/cities-content/*.html` — HTML fragments migrated from the community forum
   (see Content sync below), injected via `set:html`
 - `src/styles/global.css` + `src/styles/accents.css` — plain CSS, no framework
@@ -51,13 +52,29 @@ closest thing to a correctness check — run it after non-trivial changes.
 
 ## Content sync
 
-Some content is pulled from `forum.illyrianbrains.org` rather than hand-authored, and is
-committed as a snapshot rather than fetched live at build time:
+- `src/data/members.json` is **not committed** — it's fetched fresh from a private Google
+  Sheet on every `dev`/`build` (via the `predev`/`prebuild` npm hooks, see
+  `scripts/sync-members-sheet.mjs`), so member names/bios/cities never sit in git history
+  or a public repo. The sheet is manually maintained (no longer synced from the forum);
+  its published-CSV link goes in `MEMBERS_SHEET_CSV_URL` — a `.env` entry locally
+  (gitignored), a repo secret in CI (`.github/workflows/deploy.yml`). Without that var set,
+  the script writes an empty `members.json` rather than failing the build. Run
+  `npm run members:sync` to refresh it by hand.
+The rest of this content is still pulled from `forum.illyrianbrains.org` and committed as
+a snapshot rather than fetched live at build time:
 
-- `npm run members:sync` — re-fetches the Anëtarët directory from the forum's public
-  groups (Bordi, Staff-Ekipet, Staff-Nismat, Staff-Qytetet, C-Tech) into `src/data/members.json`.
 - `python3 scripts/sync-cities.py` (Python + `beautifulsoup4`) — re-fetches per-city posts
   from the forum's Qytete category into `src/data/cities-content/*.html`.
+- `src/data/ideas.json` seeds from `scripts/forum-ideas-migration.csv` (a one-time forum
+  backfill) but is otherwise maintained by hand — new ideas arrive by email to
+  `illyrianbrains@gmail.com` (the "Shto idenë tënde" button on `ide.astro` is a `mailto:`
+  link, not a form) and get added to the JSON directly. Idea descriptions are Markdown,
+  rendered at build time (see `marked` usage in `src/pages/projektet/ide.astro` and
+  `ide/[slug].astro`).
+- `python3 scripts/migrate-ideas-forum.py` (Python + `beautifulsoup4` + `markdownify`) —
+  one-time re-migration that replaced the backfill's flattened plain-text descriptions with
+  real Markdown converted from each forum post's HTML. Only re-run if a migrated idea's
+  forum post is edited and needs to resync.
 
 (Atlas has its own `atlas:sync` in the `../atlas/` repo now.)
 

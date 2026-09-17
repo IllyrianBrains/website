@@ -1,0 +1,113 @@
+---
+import { marked } from 'marked';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import ideas from '../../../data/ideas.json';
+
+const ORG_EMAIL = 'illyrianbrains@gmail.com';
+
+const AREA_COLORS: Record<string, string> = {
+  'Kërkoj punë': '#744761',
+  'Ofroj ndihmë': '#3f7a54',
+  'Grup aktiviteti': '#b98545',
+  Bashkëpunim: '#293f52',
+};
+function areaColor(area: string) {
+  return AREA_COLORS[area] || '#66676c';
+}
+
+// Raw HTML in a description is escaped rather than passed through —
+// descriptions can come from a public form — while leaving CommonMark
+// autolinks (<https://…>) alone, since those aren't raw HTML.
+marked.use({ renderer: { html(token) {
+  const raw = typeof token === 'string' ? token : (token as { text: string }).text;
+  return raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+} } });
+
+export function getStaticPaths() {
+  return ideas.map((idea, index) => ({ params: { slug: idea.slug }, props: { idea, number: index + 1 } }));
+}
+
+const { idea, number } = Astro.props;
+const descriptionHtml = marked.parse(idea.description);
+const mailto = idea.email
+  ? `mailto:${idea.email}?subject=${encodeURIComponent(`Ide #${number} · ${idea.title}`)}&body=${encodeURIComponent(`Përshëndetje,\n\nPo të shkruaj për idenë #${number} "${idea.title}" që ndave në Illyrian Brains.`)}`
+  : `mailto:${ORG_EMAIL}?subject=${encodeURIComponent(`Ide #${number} · ${idea.title}`)}&body=${encodeURIComponent(`Përshëndetje,\n\nKjo ide (#${number} "${idea.title}") është nga arkivi i forumit dhe s'ka email të drejtpërdrejtë — a mund të na e përcillni autorit?`)}`;
+const publishedDate = idea.date && !isNaN(Date.parse(idea.date))
+  ? new Date(idea.date).toLocaleDateString('sq-AL', { day: 'numeric', month: 'long', year: 'numeric' })
+  : '';
+---
+<BaseLayout title={`${idea.title} · Ndaj Ide · Illyrian Brains`} description={idea.title}>
+  <Header />
+  <main>
+    <section class="section tone-dark idea-detail-hero" style={idea.area ? `--area-color:${areaColor(idea.area)}` : ''}>
+      <div class="container city-page">
+        <a class="idea-back-link" href="/projektet/ide/"><span aria-hidden="true">←</span> Të gjitha idetë</a>
+        <div class="idea-detail-badges">
+          <span class="idea-detail-number">#{number}</span>
+          {idea.area && <span class="idea-row-area">{idea.area}</span>}
+          <span class={`idea-status ${idea.resolved ? 'is-resolved' : 'is-open'}`}>{idea.resolved ? 'E zgjidhur' : 'Ende aktive'}</span>
+        </div>
+        <h1>{idea.title}</h1>
+        {(idea.name || publishedDate) && (
+          <p class="idea-detail-meta">
+            {idea.name && <>Nga {idea.name}</>}
+            {idea.name && publishedDate && ' · '}
+            {publishedDate}
+          </p>
+        )}
+      </div>
+    </section>
+
+    <section class="section tone-white">
+      <div class="container city-page idea-detail-layout">
+        <div class="idea-detail-rich" set:html={descriptionHtml} />
+        <div class="idea-detail-actions">
+          <a class="partner-button" href={mailto}>Përgjigju me email <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .idea-detail-hero { padding-block: clamp(40px, 6vw, 60px) clamp(48px, 7vw, 70px); }
+  .idea-back-link { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 30px; color: rgba(255,255,255,.68); font-size: 14px; font-weight: 600; }
+  .idea-back-link:hover { color: #fff; }
+  .idea-detail-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; }
+  .idea-detail-number { color: rgba(255,255,255,.55); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .idea-row-area { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--area-color, var(--muted)); color: #fff; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+  .idea-status { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .idea-status::before { content: '✓'; font-size: 11px; font-weight: 900; line-height: 1; }
+  .idea-status.is-open { color: rgba(255,255,255,.55); background: rgba(255,255,255,.1); }
+  .idea-status.is-resolved { color: #8fe3bb; background: rgba(255,255,255,.1); }
+  .idea-detail-hero h1 { max-width: 800px; margin: 0; font-size: clamp(32px, 4.6vw, 48px); font-weight: 400; line-height: 1.15; color: #fff; }
+  .idea-detail-meta { margin: 16px 0 0; color: rgba(255,255,255,.6); font-size: 14px; }
+
+  .idea-detail-layout { max-width: 760px; padding-block: clamp(44px, 7vw, 70px); }
+  .idea-detail-rich { color: #333438; font-size: 16px; line-height: 1.75; }
+  .idea-detail-rich :global(p) { margin: 0 0 18px; }
+  .idea-detail-rich :global(h1), .idea-detail-rich :global(h2), .idea-detail-rich :global(h3), .idea-detail-rich :global(h4) { margin: 30px 0 14px; font-weight: 700; color: var(--ink); }
+  .idea-detail-rich :global(h1:first-child), .idea-detail-rich :global(h2:first-child), .idea-detail-rich :global(h3:first-child), .idea-detail-rich :global(h4:first-child) { margin-top: 0; }
+  .idea-detail-rich :global(h1) { font-size: 26px; }
+  .idea-detail-rich :global(h2) { font-size: 22px; }
+  .idea-detail-rich :global(h3) { font-size: 19px; }
+  .idea-detail-rich :global(h4) { font-size: 17px; }
+  .idea-detail-rich :global(ul), .idea-detail-rich :global(ol) { margin: 0 0 18px; padding-left: 25px; }
+  .idea-detail-rich :global(li) { margin-bottom: 9px; padding-left: 4px; }
+  .idea-detail-rich :global(li::marker) { color: var(--accent); }
+  .idea-detail-rich :global(a) { color: var(--accent-dark); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; word-break: break-word; }
+  .idea-detail-rich :global(strong) { color: var(--ink); font-weight: 700; }
+  .idea-detail-rich :global(blockquote) { margin: 0 0 20px; padding: 16px 22px; border-left: 3px solid var(--accent); background: #f4eef1; }
+  .idea-detail-rich :global(blockquote p) { margin: 0; color: var(--ink); }
+  .idea-detail-rich :global(code) { padding: 2px 6px; border-radius: 4px; background: #f1eef0; font-size: 14px; }
+  .idea-detail-rich :global(hr) { margin: 28px 0; border: 0; border-top: 1px solid var(--line); }
+  .idea-detail-rich :global(table) { display: block; max-width: 100%; margin: 0 0 20px; overflow-x: auto; border-collapse: collapse; font-size: 14px; }
+  .idea-detail-rich :global(th), .idea-detail-rich :global(td) { padding: 8px 14px; border: 1px solid var(--line); text-align: left; }
+  .idea-detail-actions { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--line); }
+  @media (max-width: 560px) {
+    .idea-detail-hero h1 { font-size: 30px; }
+  }
+</style>

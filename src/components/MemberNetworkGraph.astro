@@ -6,17 +6,16 @@ const graphMembers = members.map(member => ({
   username: member.username,
   city: member.city || '',
   expertise: member.fieldsOfExpertise || [],
-  contributions: member.groups,
   url: member.profileUrl,
 }));
 ---
 <section class="member-network" aria-labelledby="member-network-title">
   <header class="member-network-heading">
     <div><h2 id="member-network-title">Si lidhet komuniteti.</h2></div>
-    <p>Çdo person lidhet me qytetin dhe grupet ku kontribuon. Afrohu, lëviz hartën ose zgjidh një nyje për të parë lidhjet.</p>
+    <p>Çdo person lidhet me qytetin dhe fushat e ekspertizës. Afrohu, lëviz hartën ose zgjidh një nyje për të parë lidhjet.</p>
   </header>
   <div class="member-network-toolbar">
-    <div class="member-network-legend"><span><i class="person"></i>Anëtar</span><span><i class="city"></i>Qytet</span><span><i class="expertise"></i>Fushë ekspertize</span><span><i class="contribution"></i>Kontribut në IB</span></div>
+    <div class="member-network-legend"><span><i class="person"></i>Anëtar</span><span><i class="city"></i>Qytet</span><span><i class="expertise"></i>Fushë ekspertize</span></div>
     <button id="member-network-reset" type="button">Rivendos pamjen</button>
   </div>
   <div id="member-network-graph" data-members={JSON.stringify(graphMembers)} role="img" aria-label="Graf interaktiv i lidhjeve mes anëtarëve, qyteteve dhe grupeve"></div>
@@ -30,7 +29,6 @@ const graphMembers = members.map(member => ({
   const note=document.querySelector<HTMLElement>('#member-network-note');
   const search=document.querySelector<HTMLInputElement>('#member-search');
   const expertiseFilter=document.querySelector<HTMLSelectElement>('#filter-expertise');
-  const contributionFilter=document.querySelector<HTMLSelectElement>('#filter-contribution');
   const cityFilter=document.querySelector<HTMLSelectElement>('#filter-city');
   if(container){
     container.dataset.ready='true';
@@ -39,17 +37,15 @@ const graphMembers = members.map(member => ({
     const addNode=(id:string,label:string,type:string,url='')=>{if(!nodeIds.has(id)){nodeIds.add(id);elements.push({data:{id,label,type,url}})}};
     const addEdge=(source:string,target:string)=>{const id=`${source}--${target}`;if(!edgeIds.has(id)){edgeIds.add(id);elements.push({data:{id,source,target}})}};
     members.forEach((member:any)=>{
-      if(!member.city&&!member.expertise.length&&!member.contributions.length)return;
+      if(!member.city&&!member.expertise.length)return;
       const person=`person:${member.username}`;addNode(person,member.name,'person',member.url);
       if(member.city){const city=`city:${member.city}`;addNode(city,member.city,'city');addEdge(person,city)}
       member.expertise.forEach((name:string)=>{const expertise=`expertise:${name}`;addNode(expertise,name,'expertise');addEdge(person,expertise)})
-      member.contributions.forEach((name:string)=>{const contribution=`contribution:${name}`;addNode(contribution,name,'contribution');addEdge(person,contribution)})
     });
     const cy=cytoscape({container,elements,style:[
       {selector:'node',style:{label:'data(label)','font-family':'Inter, sans-serif','font-size':8,'text-wrap':'wrap','text-max-width':75,'text-valign':'bottom','text-margin-y':7,'color':'#505158','background-color':'#744761','width':13,'height':13}},
       {selector:'node[type="city"]',style:{'background-color':'#293f52','shape':'diamond','width':25,'height':25,'font-size':10,'font-weight':700,'color':'#293f52'}},
       {selector:'node[type="expertise"]',style:{'background-color':'#b58ca1','shape':'round-rectangle','width':34,'height':24,'font-size':11,'font-weight':700,'color':'#744761'}},
-      {selector:'node[type="contribution"]',style:{'background-color':'#b98545','shape':'hexagon','width':28,'height':28,'font-size':10,'font-weight':700,'color':'#765225'}},
       {selector:'edge',style:{width:.8,'line-color':'#c8bdc3','curve-style':'bezier','opacity':.55}},
       {selector:'.faded',style:{opacity:.1}},
       {selector:'.focused',style:{'border-width':3,'border-color':'#e1bdcf','z-index':10}},
@@ -57,9 +53,9 @@ const graphMembers = members.map(member => ({
     ],layout:{name:'cose',animate:false,fit:true,padding:34,nodeRepulsion:5200,idealEdgeLength:55,edgeElasticity:80,gravity:.4,numIter:450},minZoom:.25,maxZoom:3,wheelSensitivity:.25,boxSelectionEnabled:false});
     const clear=()=>{cy.elements().removeClass('faded focused');if(note)note.textContent='Zgjidh një anëtar, qytet ose grup për të theksuar lidhjet.'};
     const applyFilters=()=>{
-      const query=(search?.value||'').trim().toLocaleLowerCase('sq'),expertise=expertiseFilter?.value||'',contribution=contributionFilter?.value||'',city=cityFilter?.value||'';
+      const query=(search?.value||'').trim().toLocaleLowerCase('sq'),expertise=expertiseFilter?.value||'',city=cityFilter?.value||'';
       clear();cy.elements().removeClass('filtered-out');
-      const hiddenPeople=cy.nodes('[type="person"]').filter(node=>{const member=members.find((item:any)=>'person:'+item.username===node.id());return !member||Boolean((query&&!(member.name+' '+member.username+' '+member.expertise.join(' ')+' '+member.contributions.join(' ')).toLocaleLowerCase('sq').includes(query))||(expertise&&!member.expertise.includes(expertise))||(contribution&&!member.contributions.includes(contribution))||(city&&member.city!==city))});
+      const hiddenPeople=cy.nodes('[type="person"]').filter(node=>{const member=members.find((item:any)=>'person:'+item.username===node.id());return !member||Boolean((query&&!(member.name+' '+member.username+' '+member.expertise.join(' ')).toLocaleLowerCase('sq').includes(query))||(expertise&&!member.expertise.includes(expertise))||(city&&member.city!==city))});
       hiddenPeople.addClass('filtered-out');hiddenPeople.connectedEdges().addClass('filtered-out');
       cy.nodes('[type!="person"]').forEach(node=>{if(!node.connectedEdges().filter(edge=>!edge.hasClass('filtered-out')).length)node.addClass('filtered-out')});
       const visible=cy.nodes('[type="person"]').filter(node=>!node.hasClass('filtered-out')).length;
@@ -73,7 +69,6 @@ const graphMembers = members.map(member => ({
     reset?.addEventListener('click',()=>{clear();fitGraph()});
     search?.addEventListener('input',applyFilters);
     expertiseFilter?.addEventListener('change',applyFilters);
-    contributionFilter?.addEventListener('change',applyFilters);
     cityFilter?.addEventListener('change',applyFilters);
     let previousWidth=0;
     new ResizeObserver(entries=>{const width=entries[0]?.contentRect.width||0;if(!width)return;cy.resize();if(Math.abs(width-previousWidth)>2){previousWidth=width;requestAnimationFrame(fitGraph)}}).observe(container);
@@ -83,5 +78,5 @@ const graphMembers = members.map(member => ({
 
 <style>
   .member-network{padding:70px 0 76px}.member-network-heading{display:grid;grid-template-columns:1fr minmax(300px,470px);gap:55px;align-items:end}.member-network-heading h2{margin:0;font-size:clamp(38px,5vw,58px);font-weight:400;line-height:1.05}.member-network-heading>p{margin:0;color:var(--muted);font-size:17px;line-height:1.75}.member-network-toolbar{display:flex;justify-content:space-between;gap:25px;align-items:center;margin:38px 0 14px}.member-network-legend{display:flex;flex-wrap:wrap;gap:18px}.member-network-legend span{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px}.member-network-legend i{display:block;width:11px;height:11px;border-radius:50%;background:#744761}.member-network-legend .city{border-radius:1px;background:#293f52;transform:rotate(45deg)}.member-network-legend .group{width:16px;border-radius:3px;background:#b58ca1}.member-network-toolbar button{padding:9px 13px;border:1px solid var(--line);border-radius:6px;color:var(--ink);background:#fff;font:600 12px var(--font-body);cursor:pointer}#member-network-graph{height:min(68vh,650px);min-height:470px;touch-action:none;border:1px solid var(--line);border-radius:16px;background-color:#faf9fa;background-image:linear-gradient(#17181d0b 1px,transparent 1px),linear-gradient(90deg,#17181d0b 1px,transparent 1px);background-size:24px 24px;box-shadow:0 18px 50px #17181d0c}.member-network-note{margin:13px 0 0;color:var(--muted);font-size:13px}.member-network-note strong{color:var(--accent-dark)}@media(max-width:760px){.member-network{padding:52px 0}.member-network-heading{grid-template-columns:1fr;gap:20px}.member-network-toolbar{align-items:flex-start;flex-direction:column;margin-top:28px}#member-network-graph{height:68vh;min-height:430px}}
-  .member-network-filters{margin-top:38px;grid-template-columns:minmax(230px,1fr) repeat(3,minmax(165px,220px))}.member-network-filters+.member-network-toolbar{margin-top:20px}.member-network-legend .expertise{width:16px;border-radius:3px;background:#b58ca1}.member-network-legend .contribution{border-radius:2px;background:#b98545;clip-path:polygon(25% 7%,75% 7%,100% 50%,75% 93%,25% 93%,0 50%)}@media(max-width:1000px){.member-network-filters{grid-template-columns:1fr 1fr}.member-network-filters .member-search{grid-column:1/-1}}@media(max-width:560px){.member-network-filters{grid-template-columns:1fr}.member-network-filters .member-search{grid-column:auto}}
+  .member-network-filters{margin-top:38px;grid-template-columns:minmax(230px,1fr) repeat(3,minmax(165px,220px))}.member-network-filters+.member-network-toolbar{margin-top:20px}.member-network-legend .expertise{width:16px;border-radius:3px;background:#b58ca1}@media(max-width:1000px){.member-network-filters{grid-template-columns:1fr 1fr}.member-network-filters .member-search{grid-column:1/-1}}@media(max-width:560px){.member-network-filters{grid-template-columns:1fr}.member-network-filters .member-search{grid-column:auto}}
 </style>

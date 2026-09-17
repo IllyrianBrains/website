@@ -11,6 +11,12 @@ node_modules/
 dist/
 .astro/
 
+# Member directory is fetched fresh from a private Google Sheet at dev/build
+# time (see scripts/sync-members-sheet.mjs) rather than committed — don't
+# store member data in the repo.
+src/data/members.json
+scripts/members-seed.csv
+
 # Env / editor / OS noise
 *.env
 .env
