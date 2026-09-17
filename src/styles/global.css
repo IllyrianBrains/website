@@ -966,6 +966,7 @@ stripe-buy-button { display: block; }
 .member-card-meta { display: flex; flex-wrap: wrap; gap: 8px; }
 .member-pill { padding: 5px 10px; border-radius: 999px; background: var(--soft); font-size: 11px; font-weight: 600; color: var(--ink); }
 .member-pill-accent { background: rgba(116,71,97,.14); color: var(--accent-dark); }
+.member-pill-gold { background: rgba(180,138,45,.16); color: #8a6415; }
 .member-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .member-tag { padding: 4px 9px; border: 1px solid var(--line); border-radius: 999px; font-size: 11px; color: var(--muted); }
 .member-empty { grid-column: 1 / -1; padding: 40px 0; color: var(--muted); font-size: 15px; text-align: center; }

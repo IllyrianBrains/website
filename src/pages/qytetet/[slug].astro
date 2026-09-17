@@ -46,7 +46,11 @@ const communityIntro = communityHtml ? linkMemberMentions(communityHtml.slice(0,
 const communitySections = matches.map((match, index) => ({
   title: cleanTitle(match[1]),
   html: linkMemberMentions(communityHtml.slice((match.index ?? 0) + match[0].length, matches[index + 1]?.index ?? communityHtml.length).trim()),
-})).filter(section => section.title || section.html);
+})).filter(section => section.title || section.html)
+  // Forum posts hand-listed organizers under a "Kontakt" heading — the
+  // "Pjesë e rrjetit" section below now lists them automatically from the
+  // member directory, so this manual, forum-linked duplicate is dropped.
+  .filter(section => !section.title.toLocaleLowerCase('sq').includes('kontakt'));
 ---
 <BaseLayout title={`Illyrian Brains ${city.city}`} description={`Komuniteti shqiptar i profesionistëve në ${city.city}.`}>
   <Header />
@@ -103,11 +107,12 @@ const communitySections = matches.map((match, index) => ({
               <h2>Pjesë e rrjetit.</h2>
               <div class="member-grid city-people-grid" id="city-people-grid" data-members={JSON.stringify(cityMembers)}>
                 {cityMembers.map(member => (
-                  <button class="member-card city-people-card" type="button" data-username={member.username}>
+                  <button class:list={['member-card', 'city-people-card', member.groups?.includes('Qytetet') && 'is-organizer']} type="button" data-username={member.username}>
                     <div class="member-card-top">
                       {member.avatar ? <img class="member-avatar" src={member.avatar} alt="" loading="lazy" /> : <span class="member-avatar member-avatar-fallback">{member.name.split(' ').map(part => part[0]).join('').slice(0,2).toUpperCase()}</span>}
                       <div><p class="member-card-name">{member.name}</p><p class="member-card-role">{member.title || member.fieldsOfExpertise?.join(' · ') || `@${member.username}`}</p></div>
                     </div>
+                    {member.groups?.includes('Qytetet') && <div class="member-card-meta"><span class="member-pill member-pill-gold">Organizator/e</span></div>}
                     <span class="member-card-action">Shiko profilin <span aria-hidden="true">→</span></span>
                   </button>
                 ))}
@@ -156,7 +161,7 @@ const communitySections = matches.map((match, index) => ({
       const username = (event.target as HTMLElement).closest<HTMLElement>('.city-people-card')?.dataset.username;
       const member = members.find((item: any) => item.username === username);
       if (!member) return;
-      content.innerHTML = `<button class="member-drawer-close" type="button" aria-label="Mbyll profilin">✕</button>${member.avatar ? `<img class="member-drawer-avatar" src="${escapeHtml(member.avatar)}" alt="">` : `<span class="member-drawer-avatar member-avatar-fallback">${escapeHtml(initials(member.name))}</span>`}<h2>${escapeHtml(member.name)}</h2><p class="member-drawer-role">${escapeHtml(member.title || fields(member).join(' · ') || `@${member.username}`)}</p>${member.bio ? `<p class="member-drawer-bio">${escapeHtml(member.bio)}</p>` : ''}<div class="member-tags">${fields(member).map((value: string) => `<span class="member-pill member-pill-accent">${escapeHtml(value)}</span>`).join('')}${member.city ? `<span class="member-pill">${escapeHtml(member.city)}</span>` : ''}<span class="member-pill">Anëtar që nga ${member.since}</span></div><div class="member-drawer-actions">${member.website ? `<a class="partner-button" href="${encodeURI(member.website)}" target="_blank" rel="noreferrer">Faqja personale <span aria-hidden="true">↗</span></a>` : ''}${member.linkedin ? `<a class="partner-button" href="${encodeURI(member.linkedin)}" target="_blank" rel="noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>` : ''}</div>`;
+      content.innerHTML = `<button class="member-drawer-close" type="button" aria-label="Mbyll profilin">✕</button>${member.avatar ? `<img class="member-drawer-avatar" src="${escapeHtml(member.avatar)}" alt="">` : `<span class="member-drawer-avatar member-avatar-fallback">${escapeHtml(initials(member.name))}</span>`}<h2>${escapeHtml(member.name)}</h2><p class="member-drawer-role">${escapeHtml(member.title || fields(member).join(' · ') || `@${member.username}`)}</p>${member.bio ? `<p class="member-drawer-bio">${escapeHtml(member.bio)}</p>` : ''}<div class="member-tags">${member.groups?.includes('Qytetet') ? '<span class="member-pill member-pill-gold">Organizator/e</span>' : ''}${fields(member).map((value: string) => `<span class="member-pill member-pill-accent">${escapeHtml(value)}</span>`).join('')}${member.city ? `<span class="member-pill">${escapeHtml(member.city)}</span>` : ''}</div><div class="member-drawer-actions">${member.website ? `<a class="partner-button" href="${encodeURI(member.website)}" target="_blank" rel="noreferrer">Faqja personale <span aria-hidden="true">↗</span></a>` : ''}${member.linkedin ? `<a class="partner-button" href="${encodeURI(member.linkedin)}" target="_blank" rel="noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>` : ''}</div>`;
       drawer.classList.add('open'); overlay.classList.add('open'); drawer.setAttribute('aria-hidden','false'); document.body.style.overflow = 'hidden';
       content.querySelector('.member-drawer-close')?.addEventListener('click', close);
     });
@@ -206,6 +211,8 @@ const communitySections = matches.map((match, index) => ({
   .city-photo-grid figure { position: relative; min-width: 0; margin: 0; overflow: hidden; border-radius: 12px; background: var(--soft); }
   .city-photo-grid img { width: 100%; height: 270px; object-fit: cover; transition: transform .35s ease; }
   .city-photo-grid figure:hover img { transform: scale(1.025); }
+  .city-people-card.is-organizer { border: 1px solid rgba(180,138,45,.3); background: #fffdf8; }
+  .city-people-card.is-organizer:hover { border-color: rgba(180,138,45,.55); }
   @media (max-width: 900px) { .city-hero-layout { grid-template-columns: 1fr; } .city-hero-figure { height: min(68vw,480px); } .city-content-layout { grid-template-columns: 1fr; } .city-content-index { position: static; display: grid; grid-template-columns: repeat(2,1fr); gap: 0 18px; } .city-content-index .eyebrow { grid-column: 1/-1; } }
   @media (max-width: 560px) { .city-detail-hero { padding-top: 38px; } .city-back-link { margin-bottom: 32px; } .city-hero-figure { height: 320px; } .city-hero-figure figcaption { align-items: start; flex-direction: column; gap: 5px; } .city-hero-figure figcaption strong { text-align: left; } .city-content-index { grid-template-columns: 1fr; } .city-content-section { padding-block: 42px; } .city-intro-fallback, .city-rich-text :global(p), .city-rich-text :global(ul), .city-rich-text :global(ol), .city-rich-text :global(blockquote) { font-size: 17px; } .city-photo-grid { grid-template-columns: 1fr; } .city-photo-grid img { height: 250px; } }
 </style>
