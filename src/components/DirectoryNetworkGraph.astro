@@ -1,6 +1,7 @@
 ---
 interface GraphCategory { id: string; label: string; }
-interface GraphItem { id: string; label: string; category: string; city?: string; url?: string; }
+interface GraphPerson { username: string; name: string; }
+interface GraphItem { id: string; label: string; category: string; cities?: string[]; people?: GraphPerson[]; url?: string; }
 interface Props {
   kind: 'partner' | 'business';
   title: string;
@@ -15,18 +16,17 @@ const graphId = `${kind}-directory-graph`;
 // Only draw categories/hubs that actually have something in them — an empty
 // category node with no edges just reads as a stray floating box.
 const usedCategories = categories.filter(category => items.some(item => item.category === category.id));
-const hasCities = items.some(item => item.city);
+const people = [...new Map(items.flatMap(item => item.people || []).map(person => [person.username, person])).values()];
+const cities = [...new Set(items.flatMap(item => item.cities || []))];
 
 const elements = items.length === 0 ? [] : [
-  { data: { id: 'members', label: 'Anëtarët', type: 'network' } },
-  ...(hasCities ? [{ data: { id: 'cities', label: 'Qytetet', type: 'network' } }] : []),
   ...usedCategories.map(category => ({ data: { id: category.id, label: category.label, type: 'category' } })),
+  ...people.map(person => ({ data: { id: `person:${person.username}`, label: person.name, type: 'person' } })),
+  ...cities.map(city => ({ data: { id: `city:${city}`, label: city, type: 'city' } })),
   ...items.map(item => ({ data: { id: item.id, label: item.label, type: 'organization', url: item.url || '' } })),
-  // Wire every node into the graph from a shared root so nothing is left floating:
-  // members -> category -> organization, plus organization -> cities where known.
-  ...usedCategories.map(category => ({ data: { id: `members-${category.id}`, source: 'members', target: category.id } })),
   ...items.map(item => ({ data: { id: `${item.category}-${item.id}`, source: item.category, target: item.id } })),
-  ...items.filter(item => item.city).map(item => ({ data: { id: `${item.id}-cities`, source: item.id, target: 'cities' } })),
+  ...items.flatMap(item => (item.people || []).map(person => ({ data: { id: `${item.id}-person-${person.username}`, source: item.id, target: `person:${person.username}` } }))),
+  ...items.flatMap(item => (item.cities || []).map(city => ({ data: { id: `${item.id}-city-${city}`, source: item.id, target: `city:${city}` } }))),
 ];
 // Scale the canvas to how much there actually is to show, instead of always
 // reserving a tall, mostly-empty area for a handful of nodes.
@@ -40,7 +40,7 @@ const graphHeight = Math.max(300, Math.min(620, nodeCount * 85 + 140));
     <p>{description}</p>
   </header>
   <div class="directory-network-toolbar">
-    <div class="directory-network-legend"><span><i class="network"></i>Komuniteti</span><span><i class="category"></i>Kategoria</span><span><i class="organization"></i>Organizata</span></div>
+    <div class="directory-network-legend"><span><i class="person"></i>Personi</span><span><i class="city"></i>Qyteti</span><span><i class="category"></i>Kategoria</span><span><i class="organization"></i>Organizata</span></div>
     <button type="button" data-graph-reset>Rivendos pamjen</button>
   </div>
   <div id={graphId} class="directory-network-graph" style={`height:${graphHeight}px`} data-elements={JSON.stringify(elements)} role="img" aria-label={`Graf interaktiv i lidhjeve në drejtorinë e ${kind === 'partner' ? 'partnerëve' : 'bizneseve'}`}></div>
@@ -68,7 +68,8 @@ const graphHeight = Math.max(300, Math.min(620, nodeCount * 85 + 140));
       elements,
       style: [
         { selector: 'node', style: { label: 'data(label)', 'font-family': 'Inter, sans-serif', 'font-size': 12, 'font-weight': 700, color: '#505158', 'text-valign': 'bottom', 'text-margin-y': 10, 'text-wrap': 'wrap', 'text-max-width': isNarrow ? 80 : 110, width: 42, height: 42, 'background-color': '#b58ca1', 'border-width': 4, 'border-color': '#f4edf1' } },
-        { selector: 'node[type="network"]', style: { shape: 'diamond', width: 54, height: 54, color: '#293f52', 'background-color': '#293f52', 'border-color': '#e3e9ed' } },
+        { selector: 'node[type="person"]', style: { shape: 'ellipse', width: 48, height: 48, color: '#293f52', 'background-color': '#293f52', 'border-color': '#e3e9ed' } },
+        { selector: 'node[type="city"]', style: { shape: 'diamond', width: 46, height: 46, color: '#397b72', 'background-color': '#397b72', 'border-color': '#e0f0ed' } },
         { selector: 'node[type="category"]', style: { shape: 'round-rectangle', width: 64, height: 42, color: '#6b4a25', 'background-color': '#b98545', 'border-color': '#f3e7d8' } },
         { selector: 'node[type="organization"]', style: { shape: 'round-rectangle', width: 72, height: 48, color: '#744761', 'background-color': '#ffffff', 'border-width': 3, 'border-color': '#744761', 'text-max-width': isNarrow ? 80 : 130 } },
         { selector: 'edge', style: { width: 1.5, 'line-color': '#c8bdc3', 'curve-style': 'bezier', opacity: .7 } },
@@ -105,5 +106,5 @@ const graphHeight = Math.max(300, Math.min(620, nodeCount * 85 + 140));
 </script>
 
 <style>
-  .directory-network{padding:12px 0}.directory-network-heading{display:grid;grid-template-columns:1fr minmax(290px,460px);gap:55px;align-items:end}.directory-network-heading h2{max-width:650px;margin:0;font-size:clamp(38px,5vw,58px);font-weight:400;line-height:1.05;letter-spacing:-.035em}.directory-network-heading>p{margin:0;color:var(--muted);font-size:16px;line-height:1.7}.directory-network-toolbar{display:flex;align-items:center;justify-content:space-between;gap:25px;margin:38px 0 14px}.directory-network-legend{display:flex;flex-wrap:wrap;gap:18px}.directory-network-legend span{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.directory-network-legend i{display:block;width:12px;height:12px;border-radius:50%;background:#744761}.directory-network-legend .network{border-radius:1px;background:#293f52;transform:rotate(45deg)}.directory-network-legend .category{width:17px;border-radius:3px;background:#b98545}.directory-network-legend .organization{width:17px;border:2px solid #744761;border-radius:3px;background:#fff}.directory-network-toolbar button{padding:9px 13px;border:1px solid var(--line);border-radius:6px;color:var(--ink);background:#fff;font:600 12px var(--font-body);cursor:pointer}.directory-network-graph{max-height:65vh;border:1px solid var(--line);border-radius:18px;background-color:#faf9fa;background-image:linear-gradient(#17181d0b 1px,transparent 1px),linear-gradient(90deg,#17181d0b 1px,transparent 1px);background-size:24px 24px;box-shadow:0 18px 50px #17181d0c}.directory-network-note{margin:13px 0 0;color:var(--muted);font-size:13px}.directory-network-note strong,.directory-network-note a{color:var(--accent-dark)}.directory-network-note a{font-weight:700}@media(max-width:760px){.directory-network-heading{grid-template-columns:1fr;gap:20px}.directory-network-toolbar{align-items:flex-start;flex-direction:column}}
+  .directory-network{padding:12px 0}.directory-network-heading{display:grid;grid-template-columns:1fr minmax(290px,460px);gap:55px;align-items:end}.directory-network-heading h2{max-width:650px;margin:0;font-size:clamp(38px,5vw,58px);font-weight:400;line-height:1.05;letter-spacing:-.035em}.directory-network-heading>p{margin:0;color:var(--muted);font-size:16px;line-height:1.7}.directory-network-toolbar{display:flex;align-items:center;justify-content:space-between;gap:25px;margin:38px 0 14px}.directory-network-legend{display:flex;flex-wrap:wrap;gap:18px}.directory-network-legend span{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.directory-network-legend i{display:block;width:12px;height:12px;border-radius:50%;background:#744761}.directory-network-legend .person{background:#293f52}.directory-network-legend .city{border-radius:1px;background:#397b72;transform:rotate(45deg)}.directory-network-legend .category{width:17px;border-radius:3px;background:#b98545}.directory-network-legend .organization{width:17px;border:2px solid #744761;border-radius:3px;background:#fff}.directory-network-toolbar button{padding:9px 13px;border:1px solid var(--line);border-radius:6px;color:var(--ink);background:#fff;font:600 12px var(--font-body);cursor:pointer}.directory-network-graph{max-height:65vh;border:1px solid var(--line);border-radius:18px;background-color:#faf9fa;background-image:linear-gradient(#17181d0b 1px,transparent 1px),linear-gradient(90deg,#17181d0b 1px,transparent 1px);background-size:24px 24px;box-shadow:0 18px 50px #17181d0c}.directory-network-note{margin:13px 0 0;color:var(--muted);font-size:13px}.directory-network-note strong,.directory-network-note a{color:var(--accent-dark)}.directory-network-note a{font-weight:700}@media(max-width:760px){.directory-network-heading{grid-template-columns:1fr;gap:20px}.directory-network-toolbar{align-items:flex-start;flex-direction:column}}
 </style>

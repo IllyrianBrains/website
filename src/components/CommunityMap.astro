@@ -4,6 +4,7 @@ import { cityRegions } from '../data/regions';
 import { directoryMembers as members } from '../data/members';
 import { businesses } from '../data/businesses';
 import { partners } from '../data/partners';
+import { additionalNgoLocations } from '../data/map-locations';
 
 const regionBySlug = new Map(cityRegions.flatMap(region => region.citySlugs.map(slug => [slug, region])));
 const citiesWithRegion = cities.map(city => {
@@ -25,6 +26,7 @@ const cityAliases: Record<string, string> = {
   nuremberg: 'nurnberg',
   'city of london': 'london',
   'greater london': 'london',
+  tirane: 'tirana',
 };
 const cityByKey = new Map<string, (typeof citiesWithRegion)[number]>();
 for (const city of citiesWithRegion) {
@@ -53,20 +55,35 @@ for (const business of businesses) {
 }
 
 const partnersByCity = new Map<string, { name: string; website?: string; type: 'partner' | 'ngo' }[]>();
+const additionalPartnersByCity = new Map<string, { name: string; website?: string; type: 'partner' | 'ngo' }[]>();
 for (const partner of partners) {
-  const city = matchCity(partner.city);
-  if (!city) continue;
-  const list = partnersByCity.get(city.slug) ?? [];
-  list.push({ name: partner.name, website: partner.website || partner.linkedin || partner.instagram, type: partner.type });
-  partnersByCity.set(city.slug, list);
+  const cityNames = [...new Set([partner.city, ...partner.relatedCities].filter((name): name is string => Boolean(name)))];
+  for (const cityName of cityNames) {
+    const city = matchCity(cityName);
+    if (city) {
+      const list = partnersByCity.get(city.slug) ?? [];
+      if (!list.some(item => item.name === partner.name)) list.push({ name: partner.name, website: partner.website || partner.linkedin || partner.instagram, type: partner.type });
+      partnersByCity.set(city.slug, list);
+      continue;
+    }
+    const key = normalize(cityName);
+    if (!additionalNgoLocations[key]) continue;
+    const list = additionalPartnersByCity.get(key) ?? [];
+    if (!list.some(item => item.name === partner.name)) list.push({ name: partner.name, website: partner.website || partner.linkedin || partner.instagram, type: partner.type });
+    additionalPartnersByCity.set(key, list);
+  }
 }
 
 const mapCities = citiesWithRegion.map(city => ({
   ...city,
+  isNetworkCity: true,
   memberCount: membersByCity.get(city.slug) ?? 0,
   businesses: businessesByCity.get(city.slug) ?? [],
   partners: partnersByCity.get(city.slug) ?? [],
-}));
+})).concat([...additionalPartnersByCity.entries()].map(([key, locationPartners]) => ({
+  ...additionalNgoLocations[key], slug: '', status: 'active' as const, image: undefined, lumaUrl: undefined, activities: undefined,
+  region: 'OJF Partnere', color: '#b98545', isNetworkCity: false, memberCount: 0, businesses: [], partners: locationPartners,
+})));
 ---
 <section class="section community-map-section tone-white" id="community">
   <div class="container">
@@ -125,7 +142,7 @@ const mapCities = citiesWithRegion.map(city => ({
         if (activeLayers.has('member')) summaryParts.push(`${memberCount} anëtar${memberCount === 1 ? '' : 'ë'}`);
         if (orgs.length) summaryParts.push(`${orgs.length} organizata`);
         const summary = summaryParts.join(' · ') || 'Vetëm qyteti';
-        return `<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>${summary}</small>${orgList}<a class="map-popup-link" href="/qytetet/${city.slug}/">Shiko qytetin ↗</a></div>`;
+        return `<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>${summary}</small>${orgList}${city.isNetworkCity ? `<a class="map-popup-link" href="/qytetet/${city.slug}/">Shiko qytetin ↗</a>` : ''}</div>`;
       };
 
       const markers = cityData.map((city) => {
@@ -136,7 +153,7 @@ const mapCities = citiesWithRegion.map(city => ({
           radius, color: '#fff', weight: 2, opacity: .9,
           fillColor: isInactive ? '#9a9ba3' : city.color, fillOpacity: isInactive ? .5 : .85
         })
-          .bindTooltip(`<div class="map-city-tooltip"><strong>${city.city}</strong><span>${city.memberCount} anëtarë${isInactive ? ' · jo aktive' : ''}</span></div>`, { direction: 'top', offset: [0, -10], opacity: .96 })
+          .bindTooltip(`<div class="map-city-tooltip"><strong>${city.city}</strong><span>${city.isNetworkCity ? `${city.memberCount} anëtarë${isInactive ? ' · jo aktive' : ''}` : `${city.partners.length} OJF`}</span></div>`, { direction: 'top', offset: [0, -10], opacity: .96 })
           .bindPopup(popupHtml(city));
         return { city, marker };
       });
@@ -144,7 +161,7 @@ const mapCities = citiesWithRegion.map(city => ({
         markers.forEach(({ city, marker }) => {
           const hasMembers = activeLayers.has('member') && city.memberCount > 0;
           const hasOrganizations = (activeLayers.has('ngo') && city.partners.length > 0) || (activeLayers.has('business') && city.businesses.length > 0);
-          const show = activeLayers.has('city') || hasMembers || hasOrganizations;
+          const show = (activeLayers.has('city') && city.isNetworkCity) || hasMembers || hasOrganizations;
           if (show) {
             if (!map.hasLayer(marker)) marker.addTo(map);
             marker.setPopupContent(popupHtml(city));

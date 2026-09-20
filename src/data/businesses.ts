@@ -35,6 +35,10 @@ export interface Business {
   website?: string;
   instagram?: string;
   sponsor: boolean;
+  /** Network member usernames explicitly connected to this business. */
+  relatedMembers: string[];
+  /** Network cities this business is active in or connected to, beyond its base city. */
+  relatedCities: string[];
   // Derived, not a raw CSV column: the distinct ways this business contributes to
   // IB — "Sponsor" if it sponsors the network, plus the type of each offer/coupon/
   // donation it has published (see offers.csv, whose `type` column is free text).
@@ -68,6 +72,8 @@ function businessesFromCsv(text: string): Business[] {
       website: col('website') || undefined,
       instagram: col('instagram') || undefined,
       sponsor,
+      relatedMembers: col('relatedMembers').split(';').map(value => value.trim()).filter(Boolean),
+      relatedCities: col('relatedCities').split(';').map(value => value.trim()).filter(Boolean),
       contributionTypes,
     };
   });

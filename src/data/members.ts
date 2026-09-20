@@ -9,10 +9,12 @@ export interface Member {
   city?: string;
   country?: string;
   fieldsOfExpertise?: string[];
+  specialty?: string[];
   bio?: string;
   title?: string;
+  company?: string;
   website?: string;
-  linkedin?: string;
+  linkedinUrl?: string;
   since: number;
   avatar?: string;
   groups: string[];

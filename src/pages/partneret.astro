@@ -6,10 +6,19 @@ import DirectoryNetworkGraph from '../components/DirectoryNetworkGraph.astro';
 import NetworkDirectoryHero from '../components/NetworkDirectoryHero.astro';
 import { partners, partnerCategoryLabels, collaborationTypeOptions } from '../data/partners';
 import { cities } from '../data/cities';
+import { members } from '../data/members';
 
 const categories = Object.entries(partnerCategoryLabels).map(([id, label]) => ({ id, label }));
-const graphPartners = partners.map((partner, index) => ({ id: `partner-${index}`, label: partner.name, category: partner.category, city: partner.city, url: partner.website || partner.linkedin || partner.instagram }));
-const partnerCities = [...new Set(partners.map(partner => partner.city).filter((city): city is string => Boolean(city)))].sort((a, b) => a.localeCompare(b, 'sq'));
+const memberByUsername = new Map(members.map(member => [member.username, member]));
+const graphPartners = partners.map((partner, index) => ({
+  id: `partner-${index}`,
+  label: partner.name,
+  category: partner.category,
+  cities: [...new Set([partner.city, ...partner.relatedCities].filter((city): city is string => Boolean(city)))],
+  people: partner.relatedMembers.map(username => ({ username, name: memberByUsername.get(username)?.name || `@${username}` })),
+  url: partner.website || partner.linkedin || partner.instagram,
+}));
+const partnerCities = [...new Set(partners.flatMap(partner => [partner.city, ...partner.relatedCities]).filter((city): city is string => Boolean(city)))].sort((a, b) => a.localeCompare(b, 'sq'));
 // Always show the standard collaboration options, even ones no NGO has yet.
 const collaborationTypes = [...new Set([...collaborationTypeOptions, ...partners.flatMap(partner => partner.collaborationTypes)])];
 
@@ -20,7 +29,12 @@ const collaborationTypes = [...new Set([...collaborationTypeOptions, ...partners
 const normalize = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 const cityAliases: Record<string, string> = {
   florence: 'firenze', genoa: 'genova', milan: 'milano', rome: 'roma',
-  nuremberg: 'nurnberg', 'city of london': 'london', 'greater london': 'london',
+  nuremberg: 'nurnberg', 'city of london': 'london', 'greater london': 'london', tirane: 'tirana',
+};
+const additionalNgoLocations: Record<string, { city: string; country: string; lat: number; lng: number }> = {
+  kutine: { city: 'Kutinë', country: 'Kroaci', lat: 45.4750, lng: 16.7819 },
+  zagreb: { city: 'Zagreb', country: 'Kroaci', lat: 45.8150, lng: 15.9819 },
+  librazhd: { city: 'Librazhd', country: 'Shqipëri', lat: 41.1790, lng: 20.3158 },
 };
 const cityByKey = new Map<string, (typeof cities)[number]>();
 for (const city of cities) {
@@ -34,17 +48,33 @@ function matchCity(name?: string) {
 }
 
 const partnersByCity = new Map<string, { name: string; website?: string }[]>();
+const additionalPartnersByCity = new Map<string, { name: string; website?: string }[]>();
 let unmappedPartners = 0;
 for (const partner of partners) {
-  const city = matchCity(partner.city);
-  if (!city) { unmappedPartners++; continue; }
-  const list = partnersByCity.get(city.slug) ?? [];
-  list.push({ name: partner.name, website: partner.website || partner.linkedin || partner.instagram });
-  partnersByCity.set(city.slug, list);
+  const relatedCityNames = [...new Set([partner.city, ...partner.relatedCities].filter((name): name is string => Boolean(name)))];
+  let mapped = false;
+  for (const cityName of relatedCityNames) {
+    const city = matchCity(cityName);
+    if (city) {
+      mapped = true;
+      const list = partnersByCity.get(city.slug) ?? [];
+      if (!list.some(item => item.name === partner.name)) list.push({ name: partner.name, website: partner.website || partner.linkedin || partner.instagram });
+      partnersByCity.set(city.slug, list);
+      continue;
+    }
+    const locationKey = normalize(cityName);
+    if (!additionalNgoLocations[locationKey]) continue;
+    mapped = true;
+    const list = additionalPartnersByCity.get(locationKey) ?? [];
+    if (!list.some(item => item.name === partner.name)) list.push({ name: partner.name, website: partner.website || partner.linkedin || partner.instagram });
+    additionalPartnersByCity.set(locationKey, list);
+  }
+  if (!mapped) unmappedPartners++;
 }
 const partnerMapCities = cities
   .map(city => ({ city: city.city, country: city.country, lat: city.lat, lng: city.lng, slug: city.slug, partners: partnersByCity.get(city.slug) ?? [] }))
-  .filter(city => city.partners.length > 0);
+  .filter(city => city.partners.length > 0)
+  .concat([...additionalPartnersByCity.entries()].map(([key, partners]) => ({ ...additionalNgoLocations[key], slug: '', partners })));
 ---
 <BaseLayout title="OJF Partnere · Illyrian Brains" description="Organizatat partnere që bashkëpunojnë me rrjetin Illyrian Brains.">
   <Header />
@@ -72,7 +102,7 @@ const partnerMapCities = cities
       <p class="directory-result-count" id="partner-result-count"></p>
       <div class="partner-directory-grid">
         {partners.map(partner => (
-          <article class="partner-directory-card" data-category={partner.category} data-city={partner.city || ''} data-collaboration-types={partner.collaborationTypes.join('|')} data-search={`${partner.name} ${partner.description} ${partner.city || ''} ${partner.collaborationTypes.join(' ')}`.toLocaleLowerCase('sq')}>
+          <article class="partner-directory-card" data-category={partner.category} data-cities={[partner.city, ...partner.relatedCities].filter(Boolean).join('|')} data-collaboration-types={partner.collaborationTypes.join('|')} data-search={`${partner.name} ${partner.description} ${partner.city || ''} ${partner.relatedCities.join(' ')} ${partner.relatedMembers.join(' ')} ${partner.collaborationTypes.join(' ')}`.toLocaleLowerCase('sq')}>
             {partner.city && <span class="partner-city">{partner.city}</span>}
             <h3>{partner.name}</h3>
             <p>{partner.description}</p>
@@ -124,7 +154,7 @@ const partnerMapCities = cities
     }).addTo(map);
     const popupHtml = (city) => {
       const orgList = `<ul class="map-popup-orgs">${city.partners.map((p) => `<li>${p.website ? `<a href="${p.website}" target="_blank" rel="noreferrer">${p.name}</a>` : p.name}</li>`).join('')}</ul>`;
-      return `<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>${city.partners.length} OJF</small>${orgList}<a class="map-popup-link" href="/qytetet/${city.slug}/">Shiko qytetin ↗</a></div>`;
+      return `<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>${city.partners.length} OJF</small>${orgList}${city.slug ? `<a class="map-popup-link" href="/qytetet/${city.slug}/">Shiko qytetin ↗</a>` : ''}</div>`;
     };
     const markers = cityData.map((city) => L.circleMarker([city.lat, city.lng], {
       radius: Math.min(22, 8 + Math.sqrt(city.partners.length) * 4), color: '#fff', weight: 2, opacity: .9, fillColor: '#b98545', fillOpacity: .85
@@ -145,7 +175,7 @@ const partnerMapCities = cities
 <script>
   const search=document.querySelector<HTMLInputElement>('#partner-search'),category=document.querySelector<HTMLSelectElement>('#partner-category'),city=document.querySelector<HTMLSelectElement>('#partner-city'),collaborationChips=[...document.querySelectorAll<HTMLButtonElement>('.contribution-chip')],count=document.querySelector<HTMLElement>('#partner-result-count'),empty=document.querySelector<HTMLElement>('#partner-empty'),cards=[...document.querySelectorAll<HTMLElement>('.partner-directory-card')];
   const selectedCollaborations=new Set<string>();
-  const filterPartners=()=>{const query=(search?.value||'').trim().toLocaleLowerCase('sq'),selectedCategory=category?.value||'',selectedCity=city?.value||'';let visible=0;cards.forEach(card=>{const cardCollaborations=(card.dataset.collaborationTypes||'').split('|').filter(Boolean);const show=(!query||(card.dataset.search||'').includes(query))&&(!selectedCategory||card.dataset.category===selectedCategory)&&(!selectedCity||card.dataset.city===selectedCity)&&(selectedCollaborations.size===0||cardCollaborations.some(type=>selectedCollaborations.has(type)));card.hidden=!show;if(show)visible++});if(count)count.textContent=`${visible} ${visible===1?'OJF u gjet':'OJF u gjetën'}`;if(empty)empty.hidden=visible>0};
+  const filterPartners=()=>{const query=(search?.value||'').trim().toLocaleLowerCase('sq'),selectedCategory=category?.value||'',selectedCity=city?.value||'';let visible=0;cards.forEach(card=>{const cardCollaborations=(card.dataset.collaborationTypes||'').split('|').filter(Boolean),cardCities=(card.dataset.cities||'').split('|').filter(Boolean);const show=(!query||(card.dataset.search||'').includes(query))&&(!selectedCategory||card.dataset.category===selectedCategory)&&(!selectedCity||cardCities.includes(selectedCity))&&(selectedCollaborations.size===0||cardCollaborations.some(type=>selectedCollaborations.has(type)));card.hidden=!show;if(show)visible++});if(count)count.textContent=`${visible} ${visible===1?'OJF u gjet':'OJF u gjetën'}`;if(empty)empty.hidden=visible>0};
   search?.addEventListener('input',filterPartners);category?.addEventListener('change',filterPartners);city?.addEventListener('change',filterPartners);
   collaborationChips.forEach(chip=>chip.addEventListener('click',()=>{const type=chip.dataset.collaborationType||'';if(selectedCollaborations.has(type))selectedCollaborations.delete(type);else selectedCollaborations.add(type);chip.classList.toggle('is-active',selectedCollaborations.has(type));chip.setAttribute('aria-pressed',String(selectedCollaborations.has(type)));filterPartners()}));
   filterPartners();

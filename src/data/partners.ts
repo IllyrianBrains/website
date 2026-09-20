@@ -28,6 +28,10 @@ export interface Partner {
   linkedin?: string;
   instagram?: string;
   sponsor: boolean;
+  /** Network member usernames explicitly connected to this organization. */
+  relatedMembers: string[];
+  /** Network cities this organization is active in or connected to, beyond its base city. */
+  relatedCities: string[];
   // Derived from the semicolon-separated `collaborations` CSV column, validated
   // against collaborationTypeOptions.
   collaborationTypes: string[];
@@ -46,6 +50,8 @@ function partnersFromCsv(text: string): Partner[] {
       linkedin: col('linkedin') || undefined,
       instagram: col('instagram') || undefined,
       sponsor: ['true', 'yes', '1'].includes(col('sponsor').toLowerCase()),
+      relatedMembers: col('relatedMembers').split(';').map(value => value.trim()).filter(Boolean),
+      relatedCities: col('relatedCities').split(';').map(value => value.trim()).filter(Boolean),
       collaborationTypes: col('collaborations').split(';').map(c => c.trim()).filter(c => collaborationTypeOptions.includes(c)),
     };
   });

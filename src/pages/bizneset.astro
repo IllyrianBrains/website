@@ -7,11 +7,20 @@ import NetworkDirectoryHero from '../components/NetworkDirectoryHero.astro';
 import { businesses, businessCategoryLabels, businessStageLabels, contributionTypeOptions } from '../data/businesses';
 import { offers } from '../data/offers';
 import { cities } from '../data/cities';
+import { members } from '../data/members';
 
 const categories = Object.entries(businessCategoryLabels).map(([id, label]) => ({ id, label }));
 const stages = Object.entries(businessStageLabels).map(([id, label]) => ({ id, label }));
-const graphBusinesses = businesses.map((business, index) => ({ id: `business-${index}`, label: business.name, category: business.category, city: business.city, url: business.website || business.instagram }));
-const businessCities = [...new Set(businesses.map(business => business.city).filter((city): city is string => Boolean(city)))].sort((a, b) => a.localeCompare(b, 'sq'));
+const memberByUsername = new Map(members.map(member => [member.username, member]));
+const graphBusinesses = businesses.map((business, index) => ({
+  id: `business-${index}`,
+  label: business.name,
+  category: business.category,
+  cities: [...new Set([business.city, ...business.relatedCities].filter((city): city is string => Boolean(city)))],
+  people: business.relatedMembers.map(username => ({ username, name: memberByUsername.get(username)?.name || `@${username}` })),
+  url: business.website || business.instagram,
+}));
+const businessCities = [...new Set(businesses.flatMap(business => [business.city, ...business.relatedCities]).filter((city): city is string => Boolean(city)))].sort((a, b) => a.localeCompare(b, 'sq'));
 // Always show the standard contribution forms, even ones no business has yet —
 // plus any other offer type found in offers.csv that isn't one of the standard ones.
 const contributionTypes = [...new Set([...contributionTypeOptions, ...businesses.flatMap(business => business.contributionTypes)])];
@@ -39,11 +48,17 @@ function matchCity(name?: string) {
 const businessesByCity = new Map<string, { name: string; website?: string }[]>();
 let unmappedBusinesses = 0;
 for (const business of businesses) {
-  const city = matchCity(business.city);
-  if (!city) { unmappedBusinesses++; continue; }
-  const list = businessesByCity.get(city.slug) ?? [];
-  list.push({ name: business.name, website: business.website || business.instagram });
-  businessesByCity.set(city.slug, list);
+  const relatedCityNames = [...new Set([business.city, ...business.relatedCities].filter((name): name is string => Boolean(name)))];
+  let mapped = false;
+  for (const cityName of relatedCityNames) {
+    const city = matchCity(cityName);
+    if (!city) continue;
+    mapped = true;
+    const list = businessesByCity.get(city.slug) ?? [];
+    if (!list.some(item => item.name === business.name)) list.push({ name: business.name, website: business.website || business.instagram });
+    businessesByCity.set(city.slug, list);
+  }
+  if (!mapped) unmappedBusinesses++;
 }
 const businessMapCities = cities
   .map(city => ({ city: city.city, country: city.country, lat: city.lat, lng: city.lng, slug: city.slug, businesses: businessesByCity.get(city.slug) ?? [] }))
@@ -78,7 +93,7 @@ const businessMapCities = cities
         {businesses.map(business => {
           const businessOffers = offers.filter(offer => offer.business === business.name);
           return (
-          <article class="business-directory-card" data-category={business.category} data-stage={business.stage} data-city={business.city || ''} data-contribution-types={business.contributionTypes.join('|')} data-search={`${business.name} ${business.description} ${business.city || ''} ${business.country || ''}`.toLocaleLowerCase('sq')}>
+          <article class="business-directory-card" data-category={business.category} data-stage={business.stage} data-cities={[business.city, ...business.relatedCities].filter(Boolean).join('|')} data-contribution-types={business.contributionTypes.join('|')} data-search={`${business.name} ${business.description} ${business.city || ''} ${business.relatedCities.join(' ')} ${business.relatedMembers.join(' ')} ${business.country || ''}`.toLocaleLowerCase('sq')}>
             {business.city && <span class="business-city">{business.city}{business.country ? `, ${business.country}` : ''}</span>}
             <h3>{business.name}</h3>
             <p>{business.description}</p>
@@ -164,7 +179,7 @@ const businessMapCities = cities
 <script>
   const search=document.querySelector<HTMLInputElement>('#business-search'),category=document.querySelector<HTMLSelectElement>('#business-category'),stage=document.querySelector<HTMLSelectElement>('#business-stage'),city=document.querySelector<HTMLSelectElement>('#business-city'),contributionChips=[...document.querySelectorAll<HTMLButtonElement>('.contribution-chip')],count=document.querySelector<HTMLElement>('#business-result-count'),empty=document.querySelector<HTMLElement>('#business-empty'),cards=[...document.querySelectorAll<HTMLElement>('.business-directory-card')];
   const selectedContributions=new Set<string>();
-  const filterBusinesses=()=>{const query=(search?.value||'').trim().toLocaleLowerCase('sq'),selectedCategory=category?.value||'',selectedStage=stage?.value||'',selectedCity=city?.value||'';let visible=0;cards.forEach(card=>{const cardTypes=(card.dataset.contributionTypes||'').split('|').filter(Boolean);const show=(!query||(card.dataset.search||'').includes(query))&&(!selectedCategory||card.dataset.category===selectedCategory)&&(!selectedStage||card.dataset.stage===selectedStage)&&(!selectedCity||card.dataset.city===selectedCity)&&(selectedContributions.size===0||cardTypes.some(type=>selectedContributions.has(type)));card.hidden=!show;if(show)visible++});if(count)count.textContent=`${visible} ${visible===1?'biznes u gjet':'biznese u gjetën'}`;if(empty)empty.hidden=visible>0};
+  const filterBusinesses=()=>{const query=(search?.value||'').trim().toLocaleLowerCase('sq'),selectedCategory=category?.value||'',selectedStage=stage?.value||'',selectedCity=city?.value||'';let visible=0;cards.forEach(card=>{const cardTypes=(card.dataset.contributionTypes||'').split('|').filter(Boolean),cardCities=(card.dataset.cities||'').split('|').filter(Boolean);const show=(!query||(card.dataset.search||'').includes(query))&&(!selectedCategory||card.dataset.category===selectedCategory)&&(!selectedStage||card.dataset.stage===selectedStage)&&(!selectedCity||cardCities.includes(selectedCity))&&(selectedContributions.size===0||cardTypes.some(type=>selectedContributions.has(type)));card.hidden=!show;if(show)visible++});if(count)count.textContent=`${visible} ${visible===1?'biznes u gjet':'biznese u gjetën'}`;if(empty)empty.hidden=visible>0};
   search?.addEventListener('input',filterBusinesses);category?.addEventListener('change',filterBusinesses);stage?.addEventListener('change',filterBusinesses);city?.addEventListener('change',filterBusinesses);
   contributionChips.forEach(chip=>chip.addEventListener('click',()=>{const type=chip.dataset.contributionType||'';if(selectedContributions.has(type))selectedContributions.delete(type);else selectedContributions.add(type);chip.classList.toggle('is-active',selectedContributions.has(type));chip.setAttribute('aria-pressed',String(selectedContributions.has(type)));filterBusinesses()}));
   filterBusinesses();
