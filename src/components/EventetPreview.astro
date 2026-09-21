@@ -1,15 +1,7 @@
 ---
-import SectionTitle from './SectionTitle.astro';
 const lumaEmbedUrl = 'https://luma.com/embed/calendar/cal-FWG6Cxwu8MbfxIl/events';
 const lumaCalendarUrl = 'https://luma.com/ib-happyhours';
 ---
-<section class="section tone-dark events-intro">
-  <div class="container">
-    <SectionTitle kicker="IB HappyHours" title="Takohemi rregullisht." text="Happy Hours sjellin komunitetin bashkë, qytet pas qyteti. Gjej takimin më të afërt dhe regjistrohu në kalendarin tonë zyrtar në Luma." />
-    <a class="events-luma-link" href={lumaCalendarUrl} target="_blank" rel="noreferrer">Shiko IB HappyHours në Luma <span aria-hidden="true">↗</span></a>
-  </div>
-</section>
-
 <section class="section tone-white events-calendar-section">
   <div class="container">
     <div class="events-calendar-heading">
@@ -46,10 +38,6 @@ const lumaCalendarUrl = 'https://luma.com/ib-happyhours';
 </section>
 
 <style>
-  .events-intro { padding-block: clamp(88px, 11vw, 140px); }
-  .events-intro :global(.section-title) { max-width: 820px; }
-  .events-luma-link { display: inline-flex; align-items: center; gap: 18px; margin-top: 28px; padding-bottom: 7px; border-bottom: 1px solid rgba(255,255,255,.45); color: #fff; font-size: 14px; font-weight: 700; }
-  .events-luma-link:hover { border-color: #fff; }
   .global-feature-section { padding-block: clamp(55px, 8vw, 100px); color: #fff; background: #15161b; }
   .global-feature { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(230px, .55fr); gap: clamp(45px, 8vw, 100px); align-items: center; min-height: 510px; padding: clamp(34px, 6vw, 72px); border: 1px solid rgba(255,255,255,.13); border-radius: 18px; color: #fff; background: var(--night); transition: border-color .2s ease, transform .2s ease; }
   .global-feature:hover { border-color: rgba(255,255,255,.35); transform: translateY(-2px); }
