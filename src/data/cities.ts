@@ -11,6 +11,7 @@ export interface CommunityCity {
   slug: string;
   status: 'active' | 'paused' | 'inactive';
   lumaUrl?: string;
+  instagramUrl?: string;
   activities?: string[];
   image?: string;
 }
@@ -27,6 +28,7 @@ function citiesFromCsv(text: string): CommunityCity[] {
       slug: col('slug'),
       status: status === 'inactive' ? 'inactive' : status === 'paused' ? 'paused' : 'active',
       lumaUrl: col('lumaUrl') || undefined,
+      instagramUrl: col('instagramUrl') || undefined,
       activities: activities.length ? activities : undefined,
       image: col('image') || undefined,
     };

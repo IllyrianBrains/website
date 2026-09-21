@@ -64,7 +64,10 @@ const communitySections = matches.map((match, index) => ({
             <h1>Illyrian Brains<br /><span>{city.city}</span></h1>
             <p>Komuniteti shqiptar i profesionistëve në {city.city}—një hapësirë për njohje, dije dhe bashkëpunim.</p>
             <div class="city-hero-actions">
-              <a class="partner-button" href="#komuniteti">Zbulo komunitetin <span aria-hidden="true">↓</span></a>
+              {city.instagramUrl
+                ? <a class="partner-button" href={city.instagramUrl} target="_blank" rel="noreferrer">Kontakto në Instagram <span aria-hidden="true">↗</span></a>
+                : <a class="partner-button" href="#komuniteti">Zbulo komunitetin <span aria-hidden="true">↓</span></a>}
+              {city.instagramUrl && <a class="city-text-link" href="#komuniteti">Zbulo komunitetin ↓</a>}
               {city.lumaUrl && <a class="city-text-link" href={city.lumaUrl} target="_blank" rel="noreferrer">Shiko eventet në Luma ↗</a>}
             </div>
           </div>
