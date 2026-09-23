@@ -39,7 +39,7 @@ const ways = [
   {
     id: 'anetaret', tone: 'tone-grey', accent: '#397b72', bg: '#f2faf8', icon: icons.layers,
     tag: 'Anëtarësi · €30 / vit', title: 'Anëtarët.',
-    intro: 'Anëtarët janë vullnetarët aktivë të rrjetit, me vend dhe votë në Asamblenë e Përgjithshme.',
+    intro: 'Anëtarët organizojnë takimet në qytet ose punojnë në ekipet e rrjetit. Në Asamblenë e Përgjithshme, votojnë për vendimet e rëndësishme të rrjetit.',
     cards: [
       {
         tag: 'Në qytet', title: 'Organizator',
@@ -52,9 +52,10 @@ const ways = [
         actions: [{ label: 'Apliko si kontribues', href: applyAs('Kontribues'), style: 'primary' }],
       },
     ],
+    steps: ['Apliko me LinkedIn-in dhe rrugën tënde profesionale.', 'Ekipi i IB e shqyrton kërkesën.', 'Paguan kuotën vjetore prej €30.', 'Të lidhim me ekipin tënd.'],
     notes: [
-      '<strong>Si fillon:</strong> apliko me LinkedIn-in tënd, Bordi e shqyrton, paguan kuotën. Student ose prind i ri? Kuota mund të ulet.',
-      'Qyteti yt nuk është ende në rrjet? <a href="/qytetet/#shto-qytet">Propozoje si qytet të ri</a>.',
+      'Vota në Asamble vjen pas 6 muajsh. <strong>Student ose prind i ri?</strong> Kuota mund të ulet.',
+      'Qyteti yt nuk është në rrjet? <a href="/qytetet/#shto-qytet">Propozoje si qytet të ri</a>.',
     ],
   },
 ];
@@ -89,7 +90,13 @@ const ways = [
               </article>
             ))}
           </div>
-          {way.notes && <div class="way-notes">{way.notes.map(note => <p set:html={note} />)}</div>}
+          {way.steps && (
+            <div class="way-steps">
+              <h3>Si fillon</h3>
+              <ol>{way.steps.map(step => <li set:html={step} />)}</ol>
+              {way.notes && <div class="way-notes">{way.notes.map(note => <p set:html={note} />)}</div>}
+            </div>
+          )}
         </div>
       </section>
     ))}
@@ -112,8 +119,14 @@ const ways = [
   .way-card ul{align-self:stretch}
   .way-card li :global(a),.way-notes :global(a){color:var(--way-accent);font-weight:700}
   .way-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:auto;padding-top:32px}
-  .way-notes{display:grid;gap:8px;max-width:640px;margin-top:36px}
-  .way-notes p{margin:0;color:var(--muted);font-size:15px;line-height:1.6}
+  /* "Si fillon": a compact grey panel under the member cards. */
+  .way-steps{margin-top:28px;padding:22px 28px;border:1px solid var(--line);border-radius:14px;background:rgba(23,24,29,.035);color:var(--muted)}
+  .way-steps h3{margin:0 0 14px;color:var(--ink);font-size:18px;font-weight:400}
+  .way-steps ol{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 24px;margin:0;padding:0;list-style:none;counter-reset:step}
+  .way-steps li{counter-increment:step;display:flex;gap:10px;font-size:14px;line-height:1.5}
+  .way-steps li::before{content:counter(step);flex:0 0 22px;display:grid;place-items:center;height:22px;border-radius:50%;color:#fff;background:#8a8b93;font-size:11px;font-weight:700}
+  .way-notes{display:flex;flex-wrap:wrap;gap:4px 24px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .way-notes p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
   .way-notes :global(strong){color:var(--ink)}
   /* Buttons: primary (main action) and outline (secondary), in the section's accent colour. */
   .join-btn{display:inline-flex;align-items:center;justify-content:space-between;gap:28px;min-height:50px;padding:14px 22px;border:1px solid transparent;border-radius:10px;font-size:14px;font-weight:700;line-height:1.2;transition:transform .2s ease,filter .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
@@ -125,7 +138,7 @@ const ways = [
   .join-btn--primary:hover{filter:brightness(.9)}
   .join-btn--outline{color:var(--way-accent);background:#fff;border-color:color-mix(in srgb,var(--way-accent) 35%,var(--line))}
   .join-btn--outline:hover{border-color:var(--way-accent);background:var(--way-bg)}
-  @media(max-width:900px){.join-overview{grid-template-columns:1fr;gap:20px}}
+  @media(max-width:900px){.join-overview{grid-template-columns:1fr;gap:20px}.way-steps ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:700px){.way-cards{grid-template-columns:1fr}.way-card{padding:30px 26px}}
-  @media(max-width:600px){.join-btn{width:100%}.way-actions{width:100%}.join-overview{margin-bottom:36px}.join-overview h2{font-size:clamp(38px,11vw,48px)}.join-overview>p:last-child{font-size:15px}}
+  @media(max-width:600px){.way-steps{padding:22px 20px}.way-steps ol{grid-template-columns:1fr}.join-btn{width:100%}.way-actions{width:100%}.join-overview{margin-bottom:36px}.join-overview h2{font-size:clamp(38px,11vw,48px)}.join-overview>p:last-child{font-size:15px}}
 </style>
