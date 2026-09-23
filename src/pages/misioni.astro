@@ -31,7 +31,7 @@ const focusAreas = [
           <h2>Fokus</h2>
           <div class="focus-grid">
             {focusAreas.map((area) => (
-              <div class="focus-card">
+              <div class="focus-card" id={`strategjia-${area.id.toLowerCase()}`}>
                 <span class="focus-card-id">{area.id}</span>
                 <h3>{area.title}</h3>
                 <ul>

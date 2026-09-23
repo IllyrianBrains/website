@@ -24,11 +24,9 @@ const annualReportHref = 'https://forum.illyrianbrains.org/tag/raport-vjetor';
 
 
 const principles = [
-  'Të gjithë punojmë vullnetarisht.',
+  'Punojmë vullnetarisht. Me rritjen e rrjetit mund të kemi edhe staf part-time.',
   'Për eventet paguajmë vetëm ambientin, materialet dhe logjistikën.',
-  'Nëse zgjedh një projekt, donacioni yt shkon vetëm aty.',
-  'Pa një projekt të zgjedhur, Bordi e ndan donacionin sipas hapave më poshtë.',
-  'Donacionin mujor mund ta ndalosh kur të duash.',
+  'Nëse zgjedh një projekt, paratë shkojnë vetëm aty. Përndryshe, Bordi i ndan sipas hapave më poshtë.',
   'Çdo vit publikojmë ku shkuan paratë. Emrin tënd e përmendim vetëm nëse na lejon.',
 ];
 ---
@@ -42,7 +40,7 @@ const principles = [
 
     <section class="section tone-white" id="transparenca">
       <div class="container">
-        <SectionTitle kicker="Transparenca" title="Një rrjet vullnetarësh." text="Deri tani rrjeti nuk ka pasur shpenzime të veçanta — gjithçka është mbuluar nga kontributet e anëtarëve. Nga tetori 2026 mbështetemi te tarifat e anëtarësimit dhe te donacionet, sipas rregullave më poshtë." />
+        <SectionTitle kicker="Transparenca" title="Një rrjet vullnetarësh." text="Deri tani rrjeti është mbajtur nga kontributet e anëtarëve. Nga tetori 2026 mbështetemi te tarifat e anëtarësimit dhe te donacionet." />
         <div class="focus-card">
           <ul>{principles.map(principle => <li>{principle}</li>)}</ul>
         </div>
@@ -68,7 +66,7 @@ const principles = [
             {tier.lines.map(line => (
               <li class:list={[`fund--${line.id}`]}>
                 <strong><span class="ladder-swatch"></span>{line.title}</strong>
-                <p>{line.description} <span class="ladder-strategy">{line.strategy}</span></p>
+                <p>{line.description} <span class="ladder-strategy">{line.strategy.split(' · ').map((id, j) => <>{j > 0 && ' · '}<a href={`/misioni/#strategjia-${id.toLowerCase()}`} title="Shiko strategjinë">{id}</a></>)}</span></p>
               </li>
             ))}
           </ul>
@@ -190,4 +188,5 @@ const principles = [
   @media (max-width: 600px) { .share-name { display: none; } .share-value { font-size: 14px; } }
   .ladder-swatch { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 3px; background: var(--fund); }
   .ladder-strategy { margin-left: 4px; color: var(--ink); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+  .ladder-strategy a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 </style>
