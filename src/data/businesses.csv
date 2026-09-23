@@ -1,5 +1,7 @@
-name,category,city,country,description,website,sponsor,instagram,stage,relatedMembers,relatedCities
-Bliss,health,Tirana,Shqipëri,"Platformë e shëndetit mendor që ofron terapi dhe këshillim online në shqip me psikologë dhe coach të kualifikuar.",https://bliss.al,true,,startup,,
-TOKË Architects,architecture,London,Mbretëria e Bashkuar,"Studio arkitekture dhe dizajni të brendshëm, e fokusuar në hapësira që respektojnë komunitetin dhe mjedisin.",https://tokearchitects.co.uk/,,,startup,,
-Dynamics Hub,technology,Tirana,Shqipëri,"Platformë punësimi dhe komuniteti për konsulentë Microsoft Dynamics 365, e themeluar nga një shqiptar që u rikthye në Shqipëri.",https://www.dynamicshub.net/,,,startup,,
-Consultaxion,finance,Tirana,Shqipëri,"Konsulencë për taksa dhe kontabilitet për individë dhe biznese.",,,https://www.instagram.com/consultaxion,startup,,
+name,category,city,country,description,website,sponsor,instagram,stage,relatedMembers,relatedCities,logo,linkedin
+Bliss,health,Tirana,Shqipëri,"Platformë e shëndetit mendor që ofron terapi dhe këshillim online në shqip me psikologë dhe coach të kualifikuar.",https://bliss.al,true,,startup,,,/assets/businesses/bliss.png,
+TOKË Architects,architecture,London,Mbretëria e Bashkuar,"Studio arkitekture dhe dizajni të brendshëm, e fokusuar në hapësira që respektojnë komunitetin dhe mjedisin.",https://tokearchitects.co.uk/,,,startup,,,/assets/businesses/toke-architects.jpg,
+Dynamics Hub,technology,Tirana,Shqipëri,"Platformë punësimi dhe komuniteti për konsulentë Microsoft Dynamics 365, e themeluar nga një shqiptar që u rikthye në Shqipëri.",https://www.dynamicshub.net/,,,startup,,,/assets/businesses/dynamics-hub.jpeg,
+Consultaxion,finance,Tirana,Shqipëri,"Konsulencë për taksa dhe kontabilitet për individë dhe biznese.",,,https://www.instagram.com/consultaxion,startup,,,,
+Do Me Construct,architecture,Tirana,Shqipëri,"Kompani ndërtimi që ofron zgjidhje të sakta ndërtimi, ku estetika përputhet me kërkesat strukturore dhe funksionale, për ambiente të brendshme dhe të jashtme.",,,,startup,,,,https://www.linkedin.com/in/do-me-construct-b4545742b/
+CooLab Tirana,other,Tirana,Shqipëri,"Hapësirë coworking dhe komunitet në Tiranë për sipërmarrës, freelancerë, startupe dhe krijues, me hapësira pune dhe evente.",,,https://www.instagram.com/coolab.tirana/,established,,,,https://al.linkedin.com/company/coolabtirana

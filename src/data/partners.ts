@@ -27,6 +27,8 @@ export interface Partner {
   website?: string;
   linkedin?: string;
   instagram?: string;
+  /** Logo image path (e.g. /assets/partners/lumi.png) or URL. */
+  logo?: string;
   sponsor: boolean;
   /** Network member usernames explicitly connected to this organization. */
   relatedMembers: string[];
@@ -49,6 +51,7 @@ function partnersFromCsv(text: string): Partner[] {
       website: col('website') || undefined,
       linkedin: col('linkedin') || undefined,
       instagram: col('instagram') || undefined,
+      logo: col('logo') || undefined,
       sponsor: ['true', 'yes', '1'].includes(col('sponsor').toLowerCase()),
       relatedMembers: col('relatedMembers').split(';').map(value => value.trim()).filter(Boolean),
       relatedCities: col('relatedCities').split(';').map(value => value.trim()).filter(Boolean),

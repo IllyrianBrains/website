@@ -33,7 +33,10 @@ export interface Business {
   country?: string;
   description: string;
   website?: string;
+  linkedin?: string;
   instagram?: string;
+  /** Logo image path (e.g. /assets/businesses/bliss.png) or URL. */
+  logo?: string;
   sponsor: boolean;
   /** Network member usernames explicitly connected to this business. */
   relatedMembers: string[];
@@ -70,7 +73,9 @@ function businessesFromCsv(text: string): Business[] {
       country: col('country') || undefined,
       description: col('description'),
       website: col('website') || undefined,
+      linkedin: col('linkedin') || undefined,
       instagram: col('instagram') || undefined,
+      logo: col('logo') || undefined,
       sponsor,
       relatedMembers: col('relatedMembers').split(';').map(value => value.trim()).filter(Boolean),
       relatedCities: col('relatedCities').split(';').map(value => value.trim()).filter(Boolean),
