@@ -1,7 +1,5 @@
 /* Reading-scale tweaks for the directory pages (members, teams, cities, partners, businesses, ideas).
    Import after BaseLayout so these load after global.css and readability.css. */
-.card-meta > span { font-size: 14px; }
-.card-meta > small { font-size: 11px; line-height: 1.4; }
 
 .member-grid { gap: 22px; }
 .member-card { padding: 24px; }
@@ -16,13 +14,8 @@
 .result-count { font-size: 13px; }
 .member-card-role,
 .member-drawer-role { font-size: 15px; line-height: 1.5; }
-.member-pill,
-.member-tag { font-size: 13px; }
-.member-drawer-section h4 { font-size: 13px; }
-.member-drawer-section p { font-size: 16px; line-height: 1.7; }
+.member-pill { font-size: 13px; }
 
 @media (max-width: 700px) {
   .member-card { padding: 18px; }
-  .card-meta { align-items: flex-start; flex-wrap: wrap; }
-  .card-meta > small { white-space: normal; }
 }
