@@ -36,6 +36,10 @@ export const emailTemplates = {
     subject: 'Bashkëpunim si biznes',
     body: 'Përshëndetje,\n\nDuam të bashkëpunojmë me Illyrian Brains si biznes.\n\nEmri i biznesit:\nVendi:\nFaqja e internetit:\nLinkedIn:\nPersoni i kontaktit:\nEmail-i i kontaktit:\nLloji i bashkëpunimit (ofertë ose kupon për anëtarët / sponsorizim / donacion / mundësi pune / ekspertizë):\nPërshkrim i shkurtër:',
   },
+  eventIdea: {
+    subject: 'Ide për një event',
+    body: 'Përshëndetje,\n\nKam një ide për një event me Illyrian Brains.\n\nEmri:\nQyteti:\nÇfarë dua të bëj (event në qytet / webinar / lidhje me dikë / tjetër):\nPërshkrimi i shkurtër:\nKontakti (email / telefon):',
+  },
   joinQuestion: {
     subject: 'Pyetje rreth përfshirjes në rrjet',
     body: 'Përshëndetje,\n\nEmri:\nQyteti:\nSi dëshiroj të përfshihem:\nPyetja ime:',
