@@ -20,17 +20,21 @@ export const emailTemplates = {
     subject: 'Donacion mujor për Illyrian Brains',
     body: 'Përshëndetje,\n\nDua të bëhem pjesë e Miqve të Rrjetit me një donacion mujor.\n\nEmri:\nShuma mujore (€):\nMuaji i fillimit:\nQyteti ku jetoj (për ftesat në evente):\nA dëshiron që emri yt të përmendet në listën e Miqve të Rrjetit në raportin vjetor? (po/jo):\n\nFaleminderit!',
   },
+  membershipApply: {
+    subject: 'Kërkesë për anëtarësim',
+    body: 'Përshëndetje,\n\nDua të bëhem anëtar/e i/e Illyrian Brains Network.\n\n— TË DHËNAT —\nEmri dhe mbiemri:\nQyteti dhe shteti ku jetoj:\nProfili në LinkedIn (i detyrueshëm):\n\n— RRUGA PROFESIONALE —\nProfesioni / fusha:\nPozicioni dhe organizata aktuale:\nNjë histori e shkurtër e rrugës sime profesionale (3–5 fjali):\n\n— PËRVOJA ME RRJETE TË NGJASHME —\nShoqata, rrjete profesionale, organizata të diasporës apo grupe vullnetare ku kam qenë aktiv/e, dhe roli im (nëse ka):\n\n— KONTRIBUTI —\nSi dua të kontribuoj (organizator në qytet / ekip / projekt):\nJam student/e ose prind i ri dhe kërkoj kuotë të reduktuar (po/jo):\nPranoj kuotën vjetore prej €30 dhe të veproj në përputhje me Statutin (po/jo):\n\nFaleminderit!',
+  },
   organizeCity: {
     subject: 'Organizim i qytetit',
     body: 'Përshëndetje,\n\nDua të organizoj Illyrian Brains në qytetin tim.\n\nQyteti dhe shteti:\nEmri im:\nEkipi fillestar (emrat dhe rolet):\nSa profesionistë shqiptarë njohim atje (përafërsisht):\nIdeja për takimin e parë:\nKontakti (email / telefon):',
   },
   partnerNgo: {
     subject: 'Bashkëpunim si OJF',
-    body: 'Përshëndetje,\n\nDuam të bashkëpunojmë me Illyrian Brains si OJF.\n\nEmri i organizatës:\nVendi dhe faqja e internetit:\nPersoni i kontaktit:\nÇfarë bën organizata (shkurt):\nIdeja për bashkëpunim (event / projekt / shkëmbim ekspertize):\nAfati i dëshiruar:',
+    body: 'Përshëndetje,\n\nDuam të bashkëpunojmë me Illyrian Brains si OJF.\n\nEmri i organizatës:\nVendi:\nFaqja e internetit:\nLinkedIn:\nPersoni i kontaktit:\nEmail-i i kontaktit:\nÇfarë bën organizata (shkurt):\nLloji i bashkëpunimit (rrjetëzim / event i përbashkët / projekt i përbashkët / Atlas, Mentorimi ose Heritage / donacion):\nIdeja për bashkëpunim:\nAfati i dëshiruar:',
   },
   partnerBusiness: {
     subject: 'Bashkëpunim si biznes',
-    body: 'Përshëndetje,\n\nDuam të bashkëpunojmë me Illyrian Brains si biznes.\n\nEmri i biznesit:\nVendi dhe faqja e internetit:\nPersoni i kontaktit:\nLloji i bashkëpunimit (ofertë për anëtarët / mundësi pune / sponsorizim):\nPërshkrim i shkurtër:',
+    body: 'Përshëndetje,\n\nDuam të bashkëpunojmë me Illyrian Brains si biznes.\n\nEmri i biznesit:\nVendi:\nFaqja e internetit:\nLinkedIn:\nPersoni i kontaktit:\nEmail-i i kontaktit:\nLloji i bashkëpunimit (ofertë ose kupon për anëtarët / sponsorizim / donacion / mundësi pune / ekspertizë):\nPërshkrim i shkurtër:',
   },
   joinQuestion: {
     subject: 'Pyetje rreth përfshirjes në rrjet',

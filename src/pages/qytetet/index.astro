@@ -4,6 +4,8 @@ import '../../styles/directory.css';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import NetworkDirectoryHero from '../../components/NetworkDirectoryHero.astro';
+import SectionTitle from '../../components/SectionTitle.astro';
+import { mailto, emailTemplates } from '../../data/emails';
 import { cities, defaultCityImage } from '../../data/cities';
 import { cityRegions } from '../../data/regions';
 const bySlug = (slug:string) => cities.find(city => city.slug === slug);
@@ -60,6 +62,11 @@ const countries = [...new Set(cities.map(city => city.country))].sort((a,b) => a
       <div class="member-grid city-directory-grid" id="city-directory-grid" data-cities={JSON.stringify(directoryCities)} data-fallback={defaultCityImage}>
         {directoryCities.map(city => <article class="member-card city-directory-card"><a class="city-directory-media" href={`/qytetet/${city.slug}/`} aria-label={`Shiko komunitetin në ${city.city}`}><img class="city-directory-image" src={encodeURI(city.image || defaultCityImage)} alt="" loading="lazy"/></a><div class="city-directory-body"><div class="city-directory-heading"><a class="member-card-name" href={`/qytetet/${city.slug}/`}>{city.city}</a><p class="member-card-role">{city.country}</p></div><p class="city-directory-description">{city.description}</p><div class="city-directory-footer"><span class={`city-status-pill city-status-${city.status}`}><span class="city-status-dot" aria-hidden="true"></span>{city.status === 'active' ? 'Aktive' : city.status === 'paused' ? 'Në pauzë' : 'Jo aktive'}</span>{city.instagramUrl && <a class="city-social-link" href={city.instagramUrl} target="_blank" rel="noreferrer" aria-label={`Kontakto Illyrian Brains ${city.city} në Instagram`}>Instagram <span aria-hidden="true">↗</span></a>}</div></div></article>)}
       </div>
+    </div></section>
+
+    <section class="section tone-white" id="shto-qytet"><div class="container">
+      <SectionTitle kicker="Qytet i ri" title="Mungon qyteti yt?" text="Nëse Illyrian Brains nuk është ende në qytetin tënd, shtoje! Na trego qytetin dhe ekipin fillestar — e planifikojmë së bashku takimin e parë." />
+      <a class="partner-button" href={mailto(emailTemplates.organizeCity)}>Shto qytetin tënd <span aria-hidden="true">→</span></a>
     </div></section>
   </main>
   <Footer />

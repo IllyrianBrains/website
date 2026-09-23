@@ -5,6 +5,8 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import DirectoryNetworkGraph from '../components/DirectoryNetworkGraph.astro';
 import NetworkDirectoryHero from '../components/NetworkDirectoryHero.astro';
+import SectionTitle from '../components/SectionTitle.astro';
+import { mailto, emailTemplates } from '../data/emails';
 import { businesses, businessCategoryLabels, businessStageLabels, contributionTypeOptions } from '../data/businesses';
 import { offers } from '../data/offers';
 import { cities } from '../data/cities';
@@ -150,6 +152,20 @@ const businessMapCities = cities
         <p class="map-footnote">{unmappedBusinesses} biznes{unmappedBusinesses === 1 ? '' : 'e'} nuk k{unmappedBusinesses === 1 ? 'a' : 'anë'} qytet të specifikuar dhe nuk shfaqet në hartë.</p>
       )}
     </div></section>
+    <section class="section tone-grey" id="bashkepuno"><div class="container">
+      <SectionTitle kicker="Bashkëpuno si biznes" title="Bëhu pjesë e ekosistemit." text="Publiko oferta, krijo mundësi ose mbështet rrjetin si sponsor. Na dërgo profilin e biznesit dhe përshkruaj ofertën ose kontributin." />
+      <div class="focus-card collab-note">
+        <h3>Bashkëpunime të mundshme</h3>
+        <ul>
+          <li><strong>Ofertë ose kupon</strong> — përfitime për anëtarët e rrjetit.</li>
+          <li><strong>Sponsorizim</strong> — mbështetje për një event ose për rrjetin.</li>
+          <li><strong>Donacion</strong> — për një fond ose projekt të caktuar.</li>
+          <li><strong>Mundësi pune</strong> — pozicione ose praktika për anëtarët.</li>
+          <li><strong>Ekspertizë</strong> — një prezantim ose workshop në një event qyteti.</li>
+        </ul>
+      </div>
+      <a class="partner-button" href={mailto(emailTemplates.partnerBusiness)}>Prezanto biznesin <span aria-hidden="true">→</span></a>
+    </div></section>
   </main>
   <Footer />
 </BaseLayout>
@@ -177,6 +193,7 @@ const businessMapCities = cities
   }
 </script>
 <style>
+  .collab-note{max-width:760px;margin-top:28px}.collab-note strong{color:var(--ink);font-weight:700}
   .community-map-heading h2 { font-size: clamp(38px, 5vw, 58px); }
   .map-footnote { max-width: 68ch; margin-top: 18px; color: var(--muted); font-size: 13px; line-height: 1.6; }
   .map-popup-orgs { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 0; padding: 8px 0 0; border-top: 1px solid var(--line); list-style: none; }
