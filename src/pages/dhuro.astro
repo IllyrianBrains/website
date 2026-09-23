@@ -1,0 +1,181 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import SectionTitle from '../components/SectionTitle.astro';
+import NetworkDirectoryHero from '../components/NetworkDirectoryHero.astro';
+import { fundingTiers, impactExamples } from '../data/donations';
+import { mailto, emailTemplates } from '../data/emails';
+import { supporters } from '../data/supporters';
+
+const euro = (amount: number) => `€${amount.toLocaleString('sq-AL', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+const tiers = fundingTiers;
+// One intro per step, in fundingTiers order (HTML, for the strategy link).
+const tierIntros = [
+  'Si parazgjedhje, donacioni yt shkon aty ku nevojitet më shumë. Bordi e ndan buxhetin vjetor sipas këtyre synimeve, në përputhje me <a href="/misioni/">strategjinë tonë</a>.',
+  'Kur plotësohet buxheti i hapit 1, çdo gjë mbi të shkon në Fondin e Nismave: 20% secila për Atlas, Mentorimin dhe Heritage, ndërsa pjesa tjetër mbetet e hapur për nisma të reja. Për një projekt të caktuar (p.sh. Atlas), shkruaje në email.',
+];
+// DRAFT benefits — confirm the network can commit to these before publishing.
+const donationOptions = [
+  { id: 'nje-here', group: 'Dhuro një herë', title: 'Një herë', text: 'Një kontribut i vetëm, me çfarëdo shume. Na shkruaj dhe të dërgojmë të dhënat për pagesën.', action: 'Dhuro një herë', href: mailto(emailTemplates.donationOnce), benefits: ['Raporti i shpenzimeve në fund të vitit, direkt në email.'] },
+  { id: 'cdo-muaj', group: 'Miqtë e Rrjetit', title: 'Çdo muaj', text: 'Një transfertë e rregullt, edhe e vogël, na ndihmon të planifikojmë vitin dhe të mbështesim më shumë qytete.', action: 'Dhuro çdo muaj', href: mailto(emailTemplates.donationMonthly), disabled: true, benefits: ['Raporti i shpenzimeve në fund të vitit, direkt në email.', 'Buletin informativ çdo 6 muaj me lajmet e rrjetit: qytetet e reja, eventet dhe nismat që mbështet, si po ecin projektet si Atlas dhe Mentorimi, dhe çfarë kemi në plan për muajt në vijim.', 'Ftesë për takimet dhe eventet e rrjetit, në qytetin tënd dhe online.', 'Emri yt në listën e Miqve të Rrjetit në raportin vjetor, nëse dëshiron.'] },
+];
+const annualReportHref = 'https://forum.illyrianbrains.org/tag/raport-vjetor';
+
+
+const principles = [
+  'Të gjithë punojmë vullnetarisht.',
+  'Për eventet paguajmë vetëm ambientin, materialet dhe logjistikën.',
+  'Nëse zgjedh një projekt, donacioni yt shkon vetëm aty.',
+  'Pa një projekt të zgjedhur, Bordi e ndan donacionin sipas hapave më poshtë.',
+  'Donacionin mujor mund ta ndalosh kur të duash.',
+  'Çdo vit publikojmë ku shkuan paratë. Emrin tënd e përmendim vetëm nëse na lejon.',
+];
+---
+<BaseLayout title="Dhuro · Illyrian Brains" description="Mbështet Illyrian Brains me një donacion transparent.">
+  <Header />
+  <main>
+    <p class="construction-notice">Faqja është në përpunim — disa detaje mund të ndryshojnë.</p>
+    <NetworkDirectoryHero kind="join" eyebrow="Mbështet rrjetin" title="Dhuro." description="Na shkruaj dhe të dërgojmë të dhënat për pagesën. Çdo vit raportojmë si u përdorën donacionet." showVisual={false}>
+      <a class="hero-donate" href="#dhuro">Dhuro <span aria-hidden="true">↓</span></a>
+      <div class="hero-impact" slot="aside">
+        <p class="hero-impact-title">Çfarë mundëson donacioni yt</p>
+        <ul>
+          {impactExamples.map(example => <li><strong>{euro(example.amount)}</strong> {example.text}</li>)}
+        </ul>
+      </div>
+    </NetworkDirectoryHero>
+
+    <section class="section tone-white" id="transparenca">
+      <div class="container">
+        <SectionTitle kicker="Transparenca" title="Një rrjet vullnetarësh." text="Mbështetemi te tarifat e anëtarësimit dhe te donacionet. Rregullat më poshtë vlejnë nga tetori 2026." />
+        <div class="focus-card">
+          <ul>{principles.map(principle => <li>{principle}</li>)}</ul>
+        </div>
+        <a class="partner-button" href={annualReportHref} target="_blank" rel="noreferrer">Raportet vjetore <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    {tiers.map((tier, i) => (
+      <section class:list={['section', i % 2 ? 'tone-white' : 'tone-grey']}>
+        <div class="container">
+          <SectionTitle kicker={`Hapi ${i + 1}`} title={`${tier.title}.`} />
+          <p class="ladder-intro" set:html={tierIntros[i]} />
+          <div class="share-bar" role="img" aria-label={`${tier.title}: ${tier.lines.map(line => `${line.title} ${line.share}%`).join(', ')}`}>
+            {tier.lines.map(line => (
+              <div class:list={['share-segment', `fund--${line.id}`]} style={`flex: ${line.share ?? 100}`} title={line.title}>
+                <span class="share-fill"></span>
+                <span class="share-value">{line.share}%</span>
+                <span class="share-name">{line.title}</span>
+              </div>
+            ))}
+          </div>
+          <ul class="share-details">
+            {tier.lines.map(line => (
+              <li class:list={[`fund--${line.id}`]}>
+                <strong><span class="ladder-swatch"></span>{line.title}</strong>
+                <p>{line.description} <span class="ladder-strategy">{line.strategy}</span></p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    ))}
+
+    <section class={`section ${tiers.length % 2 ? 'tone-white' : 'tone-grey'}`} id="dhuro">
+      <div class="container">
+        <SectionTitle kicker="Dhuro" title="Zgjidh si të dhurosh." />
+        <div class="donate-options">
+          {donationOptions.map(option => (
+            <div class="donate-option">
+              <p class="donate-group">{option.group}</p>
+              <h3>{option.title}</h3>
+              <p>{option.text}</p>
+              {option.benefits.length > 0 && (
+                <ul class="donate-benefits">
+                  {option.benefits.map(benefit => <li>{benefit}</li>)}
+                </ul>
+              )}
+              {option.disabled
+                ? <span class="partner-button is-disabled" aria-disabled="true">{option.action} <span>Së shpejti</span></span>
+                : <a class="partner-button" href={option.href}>{option.action} <span aria-hidden="true">→</span></a>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class={`section ${tiers.length % 2 ? 'tone-grey' : 'tone-white'}`} id="miqte">
+      <div class="container">
+        <SectionTitle kicker="Miqtë e Rrjetit" title="Faleminderit." text="Ata që e mbështesin rrjetin çdo muaj dhe kanë pranuar të përmenden këtu." />
+        {supporters.length > 0 ? (
+          <ul class="supporters">
+            {supporters.map(supporter => (
+              <li>
+                <strong>{supporter.name}</strong>
+                {(supporter.city || supporter.since) && <span>{[supporter.city, supporter.since && `që nga ${supporter.since}`].filter(Boolean).join(' · ')}</span>}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="supporters-empty">Lista po fillon. <a href="#dhuro">Bëhu një nga Miqtë e parë të Rrjetit →</a></p>
+        )}
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+<style>
+  /* Slotted into NetworkDirectoryHero. */
+  :global(.hero-donate) { display: inline-flex; align-items: center; gap: 14px; margin-top: 34px; padding: 17px 28px; border-radius: 8px; color: var(--ink); background: #fff; font-size: 17px; font-weight: 700; box-shadow: 0 12px 30px rgba(0,0,0,.28); transition: transform .2s ease, background-color .2s ease; }
+  :global(.hero-donate:hover) { transform: translateY(-2px); background: #f1e6ec; }
+  :global(.hero-impact-title) { margin: 0 0 14px; color: rgba(255,255,255,.55); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  :global(.hero-impact ul) { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+  :global(.hero-impact li) { padding: 18px 20px; border: 1px solid rgba(255,255,255,.13); border-radius: 14px; color: rgba(255,255,255,.68); background: rgba(255,255,255,.05); line-height: 1.55; }
+  :global(.hero-impact strong) { display: block; margin-bottom: 2px; color: #fff; font-size: 24px; font-weight: 600; }
+  .supporters { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 32px 0 0; padding: 0; list-style: none; }
+  .supporters li { padding: 16px 20px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+  .supporters strong { display: block; color: var(--ink); font-weight: 600; }
+  .supporters span { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; }
+  .supporters-empty { margin: 32px 0 0; padding: 24px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); background: #fff; }
+  .supporters-empty a { color: var(--accent); font-weight: 700; }
+  .construction-notice { margin: 0; padding: 12px 16px; color: var(--ink); background: #fbf3d9; font-size: 14px; font-weight: 600; text-align: center; }
+  .partner-button.is-disabled { color: var(--muted); background: var(--line); cursor: not-allowed; }
+  .partner-button.is-disabled:hover { transform: none; background: var(--line); }
+  .partner-button.is-disabled span { font-size: 12px; font-weight: 700; }
+  .donate-options { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 20px; margin-top: 32px; }
+  .donate-option { display: flex; flex-direction: column; padding: 32px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+  .donate-group { margin: 0 0 6px; color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .donate-option h3 { margin: 0 0 12px; font-size: 26px; font-weight: 600; }
+  .donate-option > p:not(.donate-group) { margin: 0; color: var(--muted); line-height: 1.6; }
+  .donate-benefits { display: grid; gap: 10px; margin: 20px 0 0; padding: 0; list-style: none; }
+  .donate-benefits li { position: relative; padding-left: 26px; line-height: 1.55; }
+  .donate-benefits li::before { content: '✓'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+  .donate-option .partner-button { align-self: flex-start; margin-top: auto; }
+  .donate-option > :nth-last-child(2) { margin-bottom: 28px; }
+  @media (max-width: 720px) { .donate-options { grid-template-columns: 1fr; } .donate-option { padding: 26px; } }
+  .fund--operative { --fund: #744761; --fund-tint: rgba(116,71,97,.07); }
+  .fund--qytete { --fund: #3d7fb5; --fund-tint: rgba(61,127,181,.07); }
+  .fund--qytete-reja { --fund: #7fb0d8; --fund-tint: rgba(127,176,216,.1); }
+  .fund--atlas { --fund: #246247; }
+  .fund--mentorimi { --fund: #b0702a; }
+  .fund--heritage { --fund: #5b6fb5; }
+  .fund--hapur { --fund: #8a8b90; }
+  .fund--hapur .share-fill { box-sizing: border-box; border: 2px dashed var(--fund); background: transparent; }
+  .fund--hapur .ladder-swatch { box-sizing: border-box; border: 1.5px dashed var(--fund); background: transparent; }
+  .ladder-intro { max-width: 760px; margin: 32px 0 0; color: var(--muted); line-height: 1.6; }
+  .share-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px 24px; margin: 24px 0 0; padding: 0; list-style: none; }
+  .share-details strong { display: block; color: var(--ink); }
+  .share-details p { margin: 6px 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+  .share-bar { display: flex; gap: 2px; margin-top: 32px; }
+  .share-segment { min-width: 0; transition: opacity .2s ease; }
+  .share-bar:hover .share-segment:not(:hover) { opacity: .45; }
+  .share-fill { display: block; height: 44px; margin-bottom: 10px; background: var(--fund); }
+  .share-segment:first-child .share-fill { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
+  .share-segment:last-child .share-fill { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
+  .share-value { display: block; color: var(--ink); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .share-name { display: block; overflow-wrap: anywhere; padding-right: 8px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+  @media (max-width: 600px) { .share-name { display: none; } .share-value { font-size: 14px; } }
+  .ladder-swatch { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 3px; background: var(--fund); }
+  .ladder-strategy { margin-left: 4px; color: var(--ink); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+</style>

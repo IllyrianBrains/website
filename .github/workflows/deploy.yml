@@ -34,6 +34,7 @@ jobs:
           node-version: 22
         env:
           MEMBERS_SHEET_CSV_URL: ${{ secrets.MEMBERS_SHEET_CSV_URL }}
+          SUPPORTERS_SHEET_CSV_URL: ${{ secrets.SUPPORTERS_SHEET_CSV_URL }}
 
   deploy:
     needs: build

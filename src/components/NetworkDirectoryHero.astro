@@ -8,6 +8,7 @@ interface Props {
 }
 
 const { kind, eyebrow, title, description, showVisual = true } = Astro.props;
+const hasAside = !showVisual && Astro.slots.has('aside');
 const visualLabels = {
   cities: 'Komunitete kudo në botë',
   members: 'Ekspertizë që na lidh',
@@ -16,12 +17,13 @@ const visualLabels = {
   join: 'Gjej mënyrën tënde për t’u përfshirë',
 };
 ---
-<section class:list={['network-directory-hero', `network-directory-hero--${kind}`, {'network-directory-hero--no-visual': !showVisual}]}>
+<section class:list={['network-directory-hero', `network-directory-hero--${kind}`, {'network-directory-hero--no-visual': !showVisual && !hasAside}]}>
   <div class="container network-directory-hero-inner">
     <div class="network-directory-hero-copy">
       {eyebrow && <p class="eyebrow">{eyebrow}</p>}
       <h1>{title}</h1>
       <p>{description}</p>
+      {Astro.slots.has('default') && <div class="network-directory-hero-actions"><slot /></div>}
     </div>
     {showVisual && <div class="network-directory-visual" aria-hidden="true">
       <span class="visual-index">IB / 0{kind === 'cities' ? '1' : kind === 'members' ? '2' : kind === 'partners' ? '3' : kind === 'businesses' ? '4' : '5'}</span>
@@ -32,6 +34,7 @@ const visualLabels = {
       {kind === 'join' && <svg viewBox="0 0 440 300"><g class="join-path-lines"><path d="M55 65C128 65 134 150 220 150M55 150h165M55 235c73 0 79-85 165-85M385 65c-73 0-79 85-165 85M385 150H220M385 235c-73 0-79-85-165-85"/></g><g class="join-path-nodes"><circle cx="55" cy="65" r="7"/><circle cx="55" cy="150" r="7"/><circle cx="55" cy="235" r="7"/><circle cx="385" cy="65" r="7"/><circle cx="385" cy="150" r="7"/><circle cx="385" cy="235" r="7"/><circle cx="220" cy="150" r="30"/></g><path class="join-arrow" d="m208 150 9 9 17-19"/></svg>}
       <p>{visualLabels[kind]}</p>
     </div>}
+    {hasAside && <div class="network-directory-hero-aside"><slot name="aside" /></div>}
   </div>
 </section>
 
@@ -45,7 +48,7 @@ const visualLabels = {
   .network-directory-hero--no-visual .network-directory-hero-inner{grid-template-columns:1fr}
   .network-directory-hero-copy .eyebrow{margin:0 0 18px;color:var(--hero-tone)}
   .network-directory-hero-copy h1{max-width:700px;margin:0;font-size:clamp(52px,6.2vw,78px);font-weight:300;line-height:.96;letter-spacing:-.05em}
-  .network-directory-hero-copy>p:last-child{max-width:620px;margin:27px 0 0;color:rgba(255,255,255,.68);font-size:18px;line-height:1.72}
+  .network-directory-hero-copy>h1+p{max-width:620px;margin:27px 0 0;color:rgba(255,255,255,.68);font-size:18px;line-height:1.72}
   .network-directory-visual{position:relative;min-height:330px;overflow:hidden;border:1px solid rgba(255,255,255,.13);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));box-shadow:0 30px 65px rgba(0,0,0,.23),inset 0 1px rgba(255,255,255,.05)}
   .network-directory-visual::before{content:'';position:absolute;inset:12px;border:1px solid color-mix(in srgb,var(--hero-tone) 23%,transparent);border-radius:12px;pointer-events:none}
   .network-directory-visual svg{position:absolute;inset:35px 20px 38px;width:calc(100% - 40px);height:calc(100% - 73px);fill:none;stroke:var(--hero-tone);stroke-width:1.5}
@@ -54,5 +57,5 @@ const visualLabels = {
   .route{stroke-width:2}.route.faint{opacity:.28}.nodes{fill:var(--hero-tone);stroke:var(--night);stroke-width:4}.rings{opacity:.35}.connections{opacity:.48}.people{fill:rgba(255,255,255,.035);stroke-width:1.3}.cores{fill:var(--hero-tone);stroke:none}.partner-rings{fill:rgba(255,255,255,.018);stroke-width:1.4}.partner-rings circle:last-child{fill:color-mix(in srgb,var(--hero-tone) 18%,transparent)}.partner-axis{opacity:.18}.partner-nodes{fill:var(--hero-tone);stroke:none}.growth-line{stroke-width:3}.growth-fill{fill:color-mix(in srgb,var(--hero-tone) 10%,transparent);stroke:none}.growth-nodes{fill:var(--hero-tone);stroke:var(--night);stroke-width:4}.grid-line{opacity:.13;stroke-width:1}
   .join-path-lines{opacity:.55;stroke-width:1.7}.join-path-nodes{fill:var(--hero-tone);stroke:var(--night);stroke-width:4}.join-path-nodes circle:last-child{fill:color-mix(in srgb,var(--hero-tone) 20%,var(--night));stroke:var(--hero-tone);stroke-width:2}.join-arrow{stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
   @media(max-width:900px){.network-directory-hero{min-height:0;padding:78px 0}.network-directory-hero-inner{grid-template-columns:1fr;gap:48px}.network-directory-visual{min-height:300px}}
-  @media(max-width:600px){.network-directory-hero{padding:64px 0 68px}.network-directory-hero-inner{gap:38px}.network-directory-hero-copy h1{font-size:clamp(43px,13vw,57px)}.network-directory-hero-copy>p:last-child{margin-top:22px;font-size:16px}.network-directory-visual{min-height:245px;border-radius:14px}.network-directory-visual svg{inset:38px 12px 32px;width:calc(100% - 24px);height:calc(100% - 70px)}.network-directory-visual>p{right:22px;bottom:20px}}
+  @media(max-width:600px){.network-directory-hero{padding:64px 0 68px}.network-directory-hero-inner{gap:38px}.network-directory-hero-copy h1{font-size:clamp(43px,13vw,57px)}.network-directory-hero-copy>h1+p{margin-top:22px;font-size:16px}.network-directory-visual{min-height:245px;border-radius:14px}.network-directory-visual svg{inset:38px 12px 32px;width:calc(100% - 24px);height:calc(100% - 70px)}.network-directory-visual>p{right:22px;bottom:20px}}
 </style>

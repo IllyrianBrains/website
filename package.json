@@ -4,14 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs",
+    "predev": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs && node --env-file-if-exists=.env scripts/sync-supporters-sheet.mjs",
     "dev": "astro dev",
-    "prestart": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs",
+    "prestart": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs && node --env-file-if-exists=.env scripts/sync-supporters-sheet.mjs",
     "start": "astro dev",
-    "prebuild": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs",
+    "prebuild": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs && node --env-file-if-exists=.env scripts/sync-supporters-sheet.mjs",
     "build": "astro build",
     "preview": "astro preview",
-    "members:sync": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs"
+    "members:sync": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs",
+    "supporters:sync": "node --env-file-if-exists=.env scripts/sync-supporters-sheet.mjs"
   },
   "dependencies": {
     "astro": "^7.2.2",

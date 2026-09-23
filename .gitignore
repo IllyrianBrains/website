@@ -17,6 +17,9 @@ dist/
 src/data/members.json
 scripts/members-seed.csv
 
+# Same for the public Miqtë e Rrjetit list on /dhuro/ (scripts/sync-supporters-sheet.mjs).
+src/data/supporters.json
+
 # Env / editor / OS noise
 *.env
 .env

@@ -1,4 +1,5 @@
-/* Site-wide reading scale. Loaded last so page-specific layouts remain intact. */
+/* Site-wide reading scale. Loaded last so page-specific layouts remain intact.
+   Directory-page tweaks (members, cities, filters) live in directory.css, imported only by those pages. */
 :root {
   --muted: #57585e;
   --reading-width: 68ch;
@@ -25,7 +26,7 @@ h1, h2, h3 { text-wrap: balance; }
 }
 
 .tone-dark { color: rgba(255,255,255,.9); }
-.tone-dark :is(.about-body, .info-section-intro p, .info-body p, .info-body ul, .team-card p, .job-card p:last-child, .job-department, .network-proof-copy > p:last-child, .community-map-heading > p) {
+.tone-dark :is(.about-body, .info-section-intro p, .info-body p, .info-body ul, .network-proof-copy > p:last-child, .community-map-heading > p) {
   color: rgba(255,255,255,.78);
 }
 
@@ -38,102 +39,13 @@ h1, h2, h3 { text-wrap: balance; }
 
 .tagline { max-width: 58ch; line-height: 1.7; }
 .eyebrow { font-size: 12px; line-height: 1.5; }
-.hero-community > p,
-.profiles-note { font-size: 11px; line-height: 1.55; }
+.hero-community > p { font-size: 11px; line-height: 1.55; }
 .community-column span,
 .hero-community .community-column span { font-size: 13px; line-height: 1.4; }
 .network-stats span { font-size: 15px; line-height: 1.5; }
-.community-people-intro > span { font-size: 11px; }
-.profile-card > div strong { font-size: 14px; }
-.profile-card > div span { font-size: 12px; }
-.profile-card > div small { font-size: 11px; }
-
-.event-list-copy p,
-.event-card p,
-.professional-card p,
-.project-card p { font-size: 16px; line-height: 1.7; }
-.event-card h3,
-.professional-card h3 { line-height: 1.18; }
-.card-meta > span { font-size: 14px; }
-.card-meta > small,
-.session-tag,
-.access-note,
-.card-image-placeholder span { font-size: 11px; line-height: 1.4; }
-.mini-agenda li { font-size: 15px; line-height: 1.5; }
-.mini-agenda li::before { font-size: 12px; }
-.session-time { font-size: 14px; }
-.session-summary-text h3 { line-height: 1.25; }
-.session-summary-text p,
-.session-body p,
-.session-body li { font-size: 16px; line-height: 1.7; }
-.guest-role { font-size: 13px; }
-.guest-topic { font-size: 14px; line-height: 1.6; }
-.event-card ul.guest-list li.guest-item,
-.event-card ul:not(.mini-agenda) li { font-size: 14px; line-height: 1.55; }
 
 .about-body { max-width: var(--reading-width); font-size: 18px; line-height: 1.8; }
-.city-card { padding: 18px; }
-.city-card strong { font-size: 17px; line-height: 1.4; }
-.city-card span { font-size: 14px; line-height: 1.5; }
-.city-activities li { font-size: 15px; }
-.job-card p:last-child { font-size: 16px; line-height: 1.7; }
-.job-type, .job-department { font-size: 13px; }
 .recipe-column span { font-size: 16px; line-height: 1.65; }
-
-.member-search input,
-.member-filters select { min-height: 46px; font-size: 16px; }
-.result-count { font-size: 13px; }
-.member-card-role,
-.member-drawer-role { font-size: 15px; line-height: 1.5; }
-.member-pill,
-.member-tag { font-size: 13px; }
-.member-drawer-section h4 { font-size: 13px; }
-.member-drawer-section p { font-size: 16px; line-height: 1.7; }
-
-.visit-guide-nav a { font-size: 13px; line-height: 1.4; }
-.visit-guide-nav span,
-.visit-essential-grid article > span,
-.visit-stay-grid article > span,
-.visit-place-top,
-.visit-days article > span,
-.visit-faq-list summary > span { font-size: 11px; }
-.visit-essential-grid p,
-.visit-stay-grid p,
-.visit-place-grid p,
-.visit-days p { font-size: 15px; line-height: 1.75; }
-.visit-facts dt { font-size: 12px; }
-.visit-facts dd { font-size: 15px; }
-.visit-facts small { font-size: 12px; line-height: 1.55; }
-.visit-event-details span { font-size: 11px; }
-.visit-event-details strong,
-.visit-event-details a { font-size: 15px; }
-.visit-place-copy > a,
-.city-secret-copy a { font-size: 13px; }
-.city-secret-copy > span { font-size: 11px; }
-.city-secret-copy p { color: rgba(255,255,255,.76); font-size: 15px; line-height: 1.75; }
-.visit-faq-list details > p { font-size: 16px; line-height: 1.75; }
-.visit-event-cta a { min-height: 44px; font-size: 15px; }
-
-.organizer-callout span,
-.organizers-brief > span,
-.assembly-roles article > span,
-.exercise-top span,
-.exercise-top small,
-.exercise-label,
-.city-preparation-grid article > span,
-.proposal-grid article > span { font-size: 11px; line-height: 1.45; }
-.organizer-callout strong { font-size: 16px; }
-.organizer-reference-links a { font-size: 12px; }
-.assembly-roles p,
-.internal-agenda p,
-.exercise-selection-note p,
-.exercise-grid li,
-.city-preparation-grid p,
-.proposal-grid p,
-.followup-card li span { font-size: 15px; line-height: 1.7; }
-.internal-agenda time { font-size: 14px; }
-.internal-agenda .agenda-duration { font-size: 12px; }
-.followup-card li strong { font-size: 13px; }
 
 .footer-label { font-size: 12px; }
 .footer-column a { line-height: 1.55; }
@@ -147,9 +59,6 @@ h1, h2, h3 { text-wrap: balance; }
   .community-map-heading > p,
   .about-body { font-size: 17px; }
   .hero-community .community-column span { font-size: 11px; }
-  .card-meta { align-items: flex-start; flex-wrap: wrap; }
-  .card-meta > small { white-space: normal; }
-  .visit-guide-nav a { font-size: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
