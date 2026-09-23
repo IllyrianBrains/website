@@ -1,4 +1,4 @@
-// Builds src/data/supporters.json — the public "Miqtë e Rrjetit" list on /dhuro/ —
+// Builds src/data/supporters.json — the public "Mbështetësit e Rrjetit" list on /dhuro/ —
 // from a Google Sheet published to the web as CSV, same approach as
 // sync-members-sheet.mjs: the sheet is the only place donor data lives, this file
 // is regenerated on every dev/build and is gitignored.
@@ -9,7 +9,7 @@
 //
 // Expected header row (any order): name, city, type, since, public. One row per
 // donor, added once their first donation has actually arrived. Only rows with
-// type "mujor" (monthly donors — the Miqtë e Rrjetit) AND public "po" (they agreed
+// type "mujor" (monthly donors — the Mbështetësit e Rrjetit) AND public "po" (they agreed
 // to be named) are written out; everyone else is filtered here, so their names
 // never reach the public build. Any other columns (email, amount, notes…) are
 // deliberately not read and stay in the sheet.
@@ -67,7 +67,7 @@ function supportersFromCsv(text) {
 
 async function main() {
   if (!CSV_URL) {
-    console.warn('SUPPORTERS_SHEET_CSV_URL not set — writing an empty supporters.json. Set it in .env (locally) or as a repo secret (CI) to load the Miqtë e Rrjetit list.');
+    console.warn('SUPPORTERS_SHEET_CSV_URL not set — writing an empty supporters.json. Set it in .env (locally) or as a repo secret (CI) to load the Mbështetësit e Rrjetit list.');
     await writeFile(DATA_PATH, '[]\n');
     return;
   }

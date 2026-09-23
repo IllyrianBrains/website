@@ -18,7 +18,7 @@ const tierIntros = [
 // DRAFT benefits — confirm the network can commit to these before publishing.
 const donationOptions = [
   { id: 'nje-here', group: 'Dhuro një herë', title: 'Një herë', text: 'Një kontribut i vetëm, me çfarëdo shume. Na shkruaj dhe të dërgojmë të dhënat për pagesën.', action: 'Dhuro një herë', href: mailto(emailTemplates.donationOnce), benefits: ['Raporti i shpenzimeve në fund të vitit, direkt në email.'] },
-  { id: 'cdo-muaj', group: 'Miqtë e Rrjetit', title: 'Çdo muaj', text: 'Një transfertë e rregullt, edhe e vogël, na ndihmon të planifikojmë vitin dhe të mbështesim më shumë qytete.', action: 'Dhuro çdo muaj', href: mailto(emailTemplates.donationMonthly), disabled: true, benefits: ['Raporti i shpenzimeve në fund të vitit, direkt në email.', 'Buletin informativ çdo 6 muaj me lajmet e rrjetit: qytetet e reja, eventet dhe nismat që mbështet, si po ecin projektet si Atlas dhe Mentorimi, dhe çfarë kemi në plan për muajt në vijim.', 'Ftesë për takimet dhe eventet e rrjetit, në qytetin tënd dhe online.', 'Emri yt në listën e Miqve të Rrjetit në raportin vjetor, nëse dëshiron.'] },
+  { id: 'cdo-muaj', group: 'Mbështetësit e Rrjetit', title: 'Çdo muaj', text: 'Një transfertë e rregullt, edhe e vogël, na ndihmon të planifikojmë vitin dhe të mbështesim më shumë qytete.', action: 'Dhuro çdo muaj', href: mailto(emailTemplates.donationMonthly), disabled: true, benefits: ['Raporti i shpenzimeve në fund të vitit, direkt në email.', 'Buletin informativ çdo 6 muaj me lajmet e rrjetit: qytetet e reja, eventet dhe nismat që mbështet, si po ecin projektet si Atlas dhe Mentorimi, dhe çfarë kemi në plan për muajt në vijim.', 'Ftesë për takimet dhe eventet e rrjetit, në qytetin tënd dhe online.', 'Emri yt në listën e Mbështetësve të Rrjetit në raportin vjetor, nëse dëshiron.'] },
 ];
 const annualReportHref = 'https://forum.illyrianbrains.org/tag/raport-vjetor';
 
@@ -115,7 +115,7 @@ const principles = [
 
     <section class={`section ${tiers.length % 2 ? 'tone-white' : 'tone-grey'}`} id="miqte">
       <div class="container">
-        <SectionTitle kicker="Miqtë e Rrjetit" title="Faleminderit." text="Ata që e mbështesin rrjetin çdo muaj dhe kanë pranuar të përmenden këtu." />
+        <SectionTitle kicker="Mbështetësit e Rrjetit" title="Faleminderit." text="Ata që e mbështesin rrjetin çdo muaj dhe kanë pranuar të përmenden këtu." />
         {supporters.length > 0 ? (
           <ul class="supporters">
             {supporters.map(supporter => (
@@ -126,7 +126,7 @@ const principles = [
             ))}
           </ul>
         ) : (
-          <p class="supporters-empty">Lista po fillon. <a href="#dhuro">Bëhu një nga Miqtë e parë të Rrjetit →</a></p>
+          <p class="supporters-empty">Lista po fillon. <a href="#dhuro">Bëhu një nga Mbështetësit e parë të Rrjetit →</a></p>
         )}
       </div>
     </section>

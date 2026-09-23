@@ -18,7 +18,7 @@ export const emailTemplates = {
   },
   donationMonthly: {
     subject: 'Donacion mujor për Illyrian Brains',
-    body: 'Përshëndetje,\n\nDua të bëhem pjesë e Miqve të Rrjetit me një donacion mujor.\n\nEmri:\nShuma mujore (€):\nMuaji i fillimit:\nQyteti ku jetoj (për ftesat në evente):\nA dëshiron që emri yt të përmendet në listën e Miqve të Rrjetit në raportin vjetor? (po/jo):\n\nFaleminderit!',
+    body: 'Përshëndetje,\n\nDua të bëhem pjesë e Mbështetësve të Rrjetit me një donacion mujor.\n\nEmri:\nShuma mujore (€):\nMuaji i fillimit:\nQyteti ku jetoj (për ftesat në evente):\nA dëshiron që emri yt të përmendet në listën e Mbështetësve të Rrjetit në raportin vjetor? (po/jo):\n\nFaleminderit!',
   },
   membershipApply: {
     subject: 'Kërkesë për anëtarësim',

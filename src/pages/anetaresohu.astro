@@ -5,60 +5,64 @@ import Footer from '../components/Footer.astro';
 import NetworkDirectoryHero from '../components/NetworkDirectoryHero.astro';
 import { mailto, emailTemplates } from '../data/emails';
 
-// Three ways in, one section each: participants (incl. Miqtë e Rrjetit, monthly donors) need no membership;
-// members are the active volunteers, organizing a city or contributing to the network's teams.
+// Two sections, two roles each. Participants need no membership: a plain participant pays nothing
+// (can still donate), a Mbështetës supports the network yearly, either with a €50 or €100 donation through /dhuro/
+// or with the same €30 annual fee as members, paid through their registered city rather than the centre. Members are the active volunteers, organizing a city
+// or contributing to the network's teams.
 // Membership terms follow the Statute (nenet 8–10, 13); the €30 annual fee is set by the Board (neni 8.4).
 const applyAs = (role: string) => mailto({ ...emailTemplates.membershipApply, subject: `Kërkesë për anëtarësim — ${role}` });
-const feeNote = '<strong>Si fillon:</strong> apliko me LinkedIn-in tënd, Bordi e shqyrton, paguan kuotën. Student ose prind i ri? Kuota mund të ulet.';
 // Section icons (24×24, stroked with currentColor).
 const icons = {
   people: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-  pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
   layers: '<path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
 };
 
+// A card can override the section's accent colours (accent, bg).
 const ways = [
   {
     id: 'pjesemarresit', tone: 'tone-white', accent: '#744761', bg: '#faf7f9', icon: icons.people,
-    tag: 'Pa kuotë', title: 'Pjesëmarrësit.',
+    tag: 'Hapur për të gjithë', title: 'Pjesëmarrësit.',
     intro: 'Për të ardhur në takimet e qytetit nuk ke nevojë të jesh anëtar. Pjesëmarrësit janë zemra e komunitetit.',
     cards: [
-      { title: 'Çfarë bën', items: ['Vjen në takimet dhe eventet e qytetit tënd.', 'Njihesh me profesionistë shqiptarë pranë teje.', 'Ndjek lajmet dhe mundësitë e rrjetit.'] },
-      { title: 'Si e mbështet rrjetin', items: ['Dhuron një herë, kur të duash.', 'Bëhesh Mik i Rrjetit me një donacion mujor.', 'Fton miqtë në takimin e radhës.'] },
-    ],
-    actions: [
-      { label: 'Gjej qytetin tënd', href: '/qytetet/', style: 'primary' },
-      { label: 'Dhuro për rrjetin', href: '/dhuro/', style: 'outline' },
+      {
+        tag: 'Pa kuotë', title: 'Pjesëmarrës',
+        items: ['Vjen në takimet dhe eventet e qytetit tënd.', 'Njihesh me profesionistë shqiptarë pranë teje.', 'Dhuron kur të duash, sa të duash.'],
+        actions: [{ label: 'Shiko eventet', href: '/eventet/', style: 'primary' }],
+      },
+      {
+        tag: 'Vjetor', title: 'Mbështetës',
+        items: ['Vjen rregullisht në takimet e qytetit tënd.', 'Mbështet rrjetin me një donacion vjetor prej €50 ose €100.', 'Ose paguan kuotën vjetore prej €30 te qyteti yt, nëse është i regjistruar në rrjet.'],
+        actions: [{ label: 'Dhuro', href: '/dhuro/', style: 'primary' }],
+      },
     ],
   },
   {
-    id: 'organizatoret', tone: 'tone-grey', accent: '#397b72', bg: '#f2faf8', icon: icons.pin,
-    tag: 'Anëtarësi · €30 / vit', title: 'Anëtarë organizatorë.',
-    intro: 'Organizatorët e mbajnë gjallë komunitetin në qytetin e tyre — takim pas takimi.',
+    id: 'anetaret', tone: 'tone-grey', accent: '#397b72', bg: '#f2faf8', icon: icons.layers,
+    tag: 'Anëtarësi · €30 / vit', title: 'Anëtarët.',
+    intro: 'Anëtarët janë vullnetarët aktivë të rrjetit, me vend dhe votë në Asamblenë e Përgjithshme.',
     cards: [
-      { title: 'Çfarë bën', items: ['Organizon takimet dhe eventet në qytet.', 'Ndërton dhe drejton ekipin lokal.', 'Përfaqëson Illyrian Brains në qytetin tënd.'] },
-      { title: 'Çfarë merr', items: ['Vend dhe votë në Asamblenë e Përgjithshme.', 'Mbështetje nga OJF-ja për ambientin, materialet dhe të ftuarit.', 'Lidhje me organizatorët e qyteteve të tjera.'] },
+      {
+        tag: 'Në qytet', title: 'Organizator',
+        items: ['Organizon takimet dhe eventet në qytet.', 'Ndërton dhe drejton ekipin lokal.', 'Merr mbështetje nga OJF-ja për ambientin, materialet dhe të ftuarit.'],
+        actions: [{ label: 'Apliko si organizator', href: applyAs('Organizator'), style: 'primary' }],
+      },
+      {
+        tag: 'Nga kudo', title: 'Kontribues', accent: '#6b5aa8', bg: '#f7f5fc',
+        items: ['Punon në një nga <a href="/ekipet/">ekipet e rrjetit</a>.', 'Kontribuon në projekte si Atlas, Mentorimi ose Heritage.', 'Punon nga kudo, në kohën që ke.'],
+        actions: [{ label: 'Apliko si kontribues', href: applyAs('Kontribues'), style: 'primary' }],
+      },
     ],
-    actions: [{ label: 'Apliko si organizator', href: applyAs('Organizator'), style: 'primary' }],
-    notes: [feeNote, 'Qyteti yt nuk është ende në rrjet? <a href="/qytetet/#shto-qytet">Propozoje si qytet të ri</a>.'],
-  },
-  {
-    id: 'kontribuesit', tone: 'tone-white', accent: '#6b5aa8', bg: '#f7f5fc', icon: icons.layers,
-    tag: 'Anëtarësi · €30 / vit', title: 'Anëtarë kontribues.',
-    intro: 'Kontribuesit sjellin ekspertizën e tyre në ekipet dhe projektet e rrjetit, nga kudo që janë.',
-    cards: [
-      { title: 'Çfarë bën', items: ['Punon në një nga <a href="/ekipet/">ekipet e rrjetit</a>.', 'Kontribuon në projekte si Atlas, Mentorimi ose Heritage.', 'Kontribuon nga kudo, në kohën që ke.'] },
-      { title: 'Çfarë merr', items: ['Vend dhe votë në Asamblenë e Përgjithshme.', 'Përvojë në projekte me ndikim për komunitetin.', 'Lidhje me profesionistë nga i gjithë rrjeti.'] },
+    notes: [
+      '<strong>Si fillon:</strong> apliko me LinkedIn-in tënd, Bordi e shqyrton, paguan kuotën. Student ose prind i ri? Kuota mund të ulet.',
+      'Qyteti yt nuk është ende në rrjet? <a href="/qytetet/#shto-qytet">Propozoje si qytet të ri</a>.',
     ],
-    actions: [{ label: 'Apliko si kontribues', href: applyAs('Kontribues'), style: 'primary' }],
-    notes: [feeNote],
   },
 ];
 ---
 <BaseLayout title="Bashkohu · Illyrian Brains" description="Bashkohu me rrjetin Illyrian Brains si pjesëmarrës, si organizator në qytetin tënd ose si kontribues në ekipet e rrjetit.">
   <Header />
   <main>
-    <NetworkDirectoryHero kind="join" eyebrow="Bëhu pjesë e rrjetit" title="Bashkohu." description="Si pjesëmarrës, si organizator në qytetin tënd ose si kontribues në ekipet e rrjetit — ndërto diçka me një komunitet shqiptar pa kufij." showVisual={false} />
+    <NetworkDirectoryHero kind="join" eyebrow="Bëhu pjesë e rrjetit" title="Bashkohu." description="Si pjesëmarrës në qytetin tënd ose si anëtar aktiv i rrjetit — ndërto diçka me një komunitet shqiptar pa kufij." showVisual={false} />
 
     {ways.map(way => (
       <section class:list={['section', way.tone]} id={way.id} style={`--way-accent: ${way.accent}; --way-bg: ${way.bg}`}>
@@ -73,20 +77,19 @@ const ways = [
           </header>
           <div class="way-cards">
             {way.cards.map(card => (
-              <article class="way-card">
+              <article class="way-card" style={card.accent && `--way-accent: ${card.accent}; --way-bg: ${card.bg}`}>
+                <p class="way-tag">{card.tag}</p>
                 <h3>{card.title}</h3>
                 <ul>{card.items.map(item => <li set:html={item} />)}</ul>
+                <div class="way-actions">
+                  {card.actions.map(action => (
+                    <a class:list={['join-btn', `join-btn--${action.style}`]} href={action.href}>{action.label} <span aria-hidden="true">→</span></a>
+                  ))}
+                </div>
               </article>
             ))}
           </div>
-          <div class="way-footer">
-            <div class="way-actions">
-              {way.actions.map(action => (
-                <a class:list={['join-btn', `join-btn--${action.style}`]} href={action.href}>{action.label} <span aria-hidden="true">→</span></a>
-              ))}
-            </div>
-            {way.notes && <div class="way-notes">{way.notes.map(note => <p set:html={note} />)}</div>}
-          </div>
+          {way.notes && <div class="way-notes">{way.notes.map(note => <p set:html={note} />)}</div>}
         </div>
       </section>
     ))}
@@ -100,15 +103,16 @@ const ways = [
   .way-icon svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .way-tag{margin:0;padding:6px 12px;border-radius:999px;color:#fff;background:var(--way-accent);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
   .way-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
-  .way-card{padding:38px 36px;border:1px solid color-mix(in srgb,var(--way-accent) 22%,var(--line));border-top:4px solid var(--way-accent);border-radius:14px;background:linear-gradient(160deg,var(--way-bg),#fff 65%);box-shadow:0 12px 30px rgba(23,24,29,.04)}
+  .way-card{display:flex;flex-direction:column;align-items:flex-start;padding:38px 36px;border:1px solid color-mix(in srgb,var(--way-accent) 22%,var(--line));border-top:4px solid var(--way-accent);border-radius:14px;background:linear-gradient(160deg,var(--way-bg),#fff 65%);box-shadow:0 12px 30px rgba(23,24,29,.04)}
   .way-card h3{margin:0 0 26px;font-size:clamp(24px,2.2vw,29px);font-weight:400;line-height:1.1}
   .way-card ul{display:grid;gap:16px;margin:0;padding:0;list-style:none}
   .way-card li{position:relative;padding-left:30px;color:var(--muted);font-size:15px;line-height:1.6}
   .way-card li::before{content:'✓';position:absolute;left:0;top:.1em;display:grid;place-items:center;width:19px;height:19px;border-radius:50%;color:var(--way-accent);background:color-mix(in srgb,var(--way-accent) 13%,#fff);font-size:11px;font-weight:800;line-height:1}
-  .way-card :global(a),.way-notes :global(a){color:var(--way-accent);font-weight:700}
-  .way-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px 40px;margin-top:40px}
-  .way-actions{display:flex;flex-wrap:wrap;gap:14px}
-  .way-notes{display:grid;gap:8px;max-width:560px}
+  .way-card .way-tag{margin-bottom:20px}
+  .way-card ul{align-self:stretch}
+  .way-card li :global(a),.way-notes :global(a){color:var(--way-accent);font-weight:700}
+  .way-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:auto;padding-top:32px}
+  .way-notes{display:grid;gap:8px;max-width:640px;margin-top:36px}
   .way-notes p{margin:0;color:var(--muted);font-size:15px;line-height:1.6}
   .way-notes :global(strong){color:var(--ink)}
   /* Buttons: primary (main action) and outline (secondary), in the section's accent colour. */
