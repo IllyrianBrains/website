@@ -60,4 +60,4 @@ function partnersFromCsv(text: string): Partner[] {
   });
 }
 
-export const partners: Partner[] = partnersFromCsv(rawPartners);
+export const partners: Partner[] = partnersFromCsv(rawPartners).sort((a, b) => a.name.localeCompare(b.name, 'sq'));

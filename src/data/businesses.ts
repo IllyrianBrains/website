@@ -84,4 +84,4 @@ function businessesFromCsv(text: string): Business[] {
   });
 }
 
-export const businesses: Business[] = businessesFromCsv(rawBusinesses);
+export const businesses: Business[] = businessesFromCsv(rawBusinesses).sort((a, b) => a.name.localeCompare(b.name, 'sq'));
