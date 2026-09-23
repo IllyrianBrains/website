@@ -49,17 +49,20 @@ export const fundingTiers: FundingTier[] = [
   ] },
 ];
 
-export interface ImpactExample {
-  /** In EUR. */
-  amount: number;
+export interface DonationItem {
+  id: string;
+  title: string;
   text: string;
+  /** Standard price in EUR. */
+  amount: number;
 }
 
-// DRAFT — illustrative figures, confirm against real costs before publishing.
-export const impactExamples: ImpactExample[] = [
-  { amount: 25, text: 'mbulon materialet për një takim të një qyteti.' },
-  { amount: 100, text: 'ndihmon një qytet të ri të organizojë eventin e parë.' },
-  { amount: 250, text: 'mban mjetet dhe infrastrukturën e rrjetit për disa muaj.' },
+// DRAFT — standard prices for things a donor can pay for directly; confirm against real costs before publishing.
+export const donationItems: DonationItem[] = [
+  { id: 'faqja', title: 'Faqja e rrjetit', text: 'Domenet, mirëmbajtja dhe mjetet online që mbajnë gjallë illyrianbrains.org dhe projektet.', amount: 250 },
+  { id: 'ambienti', title: 'Ambienti për një takim', text: 'Qiraja e një salle për një takim qyteti.', amount: 250 },
+  { id: 'social-media', title: 'Mjete për ekipin e Social Media', text: 'Programet dhe mjetet që ekipi përdor për të ndarë lajmet dhe eventet e rrjetit.', amount: 250 },
+  { id: 'event-me-te-ftuar', title: 'Event me të ftuar', text: 'Udhëtimi dhe logjistika për të sjellë një të ftuar në një event qyteti.', amount: 250 },
 ];
 
 export interface LedgerEntry {

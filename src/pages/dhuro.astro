@@ -4,7 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import SectionTitle from '../components/SectionTitle.astro';
 import NetworkDirectoryHero from '../components/NetworkDirectoryHero.astro';
-import { fundingTiers, impactExamples } from '../data/donations';
+import { fundingTiers, donationItems } from '../data/donations';
 import { mailto, emailTemplates } from '../data/emails';
 import { supporters } from '../data/supporters';
 
@@ -35,20 +35,14 @@ const principles = [
 <BaseLayout title="Dhuro · Illyrian Brains" description="Mbështet Illyrian Brains me një donacion transparent.">
   <Header />
   <main>
-    <p class="construction-notice">Faqja është në përpunim — disa detaje mund të ndryshojnë.</p>
-    <NetworkDirectoryHero kind="join" eyebrow="Mbështet rrjetin" title="Dhuro." description="Na shkruaj dhe të dërgojmë të dhënat për pagesën. Çdo vit raportojmë si u përdorën donacionet." showVisual={false}>
+    <p class="construction-notice">Faqja është në përpunim. Disa detaje mund të ndryshojnë.</p>
+    <NetworkDirectoryHero kind="join" eyebrow="Mbështet rrjetin" title="Dhuro." description="Kontributi yt ndihmon qytetet, eventet dhe projektet e rrjetit të profesionistëve shqiptarë kudo në botë. Çdo donacion raportohet publikisht në raportin tonë vjetor." showVisual={false}>
       <a class="hero-donate" href="#dhuro">Dhuro <span aria-hidden="true">↓</span></a>
-      <div class="hero-impact" slot="aside">
-        <p class="hero-impact-title">Çfarë mundëson donacioni yt</p>
-        <ul>
-          {impactExamples.map(example => <li><strong>{euro(example.amount)}</strong> {example.text}</li>)}
-        </ul>
-      </div>
     </NetworkDirectoryHero>
 
     <section class="section tone-white" id="transparenca">
       <div class="container">
-        <SectionTitle kicker="Transparenca" title="Një rrjet vullnetarësh." text="Mbështetemi te tarifat e anëtarësimit dhe te donacionet. Rregullat më poshtë vlejnë nga tetori 2026." />
+        <SectionTitle kicker="Transparenca" title="Një rrjet vullnetarësh." text="Deri tani rrjeti nuk ka pasur shpenzime të veçanta — gjithçka është mbuluar nga kontributet e anëtarëve. Nga tetori 2026 mbështetemi te tarifat e anëtarësimit dhe te donacionet, sipas rregullave më poshtë." />
         <div class="focus-card">
           <ul>{principles.map(principle => <li>{principle}</li>)}</ul>
         </div>
@@ -105,7 +99,23 @@ const principles = [
       </div>
     </section>
 
-    <section class={`section ${tiers.length % 2 ? 'tone-grey' : 'tone-white'}`} id="miqte">
+    <section class={`section ${tiers.length % 2 ? 'tone-grey' : 'tone-white'}`} id="cmimet">
+      <div class="container">
+        <SectionTitle kicker="Çfarë mund të mbështesësh" title="Dhuro për diçka konkrete." text="Zgjidh një nga këto dhe e përdorim pikërisht për të. Çmimet janë mesatare dhe mund të ndryshojnë nga qyteti në qytet." />
+        <ul class="donation-items">
+          {donationItems.map(item => (
+            <li>
+              <strong>{euro(item.amount)}</strong>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+              <a href={mailto({ subject: `Donacion: ${item.title}`, body: `Përshëndetje,\n\nDua të mbështes: ${item.title} (${euro(item.amount)}).\n\nEmri:\nMënyra e pagesës (transfertë bankare / tjetër):\nA dëshiron që emri yt të përmendet në raportin vjetor? (po/jo):\n\nFaleminderit!` })}>Dhuro <span aria-hidden="true">→</span></a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class={`section ${tiers.length % 2 ? 'tone-white' : 'tone-grey'}`} id="miqte">
       <div class="container">
         <SectionTitle kicker="Miqtë e Rrjetit" title="Faleminderit." text="Ata që e mbështesin rrjetin çdo muaj dhe kanë pranuar të përmenden këtu." />
         {supporters.length > 0 ? (
@@ -129,10 +139,12 @@ const principles = [
   /* Slotted into NetworkDirectoryHero. */
   :global(.hero-donate) { display: inline-flex; align-items: center; gap: 14px; margin-top: 34px; padding: 17px 28px; border-radius: 8px; color: var(--ink); background: #fff; font-size: 17px; font-weight: 700; box-shadow: 0 12px 30px rgba(0,0,0,.28); transition: transform .2s ease, background-color .2s ease; }
   :global(.hero-donate:hover) { transform: translateY(-2px); background: #f1e6ec; }
-  :global(.hero-impact-title) { margin: 0 0 14px; color: rgba(255,255,255,.55); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-  :global(.hero-impact ul) { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
-  :global(.hero-impact li) { padding: 18px 20px; border: 1px solid rgba(255,255,255,.13); border-radius: 14px; color: rgba(255,255,255,.68); background: rgba(255,255,255,.05); line-height: 1.55; }
-  :global(.hero-impact strong) { display: block; margin-bottom: 2px; color: #fff; font-size: 24px; font-weight: 600; }
+  .donation-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin: 32px 0 0; padding: 0; list-style: none; }
+  .donation-items li { display: flex; flex-direction: column; padding: 24px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+  .donation-items strong { color: var(--accent); font-size: 28px; font-weight: 600; }
+  .donation-items h3 { margin: 8px 0 6px; font-size: 18px; font-weight: 600; }
+  .donation-items p { flex: 1; margin: 0; color: var(--muted); font-size: 15px; line-height: 1.55; }
+  .donation-items a { margin-top: 16px; color: var(--accent); font-size: 14px; font-weight: 700; }
   .supporters { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 32px 0 0; padding: 0; list-style: none; }
   .supporters li { padding: 16px 20px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
   .supporters strong { display: block; color: var(--ink); font-weight: 600; }
