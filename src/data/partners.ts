@@ -37,6 +37,8 @@ export interface Partner {
   relatedMembers: string[];
   /** Network cities this organization is active in or connected to, beyond its base city. */
   relatedCities: string[];
+  /** Other partner NGOs (by name) this one collaborates with. Listing it on one side is enough. */
+  relatedPartners: string[];
   // Derived from the semicolon-separated `collaborations` CSV column, validated
   // against collaborationTypeOptions.
   collaborationTypes: string[];
@@ -60,6 +62,7 @@ function partnersFromCsv(text: string): Partner[] {
       sponsor: ['true', 'yes', '1'].includes(col('sponsor').toLowerCase()),
       relatedMembers: col('relatedMembers').split(';').map(value => value.trim()).filter(Boolean),
       relatedCities: col('relatedCities').split(';').map(value => value.trim()).filter(Boolean),
+      relatedPartners: col('relatedPartners').split(';').map(value => value.trim()).filter(Boolean),
       collaborationTypes: col('collaborations').split(';').map(c => c.trim()).filter(c => collaborationTypeOptions.includes(c)),
     };
   });

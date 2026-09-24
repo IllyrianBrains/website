@@ -13,8 +13,10 @@ import { members } from '../data/members';
 
 const categories = Object.entries(partnerCategoryLabels).map(([id, label]) => ({ id, label }));
 const memberByUsername = new Map(members.map(member => [member.username, member]));
+const partnerId = (name: string) => `partner-${partners.findIndex(partner => partner.name === name)}`;
 const graphPartners = partners.map((partner, index) => ({
   id: `partner-${index}`,
+  peers: partner.relatedPartners.filter(name => partners.some(other => other.name === name)).map(partnerId),
   label: partner.name,
   category: partner.category,
   categories: partner.categories,
