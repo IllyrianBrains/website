@@ -20,7 +20,10 @@ export const collaborationTypeOptions = ['Rrjetezim', 'Projekt i perbashket', 'E
 
 export interface Partner {
   name: string;
+  /** Main category — the first one listed in the CSV. */
   category: PartnerCategory;
+  /** All categories, from the semicolon-separated `category` CSV column (e.g. "advocacy;diaspora"). */
+  categories: PartnerCategory[];
   type: 'partner' | 'ngo';
   city?: string;
   description: string;
@@ -41,10 +44,12 @@ export interface Partner {
 
 function partnersFromCsv(text: string): Partner[] {
   return csvRows(text).map(({ col }) => {
-    const category = col('category').toLowerCase();
+    const categories = col('category').toLowerCase().split(';').map(value => value.trim()).filter((value): value is PartnerCategory => value in partnerCategoryLabels);
+    if (categories.length === 0) categories.push('advocacy');
     return {
       name: col('name'),
-      category: (category === 'education' || category === 'culture' || category === 'environment' || category === 'diaspora') ? category : 'advocacy',
+      category: categories[0],
+      categories,
       type: col('type').toLowerCase() === 'ngo' ? 'ngo' : 'partner',
       city: col('city') || undefined,
       description: col('description'),
