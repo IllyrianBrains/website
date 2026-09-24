@@ -2,13 +2,14 @@ import rawBusinesses from './businesses.csv?raw';
 import { csvRows } from './csv';
 import { offers } from './offers';
 
-export type BusinessCategory = 'technology' | 'architecture' | 'health' | 'finance' | 'other';
+export type BusinessCategory = 'technology' | 'architecture' | 'health' | 'finance' | 'business-development' | 'other';
 
 export const businessCategoryLabels: Record<BusinessCategory, string> = {
   technology: 'Teknologji',
   architecture: 'Arkitekturë & Dizajn',
   health: 'Shëndetësi',
   finance: 'Financa & Kontabilitet',
+  'business-development': 'Zhvillim biznesi',
   other: 'Tjetër',
 };
 
@@ -55,7 +56,7 @@ for (const offer of offers) {
   offerTypesByBusiness.set(offer.business, types);
 }
 
-const businessCategoryValues: BusinessCategory[] = ['technology', 'architecture', 'health', 'finance'];
+const businessCategoryValues: BusinessCategory[] = ['technology', 'architecture', 'health', 'finance', 'business-development'];
 
 function businessesFromCsv(text: string): Business[] {
   return csvRows(text).map(({ col }) => {
