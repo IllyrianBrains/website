@@ -42,10 +42,16 @@ const graphMembers = members.map(member => ({
       if(member.city){const city=`city:${member.city}`;addNode(city,member.city,'city');addEdge(person,city)}
       member.expertise.forEach((name:string)=>{const expertise=`expertise:${name}`;addNode(expertise,name,'expertise');addEdge(person,expertise)})
     });
+    // Size each city/expertise node by how many members it has — area proportional to the count
+    // (so side length follows its square root), otherwise the biggest one would dwarf the graph.
+    const memberCounts=new Map<string,number>();elements.forEach(element=>{const target=element.data.target;if(target)memberCounts.set(target,(memberCounts.get(target)||0)+1)});
+    elements.forEach(element=>{if(element.data.type==='city'||element.data.type==='expertise')element.data.size=Math.sqrt(memberCounts.get(element.data.id)||1)});
+    const maxSize=(type:string)=>Math.max(1.01,...elements.filter(element=>element.data.type===type).map(element=>element.data.size));
+    const maxCitySize=maxSize('city'),maxExpertiseSize=maxSize('expertise');
     const cy=cytoscape({container,elements,style:[
       {selector:'node',style:{label:'data(label)','font-family':'Inter, sans-serif','font-size':8,'text-wrap':'wrap','text-max-width':75,'text-valign':'bottom','text-margin-y':7,'color':'#505158','background-color':'#744761','width':13,'height':13}},
-      {selector:'node[type="city"]',style:{'background-color':'#293f52','shape':'diamond','width':25,'height':25,'font-size':10,'font-weight':700,'color':'#293f52'}},
-      {selector:'node[type="expertise"]',style:{'background-color':'#b58ca1','shape':'round-rectangle','width':34,'height':24,'font-size':11,'font-weight':700,'color':'#744761'}},
+      {selector:'node[type="city"]',style:{'background-color':'#293f52','shape':'diamond','width':`mapData(size, 1, ${maxCitySize}, 25, 70)`,'height':`mapData(size, 1, ${maxCitySize}, 25, 70)`,'font-size':`mapData(size, 1, ${maxCitySize}, 10, 14)`,'font-weight':700,'color':'#293f52'}},
+      {selector:'node[type="expertise"]',style:{'background-color':'#b58ca1','shape':'round-rectangle','width':`mapData(size, 1, ${maxExpertiseSize}, 34, 110)`,'height':`mapData(size, 1, ${maxExpertiseSize}, 24, 78)`,'font-size':`mapData(size, 1, ${maxExpertiseSize}, 11, 16)`,'font-weight':700,'color':'#744761'}},
       {selector:'edge',style:{width:.8,'line-color':'#c8bdc3','curve-style':'bezier','opacity':.55}},
       {selector:'.faded',style:{opacity:.1}},
       {selector:'.focused',style:{'border-width':3,'border-color':'#e1bdcf','z-index':10}},
