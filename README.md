@@ -26,7 +26,7 @@ Most content lives in `src/data/`. Edit the data, not the components:
 | What | Where |
 | --- | --- |
 | Cities | `cities.csv`, per-city posts in `cities-content/*.html` |
-| NGO partners / businesses | `partners.csv`, `businesses.csv` |
+| NGO partners / businesses | Supabase `organizations` table (see `supabase/006-organizations.sql`) |
 | Ideas (Ndaj Ide) | `ideas.json` (descriptions are Markdown) |
 | Volunteer roles | `jobs.ts` |
 | Statute | `statuti.ts` |

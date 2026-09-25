@@ -34,7 +34,12 @@ jobs:
           node-version: 22
         env:
           MEMBERS_SHEET_CSV_URL: ${{ secrets.MEMBERS_SHEET_CSV_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           SUPPORTERS_SHEET_CSV_URL: ${{ secrets.SUPPORTERS_SHEET_CSV_URL }}
+      # Unit tests + checks on the built dist/ (broken links, leaked keys); a failure stops the deploy.
+      - name: Test
+        run: npm test
 
   deploy:
     needs: build

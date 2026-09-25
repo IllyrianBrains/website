@@ -2,7 +2,7 @@
 // quoted fields (commas/newlines/escaped "" inside quotes), which plain split(',')
 // doesn't; none of this project's CSVs currently need that, but a spreadsheet app
 // re-saving a file may well add quoting, so this stays defensive rather than
-// assuming none. Shared by cities.ts, businesses.ts and partners.ts.
+// assuming none. Shared by cities.ts, offers.ts and donations.ts.
 export function parseCsv(text: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];

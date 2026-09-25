@@ -1,0 +1,127 @@
+---
+// Homepage slider of member profiles — shows visitors that there's a real,
+// growing membership behind the network. Only approved members with a photo;
+// the order is shuffled in the browser on every visit.
+import { directoryMembers } from '../data/members';
+
+const withPhoto = directoryMembers.filter(member => member.avatar);
+const cityCount = new Set(directoryMembers.map(member => member.city).filter(Boolean)).size;
+const badge = (member: typeof withPhoto[number]) =>
+  member.teams?.find(team => team.role === 'Drejtues') ? `Drejtues · ${member.teams.find(team => team.role === 'Drejtues')!.name}`
+  : member.teams?.length ? (member.teams[0].slug === 'bordi' ? member.teams[0].name : `Ekipi ${member.teams[0].name}`)
+  : member.membershipType === 'Organizator' ? 'Organizator'
+  : member.membershipType;
+---
+{withPhoto.length > 0 && (
+  <section class="section tone-white member-slider-section" aria-labelledby="member-slider-title">
+    <div class="container">
+      <header class="member-slider-heading">
+        <div>
+          <p class="eyebrow">Anëtarët e rrjetit</p>
+          <h2 id="member-slider-title">Njerëzit që e bëjnë rrjetin.</h2>
+        </div>
+        <div>
+          <p><strong>{directoryMembers.length} anëtarë</strong> në <strong>{cityCount} qytete</strong> — profesionistë shqiptarë që ndajnë përvojën, njohuritë dhe kohën e tyre me komunitetin.</p>
+          <div class="member-slider-actions">
+            <a class="member-slider-link" href="/anetaret/">Shiko të gjithë anëtarët <span aria-hidden="true">→</span></a>
+            <a class="member-slider-link member-slider-link--primary" href="/anetaresohu/regjistrohu/">Regjistrohu <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </header>
+
+      <div class="member-slider" data-member-slider>
+        <button class="member-slider-arrow member-slider-prev" type="button" aria-label="Profilet e mëparshme" data-slide="-1">←</button>
+        <ul class="member-slider-track" data-track aria-label="Profile anëtarësh">
+          {withPhoto.map(member => (
+            <li>
+              <a class="member-slide" href={`/anetaret/?search=${encodeURIComponent(member.username)}`}>
+                <img src={member.avatar} alt="" loading="lazy" decoding="async" width="64" height="64" />
+                <span class="member-slide-body">
+                  <strong>{member.name}</strong>
+                  {(member.title || member.company) && <span class="member-slide-role">{member.title || member.company}</span>}
+                  {member.fieldsOfExpertise?.length ? <span class="member-slide-profession">{member.fieldsOfExpertise.join(' · ')}</span> : null}
+                  <span class="member-slide-meta">
+                    {member.city && <span>{member.city}</span>}
+                    {badge(member) && <span class="member-slide-badge">{badge(member)}</span>}
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <button class="member-slider-arrow member-slider-next" type="button" aria-label="Profilet e tjera" data-slide="1">→</button>
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-member-slider]').forEach(slider => {
+    const track = slider.querySelector<HTMLElement>('[data-track]')!;
+    // Shuffle so every visit shows different faces first.
+    const items = [...track.children];
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    // With scroll-snap on, the browser would follow the previously snapped
+    // card to its new position; turn snapping off while reordering.
+    track.style.scrollSnapType = 'none';
+    track.replaceChildren(...items);
+    track.scrollLeft = 0;
+    requestAnimationFrame(() => { track.style.scrollSnapType = ''; });
+
+    const step = () => (track.firstElementChild as HTMLElement | null)?.getBoundingClientRect().width || 260;
+    const slide = (direction: number) => {
+      const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+      if (direction > 0 && atEnd) track.scrollTo({ left: 0, behavior: 'smooth' });
+      else track.scrollBy({ left: direction * (step() + 12), behavior: 'smooth' });
+    };
+    slider.querySelectorAll<HTMLElement>('[data-slide]').forEach(button => button.addEventListener('click', () => slide(Number(button.dataset.slide))));
+
+    // Gentle auto-advance, paused while the visitor is looking at or using it.
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let paused = false;
+    ['mouseenter', 'focusin', 'touchstart'].forEach(type => slider.addEventListener(type, () => { paused = true; }, { passive: true }));
+    ['mouseleave', 'focusout'].forEach(type => slider.addEventListener(type, () => { paused = false; }));
+    setInterval(() => { if (!paused && !document.hidden) slide(1); }, 3500);
+  });
+</script>
+
+<style>
+  .member-slider-section { overflow: hidden; }
+  .member-slider-heading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 460px); gap: 24px 60px; align-items: end; margin-bottom: 40px; }
+  .member-slider-heading h2 { margin: 0; font-size: clamp(38px, 5vw, 58px); font-weight: 400; line-height: 1.02; letter-spacing: -.04em; }
+  .member-slider-heading p:not(.eyebrow) { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
+  .member-slider-heading strong { color: var(--ink); }
+  .member-slider-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+  .member-slider-link { display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font-size: 14px; font-weight: 700; text-decoration: none; transition: border-color .2s ease, transform .2s ease; }
+  .member-slider-link:hover { border-color: var(--accent-dark); transform: translateY(-2px); }
+  .member-slider-link--primary { border-color: var(--accent-dark); color: #fff; background: var(--accent-dark); }
+
+  .member-slider { position: relative; }
+  /* Three-row gallery that scrolls sideways: items fill column by column. */
+  .member-slider-track { display: grid; grid-template-rows: repeat(3, auto); grid-auto-flow: column; grid-auto-columns: clamp(240px, 24vw, 280px); gap: 12px; margin: 0; padding: 4px 2px 18px; overflow-x: auto; list-style: none; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .member-slider-track::-webkit-scrollbar { display: none; }
+  .member-slider-track > li { min-width: 0; scroll-snap-align: start; }
+  .member-slide { display: flex; align-items: center; gap: 12px; height: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); text-decoration: none; box-shadow: 0 6px 18px rgba(23,24,29,.04); transition: transform .2s ease, box-shadow .2s ease; }
+  .member-slide:hover, .member-slide:focus-visible { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(23,24,29,.09); }
+  .member-slide img { flex: 0 0 64px; width: 64px; height: 64px; border-radius: 10px; object-fit: cover; background: var(--soft); }
+  .member-slide-body { display: grid; gap: 2px; min-width: 0; }
+  .member-slide-body strong { overflow: hidden; font-size: 14px; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+  .member-slide-role, .member-slide-profession { overflow: hidden; color: var(--muted); font-size: 12px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+  .member-slide-profession { color: var(--accent-dark); font-weight: 600; }
+  .member-slide-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 2px; color: var(--muted); font-size: 11px; font-weight: 600; }
+  .member-slide-badge { padding: 3px 8px; border-radius: 999px; background: rgba(180,138,45,.16); color: #8a6415; }
+
+  .member-slider-arrow { position: absolute; top: calc(50% - 31px); z-index: 2; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%; background: #fff; color: var(--ink); font-size: 18px; cursor: pointer; box-shadow: 0 8px 20px rgba(23,24,29,.12); }
+  .member-slider-arrow:hover { border-color: var(--accent-dark); color: var(--accent-dark); }
+  .member-slider-prev { left: -14px; }
+  .member-slider-next { right: -14px; }
+
+  @media (max-width: 800px) {
+    .member-slider-heading { grid-template-columns: 1fr; }
+    .member-slider-track { grid-auto-columns: 78vw; }
+    .member-slider-arrow { display: none; }
+  }
+</style>

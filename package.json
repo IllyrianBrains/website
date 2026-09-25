@@ -1,20 +1,24 @@
 {
-  "name": "ib-global-conference",
+  "name": "illyrian-brains-website",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs && node --env-file-if-exists=.env scripts/sync-supporters-sheet.mjs",
+    "predev": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs && node --env-file-if-exists=.env scripts/sync-members-supabase.mjs && node --env-file-if-exists=.env scripts/sync-ideas-supabase.mjs && node --env-file-if-exists=.env scripts/sync-organizations-supabase.mjs && node --env-file-if-exists=.env scripts/sync-supporters-sheet.mjs",
     "dev": "astro dev",
-    "prestart": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs && node --env-file-if-exists=.env scripts/sync-supporters-sheet.mjs",
+    "prestart": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs && node --env-file-if-exists=.env scripts/sync-members-supabase.mjs && node --env-file-if-exists=.env scripts/sync-ideas-supabase.mjs && node --env-file-if-exists=.env scripts/sync-organizations-supabase.mjs && node --env-file-if-exists=.env scripts/sync-supporters-sheet.mjs",
     "start": "astro dev",
-    "prebuild": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs && node --env-file-if-exists=.env scripts/sync-supporters-sheet.mjs",
+    "prebuild": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs && node --env-file-if-exists=.env scripts/sync-members-supabase.mjs && node --env-file-if-exists=.env scripts/sync-ideas-supabase.mjs && node --env-file-if-exists=.env scripts/sync-organizations-supabase.mjs && node --env-file-if-exists=.env scripts/sync-supporters-sheet.mjs",
     "build": "astro build",
     "preview": "astro preview",
-    "members:sync": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs",
+    "test": "node --env-file-if-exists=.env --import ./tests/resolve-ts.mjs --test \"tests/*.test.mjs\"",
+    "members:sync": "node --env-file-if-exists=.env scripts/sync-members-sheet.mjs && node --env-file-if-exists=.env scripts/sync-members-supabase.mjs",
+    "ideas:sync": "node --env-file-if-exists=.env scripts/sync-ideas-supabase.mjs",
+    "organizations:sync": "node --env-file-if-exists=.env scripts/sync-organizations-supabase.mjs",
     "supporters:sync": "node --env-file-if-exists=.env scripts/sync-supporters-sheet.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.1",
     "astro": "^7.2.2",
     "cytoscape": "^3.34.3",
     "marked": "^18.0.13"

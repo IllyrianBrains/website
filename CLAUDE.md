@@ -27,9 +27,11 @@ external URL rather than an internal route:
 If you see stray `atlas`/`mentoring`/`global`/`heritage` references in *this* repo,
 they're leftover — check the relevant sibling repo instead.
 
-- `src/pages/` — routes: `index.astro` (homepage), `rrjeti.astro` (Rrjeti intro,
-  links out to the four pages below), `qytetet/index.astro` (Qytetet directory),
-  `anetaret.astro` (Anëtarët directory), `partneret.astro` and `bizneset.astro`
+- `src/pages/` — routes: `index.astro` (homepage), `rrjeti.astro` (redirects to
+  `/qytetet/`; old `/rrjeti/#…` tab links go to their page), `rrjeti/postimet.astro` (Postimet). The Rrjeti
+  pages (`qytetet/index`, `anetaret`, `shoqatat`, `bizneset`, `rrjeti/postimet`) are linked from the header's Rrjeti dropdown
+  and share the `RrjetiSection` layout; each page's content lives in its `Rrjeti*` component, `qytetet/index.astro` (Qytetet directory),
+  `anetaret.astro` (Anëtarët directory) + `anetaret/[slug].astro` (per-member profile), `shoqatat.astro` (`partneret.astro` redirects to it) and `bizneset.astro`
   (placeholders — no real content/data yet, added 2026-09-13),
   `eventet.astro`, `misioni.astro`, `ekipet.astro`, `statuti.astro`, `anetaresohu.astro`
   (jobs/join), `qytetet/[slug].astro` (per-city pages), `projektet/` (Ide/Playground —
@@ -47,8 +49,11 @@ they're leftover — check the relevant sibling repo instead.
 - `public/assets/` — static images; `public/CNAME` is the Pages custom domain, don't touch
   casually; `public/assets/cities-content/` are forum-sourced images
 
-No test suite, linter, or formatter is configured. `npm run build` (Astro build) is the
-closest thing to a correctness check — run it after non-trivial changes.
+No linter or formatter is configured. `npm run build` then `npm test` is the correctness
+check — run both after non-trivial changes. `npm test` is Node's built-in test runner (no
+dependencies): `tests/helpers.test.mjs` unit-tests `src/scripts/` and `src/data/csv.ts`,
+`tests/build.test.mjs` checks `dist/` (key pages built, internal links resolve, no secret
+keys, writing on Postimet still hidden). CI runs it after the build and doesn't deploy if it fails.
 
 ## Content sync
 
@@ -60,17 +65,113 @@ closest thing to a correctness check — run it after non-trivial changes.
   (gitignored), a repo secret in CI (`.github/workflows/deploy.yml`). Without that var set,
   the script writes an empty `members.json` rather than failing the build. Run
   `npm run members:sync` to refresh it by hand.
+- Member data is moving from that sheet to **Supabase** (schema in `supabase/schema.sql`:
+  `members` + `member_experience` + `member_education`, published only through the
+  `public_member_profiles` view, which covers members with `status = 'ok'`).
+  `scripts/sync-members-supabase.mjs` runs after the sheet sync and overwrites
+  `members.json` when `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` are set (`.env` / repo
+  secrets). Otherwise it does nothing, so the sheet keeps working until the switch.
+  `scripts/import-members-to-supabase.mjs` is the one-time sheet → Supabase copy. It needs
+  `SUPABASE_SECRET_KEY`, which goes in local `.env` only and never in CI. The extra profile
+  fields (`experience`, `education`, `languages`) render as LinkedIn-style sections in the
+  `/anetaret/` drawer.
+- `supabase/002-editing.sql` adds self-editing. Members sign in by magic link on
+  `/anetaresohu/profili/` (the only page using `@supabase/supabase-js`) and edit the member row
+  whose `email` matches their login. Emails in the `admins` table can edit anyone. All writes
+  go through the `save_member_profile()` function. Categories (fields of expertise) are a
+  fixed list in the `categories` table; skills and languages are free-form. `/anetaret/`
+  also re-fetches `public_member_profiles.profile` in the browser so edits show without a
+  redeploy, and `/ekipet/` does the same plus the `teams` table (team membership lives in
+  `member_teams`, see `supabase/004-membership-teams.sql`). Other pages that list members
+  still use the build-time `members.json`.
+- `supabase/003-registration.sql` backs the public form at `/anetaresohu/regjistrohu/`
+  (the hero's "Regjistrohu" button). The form calls `register_member()`, which adds the person
+  to `members` as `pending`. An admin approves them by setting `status` to `ok`, and then they
+  can sign in via "Hyr" (`/anetaresohu/profili/`). `supabase/010-light-registration.sql` adds
+  the Pjesëmarrës and Mbështetës roles to the form. People who pick one of those only give
+  their name, email, city and country, with no LinkedIn or professional fields.
+- `004-membership-teams.sql` also adds each member's `membership_type` (a public badge:
+  Pjesëmarrës / Mbështetës / Organizator / Kontribues) and `fee_paid_year` (admin-only, never
+  published). Admins set these, plus teams and team roles (Anëtar / Drejtues), on
+  `/anetaresohu/roli/` (Roli në rrjet, where members see their own read-only) through
+  `save_member_admin()`. The forum `groups` and free-text `teams` columns are
+  kept but no longer used. The sync writes `src/data/teams.json` (gitignored) for the
+  build-time `/ekipet/`. The homepage `MemberSlider` shows approved members who have a photo.
+- `supabase/005-ideas.sql`: ideas and requests are one thing, the `ideas` table. Signed-in
+  members send them from the composer on `/rrjeti/postimet/` ("Mundësi / kërkesë"), choosing
+  public or "team only". No review step: public ones are `published` straight away, team-only
+  ones are `hidden`. The members' page for following their own and the admin tools (hide,
+  reply via `admin_note`) was `/anetaresohu/kerkesat/`, dropped on 2026-09-25 — admins now
+  moderate in the Supabase Table Editor. Writes go through
+  `submit_idea()`, `update_idea_admin()`, `set_idea_resolved()`, `delete_idea()`. The public
+  "Ndaj Ide" board (`/projektet/ide/` + `ide/[slug]`) reads only the `public_ideas` view:
+  `scripts/sync-ideas-supabase.mjs` writes `src/data/ideas.json` before dev/build, and the
+  list also reloads live in the browser (ideas published since the last deploy open inline).
+  Shared rendering (Markdown with HTML escaped and unsafe links dropped, row HTML, mailto) is
+  in `src/scripts/ideas.ts`. `scripts/import-ideas-to-supabase.mjs` is the one-time copy of
+  the forum-era `ideas.json`. The "#" number is the Supabase id.
+- `supabase/006-organizations.sql`: the `organizations` table is the one list of NGOs
+  (`/shoqatat/`) and businesses (`/bizneset/`) — `partners.csv` / `businesses.csv` were copied
+  in once by `scripts/import-organizations-to-supabase.mjs` (needs `SUPABASE_SECRET_KEY`).
+  Curated columns (sponsor, collaborations, related members/cities/partners)
+  are admin-only, edited in the Supabase Table Editor. Signed-in members add an NGO on
+  `/anetaresohu/shoqatat/` and a business on `/anetaresohu/bizneset/`. Both pages are built from
+  `src/pages/anetaresohu/[lloji].astro`, and the old `/anetaresohu/organizatat/` redirects to the
+  first. Members upload a logo to the `avatars` bucket and can tick several categories
+  (`supabase/011-organization-categories.sql`): the first goes in `category`, the rest in
+  `other_categories`.
+  It starts `pending`; an admin publishes or hides it there and can reply (`admin_note`). An
+  author's edit sends it back to `pending`. Writes go through `save_organization()`,
+  `update_organization_admin()`, `delete_organization()`. `scripts/sync-organizations-supabase.mjs`
+  writes `src/data/organizations.json` (gitignored) from the `public_organizations` view before
+  dev/build, and `partners.ts` / `businesses.ts` build their lists from it, so changes show on
+  `/shoqatat/`, `/bizneset/` and the maps at the next build.
+- `supabase/007-social.sql` adds the LinkedIn-like part: one-way following (`member_follows`,
+  through `set_follow()`; counts are public via `follow_stats()`, who-follows-whom only via the
+  member's own `my_network()`) and short public posts (`member_posts`, through `create_post()` /
+  `delete_post()`, read from the `public_member_posts` view). Only `status = 'ok'` members can
+  follow or post. Each member has a full profile page at `/anetaret/<slug>/`
+  (`src/pages/anetaret/[slug].astro`, built from `members.json`; slug from `memberSlug()` in
+  `src/scripts/members.ts`, since some usernames have spaces) with a follow button, their recent
+  posts, and "people also in this city or field" (`relatedMembers()`). The `/anetaret/` drawer
+  links to it. Posts are written and read on `/rrjeti/postimet/` (the Postimet page), next to
+  the ideas: its composer writes a post or an idea/request, and the board reloads live from
+  `public_ideas` + `public_member_posts`. `/anetaresohu/rrjeti/` (Rrjeti im, the members' main
+  page since 2026-09-25 — it used to be a post feed) puts the member in the middle of their
+  network: a cytoscape graph of them, their city and fields, and the other members grouped by
+  exactly what they share ("Berlin · Shëndeti", "Berlin", …), following and followers, and
+  under "Sipas qytetit dhe fushës" the recommended connections (`relatedMembers()` with its
+  score) as a grid of cards tinted by similarity, best match first, all with Follow.
+- `supabase/009-tags.sql`: posts and ideas carry free-form `tags` (max 5, cleaned by
+  `clean_tags()`); the old fixed idea categories (`ideas.area`) became tags and the column is
+  gone. `/projektet/ide/` filters by any number of tags (an item shows if it has any of them)
+  with the shared `tagFilter()` chips in `src/scripts/ideas.ts`. `/rrjeti/postimet/` is laid
+  out like WhatsApp instead: each tag is a channel on the left ("Të gjitha" = everything,
+  "Të përgjithshme" = untagged), and the open channel's messages show as chat bubbles with the
+  composer under them, pre-filled with the channel's tag.
+  `supabase/012-idea-tags.sql` (run after 009) gives the forum-era ideas topic tags, so they
+  fill real channels (Tech, AI, Gjuha shqipe, Evente, …).
+- `supabase/013-aspirations.sql`: career aspirations, edited under "Aspiratat e karrierës" on
+  `/anetaresohu/profili/` through `save_member_aspirations()`. The target field (from
+  `categories`) and subfield, mentoring and business wishes and a short note are public
+  (`profile.aspirations`, shown on `/anetaret/<slug>/` and in the drawer, and used by
+  `relatedMembers()`). The answer about moving back to Albania / Kosovo (`return_plan`,
+  `return_countries`) is private: only the member and admins can read it.
+- `/anetaresohu/rrjeti/`, `/anetaresohu/shoqatat/`, `/anetaresohu/bizneset/`, `/anetaresohu/profili/` and `/anetaresohu/roli/` use
+  `@supabase/supabase-js`; the profile pages `/anetaret/<slug>/` and the `/rrjeti/postimet/`
+  composer import it lazily, only for signed-in visitors. When someone is signed
+  in, `Header` turns the "Bashkohu" button into "Llogaria" (links to Rrjeti im, `/anetaresohu/rrjeti/`) and, on those member pages only,
+  shows a member sub navbar (Rrjeti im · Roli në rrjet · Shoqatat · Bizneset, then Profili im next to Dil).
+  It is a sticky workspace bar
+  (a page dropdown on mobile), styled in `global.css`. Sign-in is detected from the
+  `sb-*-auth-token` localStorage key without loading supabase-js.
 The rest of this content is still pulled from `forum.illyrianbrains.org` and committed as
 a snapshot rather than fetched live at build time:
 
 - `python3 scripts/sync-cities.py` (Python + `beautifulsoup4`) — re-fetches per-city posts
   from the forum's Qytete category into `src/data/cities-content/*.html`.
-- `src/data/ideas.json` seeds from `scripts/forum-ideas-migration.csv` (a one-time forum
-  backfill) but is otherwise maintained by hand — new ideas arrive by email to
-  `illyrianbrains@gmail.com` (the "Shto idenë tënde" button on `ide.astro` is a `mailto:`
-  link, not a form) and get added to the JSON directly. Idea descriptions are Markdown,
-  rendered at build time (see `marked` usage in `src/pages/projektet/ide.astro` and
-  `ide/[slug].astro`).
+- `src/data/ideas.json` was the hand-maintained ideas list (seeded from
+  `scripts/forum-ideas-migration.csv`); it now comes from Supabase, see `005-ideas.sql` above.
 - `python3 scripts/migrate-ideas-forum.py` (Python + `beautifulsoup4` + `markdownify`) —
   one-time re-migration that replaced the backfill's flattened plain-text descriptions with
   real Markdown converted from each forum post's HTML. Only re-run if a migrated idea's

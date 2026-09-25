@@ -1,52 +1,19 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { cityRegions } from '../data/regions';
-import { directoryMembers } from '../data/members';
-const cityCount = cityRegions.flatMap(region => region.citySlugs).length;
+// /rrjeti/ used to hold every section as a tab (/rrjeti/#anetaret, …). Each is its own
+// page now; send old links to the matching one, Qytetet by default.
 ---
-<BaseLayout title="Rrjeti · Illyrian Brains" description="Eksploro qytetet, organizatat partnere dhe bizneset e rrjetit Illyrian Brains.">
-  <Header />
-  <main class="network-page">
-    <section class="section tone-dark network-overview"><div class="container network-overview-grid">
-      <div class="network-overview-copy"><h1>Një rrjet profesionistësh.</h1><p>Shih ku jemi, njih profesionistët e komunitetit dhe zbulo fushat që na lidhin.</p><nav class="network-jump" aria-label="Seksionet e rrjetit"><a href="/qytetet/"><span>01</span> Qytetet</a><a href="/anetaret/"><span>02</span> Anëtarët</a><a href="/partneret/"><span>03</span> OJF Partnere</a><a href="/bizneset/"><span>04</span> Bizneset</a></nav></div>
-    </div></section>
-
-    <section class="section tone-white"><div class="container network-intro-grid">
-      <a class="network-intro-card" href="/qytetet/">
-        <p class="eyebrow">01 · Komunitetet lokale</p>
-        <h2>Qytetet</h2>
-        <p>Qytetet janë pika e nisjes së rrjetit: aty lindin njohjet, aktivitetet dhe bashkëpunimet lokale.</p>
-        <div class="network-intro-stat"><strong>{cityCount}</strong><span>qytete në rrjet</span></div>
-        <span class="network-intro-link">Shiko qytetet <span aria-hidden="true">↗</span></span>
-      </a>
-      <a class="network-intro-card" href="/anetaret/">
-        <p class="eyebrow">02 · Profesionistët</p>
-        <h2>Anëtarët</h2>
-        <p>Njih profesionistët e komunitetit dhe zbulo ekspertizën që i lidh.</p>
-        <div class="network-intro-stat"><strong>{directoryMembers.length}</strong><span>anëtarë të listuar</span></div>
-        <span class="network-intro-link">Shiko anëtarët <span aria-hidden="true">↗</span></span>
-      </a>
-      <a class="network-intro-card" href="/partneret/">
-        <p class="eyebrow">03 · Bashkëpunimet</p>
-        <h2>OJF Partnere</h2>
-        <p>Organizatat që bashkëpunojnë me rrjetin Illyrian Brains.</p>
-        <span class="network-intro-link">Shiko organizatat partnere <span aria-hidden="true">↗</span></span>
-      </a>
-      <a class="network-intro-card" href="/bizneset/">
-        <p class="eyebrow">04 · Ekonomia e diasporës</p>
-        <h2>Bizneset</h2>
-        <p>Bizneset e themeluara dhe drejtuara nga anëtarët e komunitetit.</p>
-        <span class="network-intro-link">Shiko bizneset <span aria-hidden="true">↗</span></span>
-      </a>
-    </div></section>
-  </main>
-  <Footer />
-</BaseLayout>
-<style>
-  .network-overview{overflow:hidden}.network-overview-grid{display:grid;grid-template-columns:1fr;align-items:center}.network-overview-copy h1{max-width:650px;margin:0;font-size:clamp(48px,6vw,76px);font-weight:300;line-height:1.02;letter-spacing:-.045em}.network-overview-copy>p:last-of-type{max-width:570px;color:#ffffffb8;font-size:19px;line-height:1.75}.network-jump{display:flex;gap:10px;margin-top:35px}.network-jump a{display:flex;gap:12px;padding:13px 17px;border:1px solid #ffffff40;border-radius:999px;font-size:14px;font-weight:700}.network-jump a:hover{color:var(--night);background:#fff}.network-jump span{color:#c9aebd}
-  .network-intro-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:28px}.network-intro-card{display:flex;flex-direction:column;gap:14px;padding:36px;border:1px solid var(--line);border-radius:16px;color:var(--ink);text-decoration:none;transition:transform .2s ease,border-color .2s ease}.network-intro-card:hover{transform:translateY(-3px);border-color:rgba(116,71,97,.4)}.network-intro-card h2{margin:0;font-size:clamp(30px,4vw,40px);font-weight:400}.network-intro-card>p:not(.eyebrow){margin:0;color:var(--muted);font-size:17px;line-height:1.7}.network-intro-stat{display:flex;align-items:baseline;gap:10px;margin-top:auto;padding-top:18px;border-top:1px solid var(--line)}.network-intro-stat strong{font-family:var(--font-display);font-size:32px;font-weight:400}.network-intro-stat span{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.08em}.network-intro-link{margin-top:auto;font-weight:700;color:var(--accent-dark)}
-  @media(max-width:950px){.network-overview-grid{grid-template-columns:1fr;gap:55px}.network-intro-grid{grid-template-columns:1fr}}
-  @media(max-width:560px){.network-jump{flex-direction:column}.network-jump a{justify-content:center}}
-</style>
+<!doctype html>
+<html lang="sq">
+  <head>
+    <meta charset="utf-8" />
+    <title>Rrjeti · Illyrian Brains</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="/qytetet/" />
+    <script is:inline>
+      const rrjetiPages = { qytetet: '/qytetet/', anetaret: '/anetaret/', shoqatat: '/shoqatat/', bizneset: '/bizneset/', aktiviteti: '/rrjeti/postimet/', postimet: '/rrjeti/postimet/' };
+      location.replace(rrjetiPages[location.hash.slice(1)] || '/qytetet/');
+    </script>
+    <meta http-equiv="refresh" content="0; url=/qytetet/" />
+  </head>
+  <body><a href="/qytetet/">Rrjeti</a></body>
+</html>

@@ -63,7 +63,10 @@ const ways = [
 <BaseLayout title="Bashkohu · Illyrian Brains" description="Bashkohu me rrjetin Illyrian Brains si pjesëmarrës, si organizator në qytetin tënd ose si kontribues në ekipet e rrjetit.">
   <Header />
   <main>
-    <NetworkDirectoryHero kind="join" eyebrow="Bëhu pjesë e rrjetit" title="Bashkohu." description="Si pjesëmarrës në qytetin tënd ose si anëtar aktiv i rrjetit — ndërto diçka me një komunitet shqiptar pa kufij." showVisual={false} />
+    <NetworkDirectoryHero kind="join" eyebrow="Bëhu pjesë e rrjetit" title="Bashkohu." description="Si pjesëmarrës në qytetin tënd ose si anëtar aktiv i rrjetit — ndërto diçka me një komunitet shqiptar pa kufij." showVisual={false}>
+      <a class="hero-join-btn" href="/anetaresohu/profili/">Hyr <span aria-hidden="true">→</span></a>
+      <a class="hero-join-btn hero-join-btn--primary" href="/anetaresohu/regjistrohu/">Regjistrohu <span aria-hidden="true">→</span></a>
+    </NetworkDirectoryHero>
 
     {ways.map(way => (
       <section class:list={['section', way.tone]} id={way.id} style={`--way-accent: ${way.accent}; --way-bg: ${way.bg}`}>
@@ -104,6 +107,12 @@ const ways = [
   <Footer />
 </BaseLayout>
 <style>
+  /* Hyr / Regjistrohu in the hero (slotted into NetworkDirectoryHero). */
+  .hero-join-btn{display:inline-flex;align-items:center;gap:14px;margin:34px 12px 0 0;padding:16px 26px;border:1px solid rgba(255,255,255,.45);border-radius:8px;color:#fff;font-size:17px;font-weight:700;text-decoration:none;transition:transform .2s ease,background .2s ease}
+  .hero-join-btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.08)}
+  .hero-join-btn--primary{border-color:#fff;color:var(--ink);background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.28)}
+  .hero-join-btn--primary:hover{background:#f1e6ec}
+  .hero-join-btn:focus-visible{outline:2px solid #fff;outline-offset:3px}
   .join-overview{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,430px);gap:0 70px;align-items:end;margin-bottom:56px}.join-overview h2{margin:0;font-size:clamp(42px,5vw,64px);font-weight:400;line-height:.98;letter-spacing:-.045em}.join-overview>p:last-child{margin:0;color:var(--muted);font-size:17px;line-height:1.7}
   .way-heading{grid-column:1/-1;display:flex;align-items:center;gap:14px;margin-bottom:22px}
   .way-icon{display:grid;place-items:center;width:52px;height:52px;border-radius:14px;color:var(--way-accent);background:color-mix(in srgb,var(--way-accent) 13%,#fff)}

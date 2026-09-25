@@ -1,0 +1,228 @@
+---
+// A member's role in the network: membership type and teams. Members see their
+// own (read-only); admins pick any member and set it through save_member_admin()
+// — see supabase/004-membership-teams.sql. Same magic-link session as
+// /anetaresohu/profili/.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/directory.css';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || '';
+const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '';
+// Short versions of the cards on /anetaresohu/.
+const types = [
+  { name: 'Pjesëmarrës', text: 'Vjen në takimet dhe eventet e qytetit tënd.' },
+  { name: 'Mbështetës', text: 'Mbështet rrjetin me një donacion vjetor ose me kuotën e qytetit.' },
+  { name: 'Organizator', text: 'Organizon takimet në qytet dhe drejton ekipin lokal.' },
+  { name: 'Kontribues', text: 'Punon në një nga ekipet e rrjetit, nga kudo.' },
+];
+---
+<BaseLayout title="Roli në rrjet · Illyrian Brains" description="Anëtarësia dhe ekipet e tua në Illyrian Brains Network.">
+  <Header />
+  <main>
+    <section class="section tone-white profile-editor-section">
+      <div class="container profile-editor" id="role" data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}>
+        <header class="profile-editor-intro">
+          <h1>Roli në rrjet</h1>
+          <p>Lloji i anëtarësisë dhe ekipet ku bën pjesë. I cakton ekipi i IB.</p>
+        </header>
+
+        <p class="profile-editor-status" id="role-status" role="status" aria-live="polite"></p>
+
+        <div class="profile-editor-card" id="signed-out" hidden>
+          <h2>Hyr për të vazhduar</h2>
+          <p>Hyr me emailin tënd për të parë rolin tënd në rrjet.</p>
+          <a class="partner-button" href="/anetaresohu/profili/">Hyr <span aria-hidden="true">→</span></a>
+        </div>
+
+        <div class="profile-editor-card" id="no-profile" hidden>
+          <h2>Nuk gjetëm profil</h2>
+          <p>Emaili yt nuk është i lidhur me asnjë profil në drejtori. Na shkruaj te <a href="mailto:illyrianbrains@gmail.com">illyrianbrains@gmail.com</a> dhe e lidhim.</p>
+        </div>
+
+        <div id="role-content" hidden>
+          <label class="role-picker" id="admin-picker" hidden>Anëtari<select id="member-picker"></select></label>
+
+          <section class="profile-card">
+            <div class="profile-card-head"><h2>Anëtarësia</h2></div>
+            <div class="profile-card-body">
+              <div class="role-types" id="role-types">
+                {types.map(type => (
+                  <label class="role-type" data-type={type.name}>
+                    <input type="radio" name="membership_type" value={type.name} disabled />
+                    <strong>{type.name}</strong>
+                    <span>{type.text}</span>
+                  </label>
+                ))}
+              </div>
+              <p class="profile-editor-hint" id="membership-note"></p>
+              <div class="role-admin" data-admin hidden>
+                <button class="profile-editor-text-button" type="button" id="clear-type">Hiq llojin</button>
+                <label>Kuota e paguar për vitin<input id="fee-paid-year" type="number" min="2015" max="2100" placeholder="p.sh. 2026" /></label>
+              </div>
+            </div>
+          </section>
+
+          <section class="profile-card">
+            <div class="profile-card-head"><h2>Ekipet</h2></div>
+            <div class="profile-card-body">
+              <ul class="role-teams" id="team-list"></ul>
+              <div class="profile-editor-teams" id="team-choices" data-admin hidden></div>
+            </div>
+          </section>
+
+          <p class="role-change" id="change-note">Dëshiron të bëhesh organizator, të bashkohesh me një ekip ose të ndryshosh rolin? <a href="mailto:illyrianbrains@gmail.com?subject=Kërkesë%20për%20rolin%20në%20rrjet">Na shkruaj me email →</a></p>
+          <button class="partner-button" type="button" id="save" data-admin hidden>Ruaj ndryshimet <span aria-hidden="true">✓</span></button>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+<script>
+  import { createClient } from '@supabase/supabase-js';
+  import { memberSession } from '../../scripts/member-session';
+
+  const root = document.querySelector<HTMLElement>('#role')!;
+  const statusLine = document.querySelector<HTMLElement>('#role-status')!;
+  const say = (text: string, kind = '') => { statusLine.textContent = text; statusLine.dataset.kind = kind; };
+  const picker = document.querySelector<HTMLSelectElement>('#member-picker')!;
+  const typeInputs = [...document.querySelectorAll<HTMLInputElement>('#role-types input')];
+  const feeYear = document.querySelector<HTMLInputElement>('#fee-paid-year')!;
+  const teamList = document.querySelector<HTMLElement>('#team-list')!;
+  const teamChoices = document.querySelector<HTMLElement>('#team-choices')!;
+
+  const url = root.dataset.supabaseUrl, key = root.dataset.supabaseKey;
+  if (!url || !key) say('Kjo faqe nuk është konfiguruar ende.', 'error');
+  else start(createClient(url, key));
+
+  async function start(supabase: ReturnType<typeof createClient>) {
+    const { session } = await memberSession(supabase);
+    if (!session) {
+      document.querySelector<HTMLElement>('#signed-out')!.hidden = false;
+      return;
+    }
+    const email = (session.user.email || '').toLowerCase();
+    const [{ data: isAdmin }, { data: members, error: membersError }, { data: teams }] = await Promise.all([
+      supabase.rpc('is_admin'),
+      supabase.from('members').select('id, username, name, email, status').order('name'),
+      supabase.from('teams').select('slug, name').order('sort_order').order('name'),
+    ]);
+    if (membersError) return say(`Nuk u ngarkua: ${membersError.message}`, 'error');
+    if (!members?.length) {
+      document.querySelector<HTMLElement>('#no-profile')!.hidden = false;
+      return;
+    }
+    const allTeams: { slug: string; name: string }[] = teams || [];
+
+    if (isAdmin) {
+      document.querySelectorAll<HTMLElement>('[data-admin], #admin-picker').forEach(element => { element.hidden = false; });
+      document.querySelector<HTMLElement>('#team-list')!.hidden = true;
+      document.querySelector<HTMLElement>('#change-note')!.hidden = true;
+      typeInputs.forEach(input => { input.disabled = false; });
+      // Pending registrations first, so new people are easy to find.
+      [...members].sort((a: any, b: any) => Number(a.status === 'ok') - Number(b.status === 'ok'))
+        .forEach((member: any) => picker.append(new Option(`${member.status === 'ok' ? '' : '⏳ '}${member.name} (@${member.username})`, String(member.id))));
+      allTeams.forEach(team => {
+        const row = document.createElement('div');
+        row.className = 'profile-editor-team';
+        row.dataset.slug = team.slug;
+        const label = document.createElement('label');
+        label.className = 'profile-editor-check';
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        label.append(box, ` ${team.name}`);
+        const role = document.createElement('select');
+        role.setAttribute('aria-label', `Roli në ${team.name}`);
+        role.append(new Option('Anëtar', 'Anëtar'), new Option('Drejtues', 'Drejtues'));
+        box.addEventListener('change', () => { role.disabled = !box.checked; });
+        row.append(label, role);
+        teamChoices.append(row);
+      });
+    }
+    const own = members.find((member: any) => (member.email || '').toLowerCase() === email);
+    const requested = members.find((member: any) => member.username === new URLSearchParams(location.search).get('u'));
+    let memberId: number = (isAdmin && requested ? requested : own || members[0]).id;
+    picker.value = String(memberId);
+
+    const load = async (id: number) => {
+      say('Duke ngarkuar…');
+      const { data: member, error } = await supabase.from('members').select('id, name, membership_type, fee_paid_year, member_teams(team_slug, role)').eq('id', id).single();
+      if (error || !member) return say(`Nuk u ngarkua: ${error?.message}`, 'error');
+      memberId = id;
+      say('');
+      typeInputs.forEach(input => {
+        input.checked = input.value === member.membership_type;
+        input.closest('.role-type')!.classList.toggle('is-current', input.checked);
+      });
+      document.querySelector('#membership-note')!.textContent = member.membership_type ? '' : 'Lloji i anëtarësisë nuk është caktuar ende.';
+      feeYear.value = member.fee_paid_year ?? '';
+
+      const memberTeams: { team_slug: string; role: string }[] = member.member_teams || [];
+      const teamName = (slug: string) => allTeams.find(team => team.slug === slug)?.name || slug;
+      teamList.replaceChildren(...(memberTeams.length ? memberTeams.map(entry => {
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = `/ekipet/#${entry.team_slug}`;
+        link.textContent = teamName(entry.team_slug);
+        const role = document.createElement('span');
+        role.className = 'member-slide-badge';
+        role.textContent = entry.role;
+        item.append(link, role);
+        return item;
+      }) : [Object.assign(document.createElement('li'), { className: 'role-empty', textContent: 'Nuk je ende në asnjë ekip.' })]));
+      teamChoices.querySelectorAll<HTMLElement>('.profile-editor-team').forEach(row => {
+        const entry = memberTeams.find(item => item.team_slug === row.dataset.slug);
+        const box = row.querySelector<HTMLInputElement>('input')!, role = row.querySelector('select')!;
+        box.checked = Boolean(entry);
+        role.value = entry?.role || 'Anëtar';
+        role.disabled = !entry;
+      });
+      document.querySelector<HTMLElement>('#role-content')!.hidden = false;
+    };
+    picker.addEventListener('change', () => load(Number(picker.value)));
+    typeInputs.forEach(input => input.addEventListener('change', () => typeInputs.forEach(other => other.closest('.role-type')!.classList.toggle('is-current', other.checked))));
+    document.querySelector('#clear-type')!.addEventListener('click', () => typeInputs.forEach(input => { input.checked = false; input.closest('.role-type')!.classList.remove('is-current'); }));
+
+    document.querySelector('#save')!.addEventListener('click', async event => {
+      const button = event.currentTarget as HTMLButtonElement;
+      const teamsPicked = [...teamChoices.querySelectorAll<HTMLElement>('.profile-editor-team')]
+        .filter(row => row.querySelector<HTMLInputElement>('input')!.checked)
+        .map(row => ({ slug: row.dataset.slug!, role: row.querySelector('select')!.value }));
+      button.disabled = true;
+      say('Duke ruajtur…');
+      const { error } = await supabase.rpc('save_member_admin', {
+        p_member_id: memberId,
+        p: { membership_type: typeInputs.find(input => input.checked)?.value || '', fee_paid_year: feeYear.value, teams: teamsPicked },
+      });
+      button.disabled = false;
+      if (error) return say(`Nuk u ruajt: ${error.message}`, 'error');
+      await load(memberId);
+      say('U ruajt!', 'ok');
+    });
+
+    await load(memberId);
+  }
+</script>
+
+<style>
+  #role-content { display: grid; gap: 18px; }
+  .role-picker { max-width: 420px; }
+  .role-types { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+  .profile-editor .role-type { position: relative; display: grid; gap: 4px; align-content: start; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); font-weight: 400; }
+  .role-type input { position: absolute; opacity: 0; pointer-events: none; }
+  .role-type input:not(:disabled) + strong { cursor: pointer; }
+  .role-type:has(input:not(:disabled)) { cursor: pointer; }
+  .role-type strong { color: var(--ink); font-size: 16px; }
+  .role-type span { font-size: 13px; line-height: 1.5; }
+  .profile-editor .role-type.is-current { border-color: var(--accent-dark); background: rgba(116,71,97,.08); }
+  .role-type.is-current strong::after { content: ' ✓'; color: var(--accent-dark); }
+  .role-admin { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 24px; margin-top: 14px; }
+  .role-teams { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .role-teams :global(li) { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .role-teams :global(a) { color: var(--ink); }
+  .role-teams :global(.role-empty) { color: var(--muted); font-weight: 400; }
+  .role-teams :global(.member-slide-badge) { padding: 3px 8px; border-radius: 999px; background: rgba(180,138,45,.16); color: #8a6415; font-size: 12px; }
+  .role-change { margin: 0; color: var(--muted); font-size: 15px; }
+  #save { justify-self: start; margin-top: 0; }
+</style>

@@ -1,0 +1,244 @@
+---
+// A member's own profile page — the full-page version of the /anetaret/
+// drawer, LinkedIn-style: follow button + counts and recent posts (both live
+// from Supabase, see supabase/007-social.sql), and "people also in this city
+// or field" on the side. Built from members.json, so a member approved after
+// the last deploy gets a page at the next one.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/directory.css';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { directoryMembers, type Member } from '../../data/members';
+import { cities } from '../../data/cities';
+import { memberSlug, memberUrl, relatedMembers, initials } from '../../scripts/members';
+
+export function getStaticPaths() {
+  return directoryMembers.map(member => ({ params: { slug: memberSlug(member.username) }, props: { member } }));
+}
+
+const { member } = Astro.props as { member: Member };
+const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || '';
+const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '';
+const cityLinks = Object.fromEntries(cities.flatMap(city => [city.slug, ...city.city.split('/').map(name => name.trim())].map(name => [name.toLocaleLowerCase('sq'), `/qytetet/${city.slug}/`])));
+const place = [member.city, member.country].filter(Boolean).join(', ');
+const cityUrl = member.city && cityLinks[member.city.toLocaleLowerCase('sq')];
+const role = member.title || (member.fieldsOfExpertise || []).join(' · ') || 'Ekspertiza TBD';
+const years = (item: { startYear?: number | null; endYear?: number | null; current?: boolean }) => {
+  const end = item.current ? 'sot' : item.endYear;
+  return item.startYear && end ? `${item.startYear} – ${end}` : String(item.startYear || end || '');
+};
+const related = relatedMembers(member, directoryMembers, 6);
+const firstName = member.name.split(' ')[0];
+---
+<BaseLayout title={`${member.name} · Anëtarët · Illyrian Brains`} description={`${member.name} — ${role}${place ? `, ${place}` : ''}. Anëtar i Illyrian Brains Network.`}>
+  <Header />
+  <main class="network-page">
+    <section class="section tone-grey member-profile-section"><div class="container">
+      <a class="member-profile-back" href="/anetaret/"><span aria-hidden="true">←</span> Të gjithë anëtarët</a>
+      <div class="member-profile-layout">
+        <article class="member-profile-card" id="member-profile" data-username={member.username} data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}>
+          <div class="profile-cover"></div>
+          <div class="profile-head">
+            {member.avatar ? <img class="member-drawer-avatar" src={member.avatar} alt="" /> : <span class="member-drawer-avatar member-avatar-fallback">{initials(member.name)}</span>}
+            <h1>{member.name}</h1>
+            <p class="member-drawer-role">{role}</p>
+            {(member.company || place) && (
+              <p class="profile-meta">
+                {member.company}{member.company && place && ' · '}
+                {place && (cityUrl ? <a href={cityUrl}>{place}</a> : place)}
+              </p>
+            )}
+            <p class="profile-meta">
+              {member.membershipType && <><span class="member-pill member-pill-gold">{member.membershipType}</span> </>}
+              Anëtar që nga {member.since}
+            </p>
+            <p class="profile-meta member-follow-counts" id="follow-counts" hidden></p>
+            <div class="member-drawer-actions">
+              <button class="partner-button member-follow-button" type="button" id="follow-button" hidden>Ndiq <span aria-hidden="true">+</span></button>
+              <a class="partner-button" href="/anetaresohu/profili/" id="edit-own" hidden>Edito profilin <span aria-hidden="true">→</span></a>
+              {member.linkedinUrl && <a class="partner-button" href={member.linkedinUrl} target="_blank" rel="noreferrer">LinkedIn <span>↗</span></a>}
+              {member.website && <a class="partner-button" href={member.website} target="_blank" rel="noreferrer">Faqja personale <span>↗</span></a>}
+            </div>
+            <p class="profile-meta member-follow-status" id="follow-status" role="status" aria-live="polite"></p>
+          </div>
+
+          {Boolean(member.teams?.length || (member.membershipType === 'Organizator' && member.city)) && (
+            <section class="profile-section"><h3>Në rrjet</h3>
+              <ul class="profile-list">
+                {(member.teams || []).map(team => (
+                  <li><span class="profile-list-icon" aria-hidden="true">{team.name[0]}</span><div><strong>{team.slug === 'bordi' ? team.name : `Ekipi ${team.name}`}</strong><span>{team.role === 'Drejtues' ? 'Drejtues i ekipit' : 'Kontribues'}</span></div></li>
+                ))}
+                {member.membershipType === 'Organizator' && member.city && (
+                  <li><span class="profile-list-icon" aria-hidden="true">{member.city[0]}</span><div><strong>Organizator në {member.city}</strong><span>Organizon takimet e qytetit</span></div></li>
+                )}
+              </ul>
+              <p class="profile-meta"><a href="/ekipet/">Shiko të gjitha ekipet →</a></p>
+            </section>
+          )}
+          {member.bio && <section class="profile-section"><h3>Rreth</h3><p class="member-drawer-bio">{member.bio}</p></section>}
+          <section class="profile-section" id="member-posts-section" hidden><h3>Aktiviteti</h3><div class="post-list" id="member-posts"></div></section>
+          {Boolean(member.experience?.length) && (
+            <section class="profile-section"><h3>Eksperienca</h3>
+              <ul class="profile-list">
+                {member.experience.map(item => (
+                  <li><span class="profile-list-icon" aria-hidden="true">{(item.organization || item.title)[0]}</span><div>
+                    <strong>{item.title}</strong>
+                    {[item.organization, item.location].filter(Boolean).length > 0 && <span>{[item.organization, item.location].filter(Boolean).join(' · ')}</span>}
+                    {years(item) && <span class="profile-years">{years(item)}</span>}
+                    {item.description && <p>{item.description}</p>}
+                  </div></li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {Boolean(member.education?.length) && (
+            <section class="profile-section"><h3>Arsimimi</h3>
+              <ul class="profile-list">
+                {member.education.map(item => (
+                  <li><span class="profile-list-icon" aria-hidden="true">{item.school[0]}</span><div>
+                    <strong>{item.school}</strong>
+                    {[item.degree, item.field].filter(Boolean).length > 0 && <span>{[item.degree, item.field].filter(Boolean).join(' ')}</span>}
+                    {years(item) && <span class="profile-years">{years(item)}</span>}
+                  </div></li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {member.aspirations && (
+            <section class="profile-section"><h3>Aspiratat e karrierës</h3>
+              {(member.aspirations.field || member.aspirations.subfield) && <p class="member-drawer-bio">Synon: <strong>{[member.aspirations.field, member.aspirations.subfield].filter(Boolean).join(' · ')}</strong></p>}
+              {Boolean(member.aspirations.mentoring?.length || member.aspirations.business?.length) && (
+                <div class="member-tags">
+                  {(member.aspirations.mentoring || []).map(value => <span class="member-pill member-pill-accent">{value}</span>)}
+                  {(member.aspirations.business || []).map(value => <span class="member-pill member-pill-gold">{value}</span>)}
+                </div>
+              )}
+              {member.aspirations.note && <p class="member-drawer-bio">{member.aspirations.note}</p>}
+            </section>
+          )}
+          {Boolean(member.fieldsOfExpertise?.length || member.specialty?.length) && (
+            <section class="profile-section"><h3>Ekspertiza dhe aftësitë</h3>
+              <div class="member-tags">
+                {(member.fieldsOfExpertise || []).map(value => <a class="member-pill member-pill-accent" href={`/anetaret/?search=${encodeURIComponent(value)}`}>{value}</a>)}
+                {(member.specialty || []).map(value => <span class="member-pill member-pill-specialty">{value}</span>)}
+              </div>
+            </section>
+          )}
+          {Boolean(member.languages?.length) && (
+            <section class="profile-section"><h3>Gjuhët</h3><div class="member-tags">{member.languages.map(value => <span class="member-pill member-pill-location">{value}</span>)}</div></section>
+          )}
+        </article>
+
+        <aside class="member-profile-aside">
+          {related.length > 0 && (
+            <section class="member-profile-aside-card">
+              <h2>Njerëz si {firstName}</h2>
+              <p class="profile-meta">Nga i njëjti qytet ose fushë.</p>
+              <ul class="member-suggestions">
+                {related.map(({ member: other, reason }) => (
+                  <li><a href={memberUrl(other.username)}>
+                    {other.avatar ? <img class="member-avatar" src={other.avatar} alt="" loading="lazy" /> : <span class="member-avatar member-avatar-fallback">{initials(other.name)}</span>}
+                    <span><strong>{other.name}</strong><small>{other.title || (other.fieldsOfExpertise || []).join(' · ')}</small><em>{reason}</em></span>
+                  </a></li>
+                ))}
+              </ul>
+            </section>
+          )}
+          <section class="member-profile-aside-card">
+            <h2>Rrjeti yt</h2>
+            <p class="profile-meta">Ndiq anëtarët që të intereson dhe shiko postimet e tyre.</p>
+            <a class="catalog-edit-link" href="/rrjeti/postimet/">Shiko Postimet →</a>
+          </section>
+        </aside>
+      </div>
+    </div></section>
+  </main>
+  <Footer />
+</BaseLayout>
+<script>
+  import { postElement, type MemberPost } from '../../scripts/members';
+
+  const root = document.querySelector<HTMLElement>('#member-profile')!;
+  const username = root.dataset.username!;
+  const url = root.dataset.supabaseUrl, key = root.dataset.supabaseKey;
+  const followButton = document.querySelector<HTMLButtonElement>('#follow-button')!;
+  const counts = document.querySelector<HTMLElement>('#follow-counts')!;
+  const status = document.querySelector<HTMLElement>('#follow-status')!;
+
+  if (url && key) start(url, key);
+
+  async function start(url: string, key: string) {
+    // Signed-in members get supabase-js (loaded only for them) so follow and
+    // the counts run as them; visitors read the public counts with a plain fetch.
+    const signedIn = (() => { try { return Object.keys(localStorage).some(k => /^sb-.+-auth-token$/.test(k)); } catch { return false; } })();
+    const supabase = signedIn ? (await import('@supabase/supabase-js')).createClient(url, key) : null;
+    const headers = { apikey: key, 'Content-Type': 'application/json', ...(key.startsWith('eyJ') && { Authorization: `Bearer ${key}` }) };
+    const rpc = async (name: string, args: object) => supabase
+      ? supabase.rpc(name, args)
+      : fetch(`${url}/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(args) })
+        .then(async response => response.ok ? { data: await response.json(), error: null } : { data: null, error: { message: String(response.status) } });
+
+    let stats: any = null;
+    const showStats = async () => {
+      const { data, error } = await rpc('follow_stats', { p_username: username });
+      if (error || !data) return;   // 007-social.sql not run yet: leave the page as built
+      stats = data;
+      counts.textContent = `${stats.followers} ndjekës · ndjek ${stats.following}`;
+      counts.hidden = false;
+      document.querySelector<HTMLElement>('#edit-own')!.hidden = !stats.is_me;
+      followButton.hidden = stats.is_me;
+      followButton.classList.toggle('is-following', stats.is_following);
+      followButton.innerHTML = stats.is_following ? 'Po e ndjek <span aria-hidden="true">✓</span>' : 'Ndiq <span aria-hidden="true">+</span>';
+    };
+    followButton.addEventListener('click', async () => {
+      if (!supabase) { location.href = '/anetaresohu/profili/'; return; }
+      followButton.disabled = true;
+      const { error } = await supabase.rpc('set_follow', { p_username: username, p_follow: !stats?.is_following });
+      followButton.disabled = false;
+      status.textContent = error ? `Nuk u krye: ${error.message}` : '';
+      if (!error) showStats();
+    });
+    if (!supabase) followButton.title = 'Hyr për ta ndjekur';
+    showStats();
+
+    const response = await fetch(`${url}/rest/v1/public_member_posts?username=eq.${encodeURIComponent(username)}&order=created_at.desc&limit=5`, { headers });
+    const posts: MemberPost[] = response.ok ? await response.json() : [];
+    if (posts.length) {
+      document.querySelector<HTMLElement>('#member-posts')!.replaceChildren(...posts.map(post => postElement(post)));
+      document.querySelector<HTMLElement>('#member-posts-section')!.hidden = false;
+    }
+  }
+</script>
+<style>
+  .member-profile-section { padding-top: 48px; }
+  .member-profile-back { display: inline-block; margin-bottom: 20px; color: var(--accent-dark); font-weight: 700; text-decoration: none; }
+  .member-profile-back:hover { text-decoration: underline; }
+  .member-profile-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+  .member-profile-card { overflow: hidden; padding: 42px 36px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+  .member-profile-card h1 { margin: 0 0 2px; font-size: clamp(26px, 3vw, 34px); font-weight: 400; line-height: 1.15; }
+  .member-profile-card .profile-head .member-drawer-avatar { width: 120px; height: 120px; margin-top: -72px; font-size: 32px; }
+  .member-drawer-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .member-drawer-actions .partner-button { margin-top: 0; }
+  .member-drawer-actions [hidden] { display: none; }
+  .member-follow-button { border: 0; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .member-follow-button.is-following { background: var(--soft); color: var(--accent-dark); }
+  .member-follow-status:empty { display: none; }
+  .member-profile-aside { display: grid; gap: 16px; position: sticky; top: 96px; }
+  .member-profile-aside-card { padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+  .member-profile-aside-card h2 { margin: 0 0 4px; font-size: 18px; }
+  .member-suggestions { display: grid; gap: 4px; margin: 14px 0 0; padding: 0; list-style: none; }
+  .member-suggestions a { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: center; padding: 8px; margin: 0 -8px; border-radius: 10px; color: var(--ink); text-decoration: none; }
+  .member-suggestions a:hover { background: var(--soft); }
+  .member-suggestions .member-avatar { width: 44px; height: 44px; }
+  .member-suggestions strong { display: block; font-size: 14px; }
+  .member-suggestions small, .member-suggestions em { display: block; color: var(--muted); font-size: 12px; font-style: normal; line-height: 1.4; }
+  .member-suggestions em { color: var(--accent-dark); }
+  @media (max-width: 900px) {
+    .member-profile-layout { grid-template-columns: 1fr; }
+    .member-profile-aside { position: static; }
+  }
+  @media (max-width: 480px) {
+    .member-profile-card { padding: 28px 20px; }
+    .member-profile-card .profile-head .member-drawer-avatar { width: 96px; height: 96px; margin-top: -58px; }
+  }
+</style>

@@ -1,7 +1,44 @@
-// Fetched fresh from a private Google Sheet at dev/build time — see
-// scripts/sync-members-sheet.mjs. members.json is gitignored, not committed.
+// Fetched fresh from Supabase (scripts/sync-members-supabase.mjs), or from the
+// private Google Sheet (scripts/sync-members-sheet.mjs) until Supabase is set
+// up, at dev/build time. members.json is gitignored, not committed.
 
 import rawMembers from './members.json';
+
+export interface MemberExperience {
+  title: string;
+  organization?: string | null;
+  location?: string | null;
+  startYear?: number | null;
+  endYear?: number | null;
+  current?: boolean;
+  description?: string | null;
+}
+
+export interface MemberEducation {
+  school: string;
+  degree?: string | null;
+  field?: string | null;
+  startYear?: number | null;
+  endYear?: number | null;
+}
+
+export interface MemberTeam {
+  slug: string;
+  name: string;
+  role: 'Drejtues' | 'Anëtar';
+}
+
+// Public half of the career aspirations (supabase/013-aspirations.sql); the
+// return-to-Albania/Kosovo answer is private and never reaches members.json.
+export interface MemberAspirations {
+  field?: string;
+  subfield?: string;
+  mentoring?: string[];
+  business?: string[];
+  note?: string;
+}
+
+export type MembershipType = 'Pjesëmarrës' | 'Mbështetës' | 'Organizator' | 'Kontribues';
 
 export interface Member {
   name: string;
@@ -17,10 +54,16 @@ export interface Member {
   linkedinUrl?: string;
   since: number;
   avatar?: string;
-  groups: string[];
-  team?: string[];
+  groups?: string[];          // forum groups — only from the old sheet sync
+  team?: string[];            // team names
+  teams?: MemberTeam[];
+  membershipType?: MembershipType;
   inDirectory: boolean;
   profileUrl?: string;
+  languages?: string[];
+  experience?: MemberExperience[];
+  education?: MemberEducation[];
+  aspirations?: MemberAspirations;
 }
 
 // The members sheet is typed by hand and doesn't always match the city names
@@ -28,7 +71,7 @@ export interface Member {
 // "Roma", "Dusseldorf" vs. "Düsseldorf". This aliases known variants to the
 // cities.csv spelling so city filters/groupings treat them as the same city.
 // See bugs.csv for the discrepancy this was found from.
-const cityAliases: Record<string, string> = {
+export const cityAliases: Record<string, string> = {
   'dusseldorf': 'Düsseldorf',
   'cologne': 'Köln / Cologne',
   'nuremberg': 'Nürnberg',

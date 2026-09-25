@@ -1,0 +1,11 @@
+# The signed-in member pages are empty without a login, so keep them out of
+# search results. /anetaresohu/ (join) and /anetaresohu/regjistrohu/ stay indexed.
+User-agent: *
+Disallow: /anetaresohu/profili/
+Disallow: /anetaresohu/rrjeti/
+Disallow: /anetaresohu/roli/
+Disallow: /anetaresohu/shoqatat/
+Disallow: /anetaresohu/bizneset/
+Disallow: /anetaresohu/organizatat/
+Disallow: /anetaresohu/perfaqesimi/
+Disallow: /anetaresohu/perfaqesuesi/

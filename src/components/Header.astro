@@ -4,8 +4,8 @@ import { directoryMembers as members } from '../data/members';
 
 const pages = [
   { title: 'Ballina', type: 'Faqe', url: '/', keywords: 'illyrian brains rrjeti komuniteti' },
-  { title: 'Rrjeti', type: 'Faqe', url: '/rrjeti/', keywords: 'qytetet anetaret partneret bizneset' },
-  { title: 'OJF Partnere', type: 'Faqe', url: '/partneret/', keywords: 'OJF Partnere bashkepunetore' },
+  { title: 'Rrjeti', type: 'Faqe', url: '/qytetet/', keywords: 'qytetet anetaret shoqatat partneret bizneset' },
+  { title: 'OJF Partnere', type: 'Faqe', url: '/shoqatat/', keywords: 'OJF Partnere bashkepunetore' },
   { title: 'Bizneset', type: 'Faqe', url: '/bizneset/', keywords: 'biznese diaspora' },
   { title: 'Eventet', type: 'Faqe', url: '/eventet/', keywords: 'kalendari takime aktivitete' },
   { title: 'Misioni', type: 'Rreth nesh', url: '/misioni/', keywords: 'vizioni vlerat organizata' },
@@ -14,7 +14,12 @@ const pages = [
   { title: 'Transparenca', type: 'Rreth nesh', url: '/dhuro/#transparenca', keywords: 'financimi kostot vetorganizim fonde' },
   { title: 'Dhuro', type: 'Faqe', url: '/dhuro/', keywords: 'donacion dhuro mbeshtet fond transparenca projekte ide' },
   { title: 'Bashkohu', type: 'Faqe', url: '/anetaresohu/', keywords: 'anetaresohu anetaresim kuota asambleja organizo qytet' },
-  { title: 'Ndaj Ide', type: 'Laboratori', url: '/projektet/ide/', keywords: 'ide propozime forum kerkoj pune' },
+  { title: 'Regjistrohu', type: 'Faqe', url: '/anetaresohu/regjistrohu/', keywords: 'regjistrohu regjistrim apliko anetaresohu linkedin' },
+  { title: 'Profili yt', type: 'Faqe', url: '/anetaresohu/profili/', keywords: 'hyr login kycu profili edito perditeso anetar' },
+  { title: 'Postimet', type: 'Faqe', url: '/rrjeti/postimet/', keywords: 'postime postim shkruaj ide kerkese kerkesat mundesi propozim ndihme feed aktiviteti anetar' },
+  { title: 'Rrjeti im', type: 'Faqe', url: '/anetaresohu/rrjeti/', keywords: 'rrjeti im lidhje lidhjet ndiq ndjek ndjekes qyteti fusha profesioni sugjerime njerez anetar' },
+  { title: 'Roli në rrjet', type: 'Faqe', url: '/anetaresohu/roli/', keywords: 'anetaresia ekipet roli organizator kontribues mbeshtetes kuota' },
+  { title: 'Përfaqësimi', type: 'Faqe', url: '/anetaresohu/perfaqesimi/', keywords: 'perfaqesues shoqata ojf organizate biznes kompani startup shto menaxho' },
   { title: 'Atlas', type: 'Laboratori', url: 'https://atlas.illyrianbrains.org/', keywords: 'guida shtete diaspora', external: true },
   { title: 'Heritage', type: 'Laboratori', url: 'https://heritage.illyrianbrains.org/', keywords: 'trashegimi kulture', external: true },
   { title: 'Mentoring', type: 'Laboratori', url: 'https://mentoring.illyrianbrains.org/', keywords: 'mentor karriere zhvillim', external: true },
@@ -23,7 +28,7 @@ const pages = [
 ];
 const searchIndex = [
   ...cities.map(city => ({ title: city.city, type: 'Qytet', url: `/qytetet/${city.slug}/`, keywords: city.country, priority: 0 })),
-  ...members.map(member => ({ title: member.name, type: 'Anëtar', url: member.profileUrl, keywords: `${member.username} ${member.title || ''} ${member.company || ''} ${(member.specialty || []).join(' ')} ${member.bio || ''} ${(member.fieldsOfExpertise || []).join(' ')} ${member.city || ''} ${member.country || ''} ${member.groups.join(' ')}`, priority: 1, member: { username: member.username, city: member.city || '', country: member.country || '', expertise: member.fieldsOfExpertise || [], specialty: member.specialty || [], groups: member.groups, since: member.since, avatar: member.avatar || '', profileUrl: member.profileUrl, bio: member.bio || '', title: member.title || '', company: member.company || '', website: member.website || '', linkedinUrl: member.linkedinUrl || '' } })),
+  ...members.map(member => ({ title: member.name, type: 'Anëtar', url: member.profileUrl, keywords: `${member.username} ${member.title || ''} ${member.company || ''} ${(member.specialty || []).join(' ')} ${member.bio || ''} ${(member.fieldsOfExpertise || []).join(' ')} ${member.city || ''} ${member.country || ''} ${(member.team || []).join(' ')} ${member.membershipType || ''}`, priority: 1, member: { username: member.username, city: member.city || '', country: member.country || '', expertise: member.fieldsOfExpertise || [], specialty: member.specialty || [], groups: member.groups, since: member.since, avatar: member.avatar || '', profileUrl: member.profileUrl, bio: member.bio || '', title: member.title || '', company: member.company || '', website: member.website || '', linkedinUrl: member.linkedinUrl || '' } })),
   ...pages.map(page => ({ ...page, priority: 2 })),
 ];
 ---
@@ -42,11 +47,9 @@ const searchIndex = [
       <ul class="dropdown-menu" id="rrjeti-menu">
         <li><a href="/qytetet/">Qytetet</a></li>
         <li><a href="/anetaret/">Anëtarët</a></li>
-        <li class="dropdown-divider" role="separator"></li>
-        <li><a href="/partneret/">OJF Partnere</a></li>
+        <li><a href="/shoqatat/">Shoqatat</a></li>
         <li><a href="/bizneset/">Bizneset</a></li>
-        <li class="dropdown-divider" role="separator"></li>
-        <li><a href="https://global.illyrianbrains.org/" target="_blank" rel="noreferrer">Global ↗</a></li>
+        <li><a href="/rrjeti/postimet/">Postimet</a></li>
       </ul>
     </div>
     <a href="/eventet/">Eventet</a>
@@ -55,8 +58,6 @@ const searchIndex = [
         Laboratori<span class="nav-caret" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
       </button>
       <ul class="dropdown-menu" id="projektet-menu">
-        <li><a href="/projektet/ide/">Ndaj Ide</a></li>
-        <li class="dropdown-divider" role="separator"></li>
         <li><a href="https://atlas.illyrianbrains.org/" target="_blank" rel="noreferrer">Atlas ↗</a></li>
         <li><a href="https://heritage.illyrianbrains.org/" target="_blank" rel="noreferrer">Heritage ↗</a></li>
         <li><a href="https://mentoring.illyrianbrains.org/" target="_blank" rel="noreferrer">Mentoring ↗</a></li>
@@ -90,8 +91,36 @@ const searchIndex = [
     </div>
     <a class="nav-cta nav-cta-secondary" href="/dhuro/">Dhuro</a>
     <a class="nav-cta" href="/anetaresohu/">Bashkohu</a>
+    <!-- Inline so it runs before the first paint: signed-in members see "Llogaria" straight away. -->
+    <script is:inline>try { if (Object.keys(localStorage).some(key => /^sb-.+-auth-token$/.test(key))) { const a = document.currentScript.previousElementSibling; a.href = '/anetaresohu/rrjeti/'; a.textContent = 'Llogaria'; } } catch {}</script>
   </nav>
 </header>
+<!-- Shown by the script below only on the member pages, when a member is signed in. -->
+<!-- Sticky workspace bar for the member pages. -->
+<nav class="member-subnav" aria-label="Llogaria ime" hidden>
+  <div class="member-subnav-head">
+    <a href="/qytetet/" class="member-subnav-logo" aria-label="Rrjeti"><span aria-hidden="true"><i></i><i></i><i></i></span></a>
+    <div><strong>Llogaria ime</strong></div>
+  </div>
+  <label class="member-subnav-select">
+    <span>Faqja</span>
+    <select aria-label="Zgjidh faqen e llogarisë">
+      <option value="/anetaresohu/rrjeti/">Rrjeti im</option>
+      <option value="/anetaresohu/roli/">Roli në rrjet</option>
+      <option value="/anetaresohu/perfaqesimi/">Përfaqësimi</option>
+      <option value="/anetaresohu/profili/">Profili im</option>
+    </select>
+  </label>
+  <div class="member-subnav-tabs">
+    <a href="/anetaresohu/rrjeti/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.6"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.6 7.3 10 10.3M17.4 7.3 14 10.3M6.6 16.7l3.4-3M17.4 16.7l-3.4-3"/></svg><span>Rrjeti im</span></a>
+    <a href="/anetaresohu/roli/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="m9 12 2 2 4-4"/></svg><span>Roli në rrjet</span></a>
+    <a href="/anetaresohu/perfaqesimi/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.4-3.8 2.2-5.7 5.5-5.7s5.1 1.9 5.5 5.7M15 7h6m-3-3v6M16 14h5m-5 4h5"/></svg><span>Përfaqësimi</span></a>
+  </div>
+  <div class="member-subnav-actions">
+    <a class="member-subnav-profile" href="/anetaresohu/profili/" title="Profili im"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.5-4.2 3-6.3 7-6.3s6.5 2.1 7 6.3"/></svg><b>Profili im</b></a>
+    <button class="member-subnav-signout" type="button" title="Dil nga llogaria"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10"/></svg><b>Dil</b></button>
+  </div>
+</nav>
 
 <div class="site-search-overlay" id="site-search-overlay" hidden>
   <section class="site-search-dialog" role="dialog" aria-modal="true" aria-labelledby="site-search-title">
@@ -107,6 +136,35 @@ const searchIndex = [
 <script type="application/json" id="site-search-data" set:html={JSON.stringify(searchIndex).replace(/</g, '\\u003c')}></script>
 
 <script>
+  // Signed-in members: supabase-js keeps the magic-link session in
+  // localStorage as sb-<project>-auth-token, so no library is needed to
+  // tell whether someone is signed in. "Bashkohu" becomes "Llogaria" (to Rrjeti im) in the inline script next to it,
+  // and the member sub navbar shows only on the member pages (rrjeti, profili,
+  // roli and përfaqësimi), including redirects from the former organization editors.
+  const subnav = document.querySelector<HTMLElement>('.member-subnav');
+  try {
+    const tokenKey = Object.keys(localStorage).find(key => /^sb-.+-auth-token$/.test(key));
+    if (subnav && tokenKey && /^\/anetaresohu\/(rrjeti|profili|roli|perfaqesimi|shoqatat|bizneset)\/?$/.test(location.pathname)) {
+      subnav.hidden = false;
+    }
+  } catch {}
+  // Signing out = forgetting the stored session (what supabase-js does
+  // locally), so this works on pages that don't load the library. The key is
+  // looked up on click: right after a magic-link sign-in it didn't exist yet
+  // when this script ran.
+  subnav?.querySelector('.member-subnav-signout')!.addEventListener('click', () => {
+    try { Object.keys(localStorage).filter(key => /^sb-.+-auth-token$/.test(key)).forEach(key => localStorage.removeItem(key)); } catch {}
+    location.href = '/anetaresohu/profili/';
+  });
+  const representativePath = /^\/anetaresohu\/(shoqatat|bizneset)\/?$/.test(location.pathname) ? '/anetaresohu/perfaqesimi/' : location.pathname;
+  subnav?.querySelectorAll<HTMLAnchorElement>('.member-subnav-tabs a, .member-subnav-profile').forEach(link => { if (link.pathname === representativePath) link.setAttribute('aria-current', 'page'); });
+  const subnavSelect = subnav?.querySelector<HTMLSelectElement>('.member-subnav-select select');
+  if (subnavSelect) {
+    const current = [...subnavSelect.options].find(option => option.value === representativePath || option.value === `${representativePath}/`);
+    if (current) subnavSelect.value = current.value;
+    subnavSelect.addEventListener('change', () => { location.href = subnavSelect.value; });
+  }
+
   const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
   const nav = document.querySelector<HTMLElement>('.nav');
   const dropdowns = document.querySelectorAll<HTMLElement>('.nav-item.dropdown');

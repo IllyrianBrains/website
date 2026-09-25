@@ -1,0 +1,61 @@
+---
+// Shared layout for every Rrjeti page (Qytetet, Anëtarët, Shoqatat, Bizneset, Postimet): head (eyebrow, title, description,
+// actions, stats) → filters toolbar → results, then the block's extra sections.
+interface Stat { value: string | number; label: string; id?: string }
+interface Props {
+  eyebrow: string;
+  title: string;
+  description: string;
+  stats?: Stat[];
+  filtersLabel?: string;
+}
+
+const { eyebrow, title, description, stats = [], filtersLabel } = Astro.props;
+---
+<div class="reused-directory rrjeti-section">
+  <section class="section tone-white rrjeti-section-top"><div class="container">
+    <header class="rrjeti-section-head">
+      <div>
+        <p class="eyebrow">{eyebrow}</p>
+        <h1>{title}</h1>
+        <p class="rrjeti-section-description">{description}</p>
+      </div>
+      {Astro.slots.has('actions') && <div class="rrjeti-section-actions"><slot name="actions" /></div>}
+    </header>
+    {stats.length > 0 && (
+      <div class="rrjeti-section-stats">
+        {stats.map(stat => <div><strong id={stat.id}>{stat.value}</strong><span>{stat.label}</span></div>)}
+      </div>
+    )}
+    {Astro.slots.has('filters') && <div class="rrjeti-section-toolbar" aria-label={filtersLabel}><slot name="filters" /></div>}
+    <slot name="results" />
+  </div></section>
+  <slot />
+</div>
+
+<style>
+  .rrjeti-section-top{padding-top:72px!important}
+  .rrjeti-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:50px}
+  .rrjeti-section-head .eyebrow{margin:0 0 14px}
+  .rrjeti-section-head h1{margin:0;font-size:clamp(40px,5.4vw,64px);font-weight:400;line-height:1.05;letter-spacing:-.03em}
+  .rrjeti-section-description{max-width:640px;margin:18px 0 0;color:var(--muted);font-size:16px;line-height:1.7}
+  .rrjeti-section-actions{display:flex;flex:none;flex-wrap:wrap;gap:9px}
+  .rrjeti-section-actions :global(a){display:inline-flex;align-items:center;gap:6px;padding:12px 16px;border-radius:8px;color:#fff;background:var(--accent-dark);font-size:12px;font-weight:800}
+  .rrjeti-section-actions :global(a+a){background:#293f52}
+  .rrjeti-section-stats{display:flex;flex-wrap:wrap;gap:20px 48px;margin:32px 0 28px;padding-block:22px;border-block:1px solid var(--line)}
+  .rrjeti-section-stats strong{display:block;font-family:var(--font-display);font-size:34px;font-weight:400;line-height:1.1}
+  .rrjeti-section-stats span{display:block;margin-top:6px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+  .rrjeti-section-toolbar{display:grid;gap:14px;padding:18px;border:1px solid rgba(116,71,97,.2);border-radius:14px;background:var(--soft)}
+  /* The blocks' own filter rows bring their layout; the toolbar gives them one shared frame. */
+  .rrjeti-section-toolbar>:global(*){margin:0!important}
+  .rrjeti-section-toolbar>:global(.member-filters),.rrjeti-section-toolbar>:global(.activity-toolbar){padding:0;border:0;border-radius:0;background:none}
+  .rrjeti-section-toolbar>:global(.contribution-filter){padding:14px 0 0;border:0;border-top:1px solid rgba(116,71,97,.14);border-radius:0;background:none}
+  .rrjeti-section :global(.result-count),.rrjeti-section :global(.directory-result-count){margin:22px 0 24px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+  @media(max-width:760px){
+    .rrjeti-section-top{padding-top:48px!important}
+    .rrjeti-section-head{align-items:flex-start;flex-direction:column;gap:22px}
+    .rrjeti-section-stats{gap:16px 28px;margin:24px 0 22px;padding-block:16px}
+    .rrjeti-section-stats strong{font-size:28px}
+    .rrjeti-section-toolbar{padding:14px}
+  }
+</style>

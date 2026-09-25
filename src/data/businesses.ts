@@ -1,6 +1,5 @@
-import rawBusinesses from './businesses.csv?raw';
-import { csvRows } from './csv';
 import { offers } from './offers';
+import { organizations } from './organizations';
 
 export type BusinessCategory = 'technology' | 'architecture' | 'health' | 'finance' | 'business-development' | 'other';
 
@@ -28,7 +27,10 @@ export const contributionTypeOptions = ['Sponsor', 'Donacion', 'Ofertë', 'Kupon
 
 export interface Business {
   name: string;
+  /** Main category (`category` in Supabase). */
   category: BusinessCategory;
+  /** All categories: the main one, then `other_categories`. */
+  categories: BusinessCategory[];
   stage: BusinessStage;
   city?: string;
   country?: string;
@@ -43,7 +45,7 @@ export interface Business {
   relatedMembers: string[];
   /** Network cities this business is active in or connected to, beyond its base city. */
   relatedCities: string[];
-  // Derived, not a raw CSV column: the distinct ways this business contributes to
+  // Derived, not a Supabase column: the distinct ways this business contributes to
   // IB — "Sponsor" if it sponsors the network, plus the type of each offer/coupon/
   // donation it has published (see offers.csv, whose `type` column is free text).
   contributionTypes: string[];
@@ -56,33 +58,29 @@ for (const offer of offers) {
   offerTypesByBusiness.set(offer.business, types);
 }
 
-const businessCategoryValues: BusinessCategory[] = ['technology', 'architecture', 'health', 'finance', 'business-development'];
-
-function businessesFromCsv(text: string): Business[] {
-  return csvRows(text).map(({ col }) => {
-    const category = col('category').toLowerCase();
-    const stage = col('stage').toLowerCase();
-    const name = col('name');
-    const city = col('city') || undefined;
-    const sponsor = ['true', 'yes', '1'].includes(col('sponsor').toLowerCase());
-    const contributionTypes = [...(sponsor ? ['Sponsor'] : []), ...(offerTypesByBusiness.get(name) ?? [])];
+// The published businesses in Supabase (see organizations.ts). The member who
+// added one counts as a related member.
+export const businesses: Business[] = organizations
+  .filter(org => org.kind === 'business')
+  .map(org => {
+    const categories = [...new Set([org.category, ...org.otherCategories])].filter((value): value is BusinessCategory => value in businessCategoryLabels);
+    if (categories.length === 0) categories.push('other');
     return {
-      name,
-      category: businessCategoryValues.includes(category as BusinessCategory) ? (category as BusinessCategory) : 'other',
-      stage: (stage === 'established' || stage === 'diaspora') ? stage : 'startup',
-      city,
-      country: col('country') || undefined,
-      description: col('description'),
-      website: col('website') || undefined,
-      linkedin: col('linkedin') || undefined,
-      instagram: col('instagram') || undefined,
-      logo: col('logo') || undefined,
-      sponsor,
-      relatedMembers: col('relatedMembers').split(';').map(value => value.trim()).filter(Boolean),
-      relatedCities: col('relatedCities').split(';').map(value => value.trim()).filter(Boolean),
-      contributionTypes,
+      name: org.name,
+      category: categories[0],
+      categories,
+      stage: (org.stage === 'established' || org.stage === 'diaspora') ? org.stage : 'startup',
+      city: org.city,
+      country: org.country,
+      description: org.description,
+      website: org.website,
+      linkedin: org.linkedin,
+      instagram: org.instagram,
+      logo: org.logo,
+      sponsor: org.sponsor,
+      relatedMembers: [...new Set([...(org.username ? [org.username] : []), ...org.relatedMembers])],
+      relatedCities: org.relatedCities,
+      contributionTypes: [...(org.sponsor ? ['Sponsor'] : []), ...(offerTypesByBusiness.get(org.name) ?? [])],
     };
-  });
-}
-
-export const businesses: Business[] = businessesFromCsv(rawBusinesses).sort((a, b) => a.name.localeCompare(b.name, 'sq'));
+  })
+  .sort((a, b) => a.name.localeCompare(b.name, 'sq'));

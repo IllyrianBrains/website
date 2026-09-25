@@ -16,9 +16,17 @@ dist/
 # store member data in the repo.
 src/data/members.json
 scripts/members-seed.csv
+# Members' LinkedIn profile PDFs for scripts/import-linkedin-pdf.mjs.
+scripts/linkedin/
+
+# Team list from Supabase, written by the same sync (scripts/sync-members-supabase.mjs).
+src/data/teams.json
 
 # Same for the public Miqtë e Rrjetit list on /dhuro/ (scripts/sync-supporters-sheet.mjs).
 src/data/supporters.json
+
+# Member-added NGOs & businesses (scripts/sync-organizations-supabase.mjs).
+src/data/organizations.json
 
 # Env / editor / OS noise
 *.env

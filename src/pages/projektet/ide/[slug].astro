@@ -1,52 +1,30 @@
 ---
-import { marked } from 'marked';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import Header from '../../../components/Header.astro';
 import Footer from '../../../components/Footer.astro';
 import ideas from '../../../data/ideas.json';
+import { formatDate, ideaMailto, renderMarkdown, type Idea } from '../../../scripts/ideas';
 
-const ORG_EMAIL = 'illyrianbrains@gmail.com';
-
-const AREA_COLORS: Record<string, string> = {
-  'Kërkoj punë': '#744761',
-  'Ofroj ndihmë': '#3f7a54',
-  'Grup aktiviteti': '#b98545',
-  Bashkëpunim: '#293f52',
-};
-function areaColor(area: string) {
-  return AREA_COLORS[area] || '#66676c';
-}
-
-// Raw HTML in a description is escaped rather than passed through —
-// descriptions can come from a public form — while leaving CommonMark
-// autolinks (<https://…>) alone, since those aren't raw HTML.
-marked.use({ renderer: { html(token) {
-  const raw = typeof token === 'string' ? token : (token as { text: string }).text;
-  return raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-} } });
-
+// Same "#" number as the list: the Supabase id, or (before the switch, no
+// ids yet) the oldest idea is #1.
 export function getStaticPaths() {
-  return ideas.map((idea, index) => ({ params: { slug: idea.slug }, props: { idea, number: index + 1 } }));
+  return (ideas as Idea[]).map((idea, index) => ({ params: { slug: idea.slug }, props: { idea, number: idea.id ?? ideas.length - index } }));
 }
 
-const { idea, number } = Astro.props;
-const descriptionHtml = marked.parse(idea.description);
-const mailto = idea.email
-  ? `mailto:${idea.email}?subject=${encodeURIComponent(`Ide #${number} · ${idea.title}`)}&body=${encodeURIComponent(`Përshëndetje,\n\nPo të shkruaj për idenë #${number} "${idea.title}" që ndave në Illyrian Brains.`)}`
-  : `mailto:${ORG_EMAIL}?subject=${encodeURIComponent(`Ide #${number} · ${idea.title}`)}&body=${encodeURIComponent(`Përshëndetje,\n\nKjo ide (#${number} "${idea.title}") është nga arkivi i forumit dhe s'ka email të drejtpërdrejtë — a mund të na e përcillni autorit?`)}`;
-const publishedDate = idea.date && !isNaN(Date.parse(idea.date))
-  ? new Date(idea.date).toLocaleDateString('sq-AL', { day: 'numeric', month: 'long', year: 'numeric' })
-  : '';
+const { idea, number } = Astro.props as { idea: Idea; number: number };
+const descriptionHtml = renderMarkdown(idea.description);
+const mailto = ideaMailto(idea, number);
+const publishedDate = formatDate(idea.date);
 ---
-<BaseLayout title={`${idea.title} · Ndaj Ide · Illyrian Brains`} description={idea.title}>
+<BaseLayout title={`${idea.title} · Mundësitë · Illyrian Brains`} description={idea.title}>
   <Header />
   <main>
-    <section class="section tone-dark idea-detail-hero" style={idea.area ? `--area-color:${areaColor(idea.area)}` : ''}>
+    <section class="section tone-dark idea-detail-hero">
       <div class="container city-page">
-        <a class="idea-back-link" href="/projektet/ide/"><span aria-hidden="true">←</span> Të gjitha idetë</a>
+        <a class="idea-back-link" href="/projektet/ide/"><span aria-hidden="true">←</span> Të gjitha mundësitë</a>
         <div class="idea-detail-badges">
           <span class="idea-detail-number">#{number}</span>
-          {idea.area && <span class="idea-row-area">{idea.area}</span>}
+          {(idea.tags || []).map(tag => <span class="idea-detail-tag">#{tag}</span>)}
           <span class={`idea-status ${idea.resolved ? 'is-resolved' : 'is-open'}`}>{idea.resolved ? 'E zgjidhur' : 'Ende aktive'}</span>
         </div>
         <h1>{idea.title}</h1>
@@ -78,7 +56,7 @@ const publishedDate = idea.date && !isNaN(Date.parse(idea.date))
   .idea-back-link:hover { color: #fff; }
   .idea-detail-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; }
   .idea-detail-number { color: rgba(255,255,255,.55); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .idea-row-area { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--area-color, var(--muted)); color: #fff; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+  .idea-detail-tag { display: inline-block; padding: 3px 10px; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; color: #fff; font-size: 11px; font-weight: 700; }
   .idea-status { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px; font-size: 11px; font-weight: 700; }
   .idea-status::before { content: '✓'; font-size: 11px; font-weight: 900; line-height: 1; }
   .idea-status.is-open { color: rgba(255,255,255,.55); background: rgba(255,255,255,.1); }

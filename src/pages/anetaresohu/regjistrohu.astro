@@ -1,0 +1,197 @@
+---
+// Public registration: adds the person to Supabase `members` as 'pending'
+// through the register_member() function (supabase/003-registration.sql).
+// An admin approves them by setting status to 'ok'; after that they can sign
+// in on /anetaresohu/profili/ to complete their profile.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/directory.css';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { cities } from '../../data/cities';
+const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || '';
+const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '';
+const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.localeCompare(b, 'sq'));
+const roles = [
+  { value: 'Pjesëmarrës', label: 'Pjesëmarrës', hint: 'Vjen në takimet dhe eventet e qytetit tënd.' },
+  { value: 'Mbështetës', label: 'Mbështetës', hint: 'Mbështet rrjetin me një donacion vjetor ose me kuotën e qytetit.' },
+  { value: 'Organizator', label: 'Organizator', hint: 'Organizon takimet në qytetin tënd.' },
+  { value: 'Kontribues', label: 'Kontribues', hint: 'Punon në një nga ekipet e rrjetit, nga kudo.' },
+  { value: 'Ende nuk e di', label: 'Ende nuk e di', hint: 'Dua të njihem me rrjetin dhe të shoh ku mund të ndihmoj.' },
+];
+---
+<BaseLayout title="Regjistrohu · Illyrian Brains" description="Regjistrohu në rrjetin Illyrian Brains Network dhe krijo profilin tënd në drejtorinë e anëtarëve.">
+  <Header />
+  <main>
+    <section class="section tone-white profile-editor-section profile-edit-page">
+      <div class="container profile-editor auth-shell" id="register" data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}>
+        <header class="profile-editor-intro">
+          <h1>Regjistrohu</h1>
+          <p>Si pjesëmarrës ose mbështetës mjafton emri, emaili dhe qyteti. Si anëtar, plotëso edhe të dhënat e tua profesionale. Ekipi i IB e shqyrton kërkesën dhe të kontakton me email. Pasi të aprovohet, profili yt shfaqet te <a href="/anetaret/">Anëtarët</a>.</p>
+        </header>
+
+        <p class="profile-editor-status" id="register-status" role="status" aria-live="polite"></p>
+
+        <div class="profile-editor-card auth-card" id="register-done" hidden>
+          <h2>Faleminderit!</h2>
+          <p>Kërkesa jote u regjistrua. Ekipi i IB do ta shqyrtojë dhe do të të shkruajë në email. Pasi të aprovohet, mund të <a href="/anetaresohu/profili/">hysh</a> me të njëjtin email dhe të shtosh përvojën, arsimimin dhe foton.</p>
+          <p id="register-done-support" hidden>Për të mbështetur rrjetin me një donacion, shko te <a href="/dhuro/">Dhuro</a>.</p>
+        </div>
+
+        <form id="register-form" novalidate>
+          <fieldset>
+            <legend>Si dëshiron të përfshihesh? *</legend>
+            <div class="register-roles">
+              {roles.map(role => (
+                <label class="register-role">
+                  <input type="radio" name="applied_role" value={role.value} required />
+                  <span><strong>{role.label}</strong>{role.hint}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset class="profile-editor-grid">
+            <legend>Të dhënat e tua</legend>
+            <label>Emri dhe mbiemri *<input name="name" required minlength="3" maxlength="120" autocomplete="name" /></label>
+            <label>Email *<input name="email" type="email" required maxlength="200" autocomplete="email" /></label>
+            <label class="profile-editor-wide" data-full>Profili LinkedIn *<input name="linkedin_url" required inputmode="url" placeholder="https://linkedin.com/in/emri-yt" /></label>
+            <label>Qyteti ku jeton *<input name="city" list="register-city-list" required maxlength="80" /></label>
+            <datalist id="register-city-list">{cityNames.map(name => <option value={name} />)}</datalist>
+            <label>Shteti *<input name="country" required maxlength="80" autocomplete="country-name" /></label>
+            <label data-full>Pozicioni / titulli<input name="headline" maxlength="160" placeholder="p.sh. Analiste financiare" /></label>
+            <label data-full>Kompania / institucioni<input name="company" maxlength="160" autocomplete="organization" /></label>
+          </fieldset>
+
+          <fieldset data-full>
+            <legend>Fushat e ekspertizës</legend>
+            <div class="profile-editor-chips" id="register-categories"><span class="profile-editor-hint">Duke ngarkuar…</span></div>
+          </fieldset>
+
+          <fieldset class="profile-editor-grid" data-full>
+            <legend>Pak më shumë për ty</legend>
+            <div class="profile-editor-wide"><span class="profile-editor-label">Aftësitë</span><div class="profile-editor-tags" data-tags="skills"><input maxlength="80" placeholder="p.sh. analizë të dhënash — shtyp Enter" aria-label="Shto aftësi" /></div></div>
+            <div class="profile-editor-wide"><span class="profile-editor-label">Gjuhët</span><div class="profile-editor-tags" data-tags="languages"><input maxlength="40" placeholder="p.sh. Shqip, Anglisht — shtyp Enter" aria-label="Shto gjuhë" /></div></div>
+            <label class="profile-editor-wide">Rreth teje<textarea name="about" rows="4" maxlength="3000" placeholder="Disa fjali për rrugën tënde profesionale."></textarea></label>
+            <label class="profile-editor-wide">Pse dëshiron të bashkohesh?<textarea name="motivation" rows="4" maxlength="3000"></textarea></label>
+          </fieldset>
+
+          <!-- Honeypot: hidden from people, bots tend to fill it. -->
+          <label class="register-honeypot" aria-hidden="true">Website<input name="company_website" tabindex="-1" autocomplete="off" /></label>
+
+          <label class="profile-editor-check register-consent">
+            <input type="checkbox" name="consent" required />
+            <span>Pranoj që Illyrian Brains Network të ruajë këto të dhëna për të shqyrtuar kërkesën dhe, pas aprovimit, të shfaqë profilin tim në drejtorinë e anëtarëve (pa emailin). *</span>
+          </label>
+
+          <div class="profile-editor-actions">
+            <button class="partner-button" type="submit">Dërgo kërkesën <span aria-hidden="true">→</span></button>
+            <a href="/anetaresohu/profili/">Ke tashmë profil? Hyr →</a>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+<script>
+  import { tagInput, loadTagSuggestions } from '../../scripts/tag-input';
+
+  const root = document.querySelector<HTMLElement>('#register')!;
+  const form = document.querySelector<HTMLFormElement>('#register-form')!;
+  const statusLine = document.querySelector<HTMLElement>('#register-status')!;
+  const say = (text: string, kind = '') => { statusLine.textContent = text; statusLine.dataset.kind = kind; };
+  const url = root.dataset.supabaseUrl, key = root.dataset.supabaseKey;
+  const headers: Record<string, string> = key ? { apikey: key, 'Content-Type': 'application/json', ...(key.startsWith('eyJ') && { Authorization: `Bearer ${key}` }) } : {};
+  const input = (name: string) => form.elements.namedItem(name) as HTMLInputElement;
+  const tags = {
+    skills: tagInput(form.querySelector<HTMLElement>('[data-tags="skills"]')!),
+    languages: tagInput(form.querySelector<HTMLElement>('[data-tags="languages"]')!),
+  };
+
+  // Pre-select a role from ?roli=Organizator (links from the cards below the hero).
+  const requestedRole = new URLSearchParams(location.search).get('roli');
+  form.querySelectorAll<HTMLInputElement>('input[name="applied_role"]').forEach(radio => { radio.checked = radio.value === requestedRole; });
+
+  // Participants and supporters only need name, email, city and country: hide the professional fields.
+  const lightRoles = ['Pjesëmarrës', 'Mbështetës'];
+  const selectedRole = () => (form.querySelector<HTMLInputElement>('input[name="applied_role"]:checked') || { value: '' }).value;
+  const isLight = () => lightRoles.includes(selectedRole());
+  const showFields = () => {
+    form.querySelectorAll<HTMLElement>('[data-full]').forEach(element => { element.hidden = isLight(); });
+    input('linkedin_url').required = !isLight();
+  };
+  form.addEventListener('change', event => { if ((event.target as HTMLInputElement).name === 'applied_role') showFields(); });
+  showFields();
+
+  const categoryBox = document.querySelector<HTMLElement>('#register-categories')!;
+  if (!url || !key) {
+    say('Regjistrimi nuk është konfiguruar ende. Na shkruaj te illyrianbrains@gmail.com.', 'error');
+    form.hidden = true;
+  } else {
+    fetch(`${url}/rest/v1/categories?select=name&order=sort_order,name`, { headers })
+      .then(response => (response.ok ? response.json() : Promise.reject(response.status)))
+      .then((categories: { name: string }[]) => {
+        categoryBox.replaceChildren(...categories.map(({ name }) => {
+          const label = document.createElement('label');
+          label.className = 'profile-editor-chip';
+          const box = document.createElement('input');
+          box.type = 'checkbox';
+          box.name = 'fields_of_expertise';
+          box.value = name;
+          label.append(box, ` ${name}`);
+          return label;
+        }));
+      })
+      .catch(() => { categoryBox.textContent = 'Fushat nuk u ngarkuan — mund të vazhdosh pa to.'; });
+    loadTagSuggestions(url, headers)
+      .then(suggestions => { tags.skills.suggest(suggestions.skills); tags.languages.suggest(suggestions.languages); })
+      .catch(() => {});
+  }
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    const light = isLight();
+    let linkedin = light ? '' : input('linkedin_url').value.trim();
+    if (linkedin && !/^https?:\/\//i.test(linkedin)) linkedin = `https://${linkedin}`;
+    const payload = {
+      applied_role: selectedRole(),
+      name: input('name').value.trim(),
+      email: input('email').value.trim(),
+      linkedin_url: linkedin,
+      city: input('city').value.trim(),
+      country: input('country').value.trim(),
+      headline: light ? '' : input('headline').value.trim(),
+      company: light ? '' : input('company').value.trim(),
+      fields_of_expertise: light ? [] : [...categoryBox.querySelectorAll<HTMLInputElement>('input:checked')].map(box => box.value),
+      skills: light ? [] : tags.skills.get(),
+      languages: light ? [] : tags.languages.get(),
+      about: light ? '' : input('about').value.trim(),
+      motivation: light ? '' : input('motivation').value.trim(),
+      consent: input('consent').checked,
+      company_website: input('company_website').value,
+    };
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    button.disabled = true;
+    say('Duke dërguar…');
+    try {
+      const response = await fetch(`${url}/rest/v1/rpc/register_member`, { method: 'POST', headers, body: JSON.stringify({ p: payload }) });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || `HTTP ${response.status}`);
+      }
+      form.hidden = true;
+      document.querySelector<HTMLElement>('#register-done')!.hidden = false;
+      document.querySelector<HTMLElement>('#register-done-support')!.hidden = payload.applied_role !== 'Mbështetës';
+      say('');
+      window.scrollTo({ top: root.getBoundingClientRect().top + window.scrollY - 120, behavior: 'smooth' });
+    } catch (error: any) {
+      say(`Kërkesa nuk u dërgua: ${error.message}`, 'error');
+    } finally {
+      button.disabled = false;
+    }
+  });
+</script>

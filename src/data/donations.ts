@@ -15,7 +15,7 @@ export interface Fund {
 export const funds: Fund[] = [
   { id: 'operative', title: 'Kostot operative', description: 'Mban gjallë infrastrukturën dhe mjetet që përdorin ekipet për ta bërë rrjetin të funksionojë çdo ditë.' },
   { id: 'projekte', title: 'Projekte të reja', description: 'Investohet në projektet e rrjetit — mund të zgjedhësh edhe një projekt të caktuar.' },
-  { id: 'ide', title: 'Fondi i Nismave', description: 'Mbështet idetë e komunitetit që propozohen në Ndaj Ide dhe miratohen për realizim.' },
+  { id: 'ide', title: 'Fondi i Nismave', description: 'Mbështet idetë e komunitetit që propozohen te Mundësitë dhe miratohen për realizim.' },
 ];
 
 export interface FundingLine {
@@ -45,7 +45,7 @@ export const fundingTiers: FundingTier[] = [
     { id: 'atlas', title: 'Atlas', strategy: 'S4', share: 20, description: 'Udhëzuesit e vendeve për profesionistët shqiptarë kudo në botë.' },
     { id: 'mentorimi', title: 'Mentorimi', strategy: 'S4', share: 20, description: 'Programi i mentorimit të rrjetit.' },
     { id: 'heritage', title: 'Heritage', strategy: 'S4', share: 20, description: 'Projekti i trashëgimisë së rrjetit.' },
-    { id: 'hapur', title: 'E hapur', strategy: 'S4', share: 40, description: 'Për nisma të reja nga Ndaj Ide që miratohen për realizim.' },
+    { id: 'hapur', title: 'E hapur', strategy: 'S4', share: 40, description: 'Për nisma të reja nga Mundësitë që miratohen për realizim.' },
   ] },
 ];
 

@@ -19,3 +19,278 @@
 @media (max-width: 700px) {
   .member-card { padding: 18px; }
 }
+
+/* LinkedIn-style member profile in the /anetaret/ drawer. The cover's negative
+   margins cancel .member-drawer-inner's padding (42px 36px, 28px 20px ≤480px). */
+.member-drawer-close { z-index: 1; background: #fff; }
+.profile-cover { height: 110px; margin: -42px -36px 0; background: linear-gradient(135deg, var(--accent-dark), #294b5a); }
+.profile-head .member-drawer-avatar { display: grid; place-items: center; margin: -56px 0 14px; border: 4px solid #fff; box-sizing: content-box; }
+.profile-head .member-drawer-role { margin: 4px 0 6px; color: var(--ink); }
+.profile-meta { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.profile-meta a { color: var(--accent-dark); font-weight: 700; text-decoration: none; }
+.profile-meta a:hover { text-decoration: underline; }
+.profile-section { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+.profile-section h3 { margin: 0 0 14px; font-size: 18px; }
+.profile-section .member-drawer-bio { margin: 0; }
+.profile-list { display: grid; gap: 18px; margin: 0; padding: 0; list-style: none; }
+.profile-list li { display: grid; grid-template-columns: 40px 1fr; gap: 14px; }
+.profile-list .profile-list-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; background: var(--soft); color: var(--accent-dark); font-size: 15px; font-weight: 800; }
+.profile-list strong { display: block; font-size: 15px; line-height: 1.4; }
+.profile-list span { display: block; color: var(--ink); font-size: 14px; line-height: 1.5; }
+.profile-list .profile-years { color: var(--muted); font-size: 13px; }
+.profile-list p { margin: 6px 0 0; color: var(--ink); font-size: 14px; line-height: 1.7; white-space: pre-line; }
+@media (max-width: 480px) {
+  .profile-cover { height: 90px; margin: -28px -20px 0; }
+  .profile-head .member-drawer-avatar { margin-top: -46px; }
+}
+
+/* Profile edit page (/anetaresohu/profili/). */
+.catalog-edit-link { display: inline-block; margin-top: 10px; color: var(--accent-dark); font-weight: 700; text-decoration: none; }
+.catalog-edit-link:hover { text-decoration: underline; }
+.profile-editor-section { padding-top: 64px; }
+.profile-editor { max-width: 860px; }
+.profile-editor-intro { margin-bottom: 36px; }
+.profile-editor-intro h1 { margin: 0; font-size: clamp(38px, 5vw, 58px); font-weight: 400; line-height: 1.05; }
+.profile-editor-intro p { max-width: 640px; margin: 18px 0 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
+.profile-editor-intro a { color: var(--accent-dark); }
+.profile-editor-status:empty { display: none; }
+.profile-editor-status { margin: 0 0 24px; padding: 12px 16px; border-radius: 8px; background: var(--soft); font-size: 15px; line-height: 1.5; }
+.profile-editor-status[data-kind="ok"] { background: rgba(42,112,82,.1); color: #246247; }
+.profile-editor-status[data-kind="error"] { background: rgba(170,50,50,.09); color: #8a2a2a; }
+.profile-editor-card { max-width: 520px; padding: 28px; border: 1px solid var(--line); border-radius: 14px; }
+.profile-editor-card h2 { margin: 0 0 8px; font-size: 24px; }
+.profile-editor-card p { color: var(--muted); font-size: 15px; line-height: 1.6; }
+.profile-editor label, .profile-editor-label { display: grid; gap: 6px; color: var(--ink); font-size: 14px; font-weight: 600; }
+.profile-editor input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), .profile-editor textarea, .profile-editor select {
+  width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 400;
+}
+.profile-editor input:disabled { background: var(--soft); }
+.profile-editor textarea { resize: vertical; line-height: 1.6; }
+.profile-editor fieldset { margin: 0 0 18px; padding: 24px; border: 1px solid var(--line); border-radius: 14px; }
+.profile-editor legend { padding: 0 8px; font-size: 17px; font-weight: 800; }
+.profile-editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.profile-editor-grid > legend { grid-column: 1 / -1; }
+.profile-editor-wide { grid-column: 1 / -1; }
+.profile-editor-text-button { padding: 8px 0; border: 0; background: none; color: var(--accent-dark); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.profile-editor-text-button:hover { text-decoration: underline; }
+.profile-editor-hint { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+.profile-editor-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.profile-editor .profile-editor-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; font-weight: 600; cursor: pointer; }
+.profile-editor-chip:has(input:checked) { border-color: var(--accent-dark); background: rgba(116,71,97,.12); color: var(--accent-dark); }
+.profile-editor-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; }
+.profile-editor-tags input:not([type="checkbox"]) { flex: 1 1 200px; width: auto; padding: 6px; border: 0; }
+.profile-editor-tag { border: 1px solid rgba(42,112,82,.24); cursor: pointer; font: inherit; }
+.profile-editor-years { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+.profile-editor .profile-editor-check { display: flex; grid-column: 1 / -1; align-items: center; gap: 8px; font-weight: 500; }
+.profile-editor-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; margin-top: 8px; }
+.profile-editor-actions .partner-button { margin: 0; border: 0; font: inherit; font-weight: 700; cursor: pointer; }
+.profile-editor-actions a { color: var(--accent-dark); font-weight: 700; text-decoration: none; }
+.profile-editor [hidden] { display: none !important; }
+@media (max-width: 640px) {
+  .profile-editor fieldset { padding: 18px 14px; }
+  .profile-editor-grid { grid-template-columns: 1fr; }
+}
+
+/* Registration form (/anetaresohu/regjistrohu/) — reuses the profile editor styles above. */
+.register-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.profile-editor .register-role { display: flex; align-items: flex-start; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.register-role:has(input:checked) { border-color: var(--accent-dark); background: rgba(116,71,97,.07); }
+.register-role input { margin-top: 3px; }
+.register-role span { display: grid; gap: 4px; color: var(--muted); font-size: 13px; font-weight: 400; line-height: 1.5; }
+.register-role strong { color: var(--ink); font-size: 15px; }
+.profile-editor .register-consent { display: flex; align-items: flex-start; margin: 4px 0 22px; color: var(--muted); font-weight: 400; line-height: 1.6; }
+.register-consent input { margin-top: 5px; }
+.register-honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+@media (max-width: 640px) {
+  .register-roles { grid-template-columns: 1fr; }
+}
+
+/* Profile editor: strength meter, pending notice, sticky save bar. */
+.profile-editor-notice { margin: 0 0 18px; padding: 12px 16px; border-left: 3px solid #b48a2d; border-radius: 6px; background: rgba(180,138,45,.1); color: #6f5212; font-size: 14px; line-height: 1.6; }
+.profile-strength-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; font-size: 15px; }
+.profile-strength-head span { color: var(--accent-dark); font-size: 20px; font-weight: 800; }
+.profile-strength-bar { height: 8px; overflow: hidden; border-radius: 99px; background: var(--soft); }
+.profile-strength-bar span { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent-dark), #397b72); transition: width .3s ease; }
+.profile-strength-missing { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; color: var(--muted); font-size: 13px; }
+.profile-strength-missing button { padding: 4px 10px; border: 1px dashed color-mix(in srgb, var(--accent-dark) 45%, var(--line)); border-radius: 999px; background: #fff; color: var(--accent-dark); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.profile-strength-missing button:hover { border-style: solid; background: rgba(116,71,97,.07); }
+.profile-editor-actions { position: sticky; bottom: 0; z-index: 5; margin-bottom: -16px; padding: 14px 0 16px; border-top: 1px solid var(--line); background: rgba(255,255,255,.96); backdrop-filter: blur(6px); }
+.profile-editor-dirty { color: #8a6415; font-size: 14px; font-weight: 700; }
+.profile-editor-dirty::before { content: '●'; margin-right: 6px; }
+
+/* Profile editor layout, LinkedIn-style: white cards on a grey page, an intro
+   card with cover + overlapping photo, and a sticky sidebar with save/strength. */
+.profile-edit-page { background: #f3f2ef; }
+.profile-edit-page .profile-editor { max-width: 1100px; }
+.profile-editor .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.profile-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.profile-main { display: grid; gap: 16px; min-width: 0; }
+.profile-main .profile-editor-notice { margin: 0; }
+.profile-aside { position: sticky; top: 112px; display: grid; gap: 16px; }
+.profile-card { padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(23,24,29,.04); }
+.profile-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.profile-card-head h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
+.profile-card-add { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--muted); font: 300 30px/1 var(--font-body); cursor: pointer; }
+.profile-card-add:hover { background: var(--soft); color: var(--ink); }
+.profile-card-empty { margin: 0; color: var(--muted); font-size: 14px; }
+.profile-editor-rows:not(:empty) + .profile-card-empty { display: none; }
+.profile-card-private { padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--muted); font-size: 12px; font-weight: 700; }
+/* Profile editor groups (Kush jam · Ku jam sot · Ku synoj), collapsible. */
+.profile-group > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 10px 0; list-style: none; cursor: pointer; }
+.profile-group > summary::-webkit-details-marker { display: none; }
+.profile-group > summary::before { content: '›'; align-self: center; color: var(--muted); font-size: 22px; line-height: 1; transition: transform .15s ease; }
+.profile-group[open] > summary::before { transform: rotate(90deg); }
+.profile-group-title { font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+.profile-group-hint { color: var(--muted); font-size: 14px; }
+.profile-group > summary:hover .profile-group-title { color: var(--accent-dark); }
+.profile-group-body { display: grid; gap: 16px; margin-top: 6px; }
+
+.profile-intro { overflow: hidden; padding-top: 0; }
+.profile-intro-cover { height: 150px; margin: 0 -24px; background: var(--rombi-pattern) center / 192px 24px repeat-x, linear-gradient(135deg, var(--accent-dark), #294b5a); background-blend-mode: soft-light, normal; }
+.profile-intro-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-top: -76px; }
+.profile-intro-photo { position: relative; flex: none; }
+.profile-intro-avatar { display: grid; place-items: center; width: 152px; height: 152px; border: 4px solid #fff; border-radius: 50%; object-fit: cover; font-size: 44px; box-shadow: 0 2px 8px rgba(23,24,29,.12); }
+.profile-editor .profile-intro-camera { position: absolute; right: 6px; bottom: 6px; display: grid; place-items: center; width: 40px; height: 40px; border: 2px solid #fff; border-radius: 50%; background: var(--accent-dark); color: #fff; cursor: pointer; }
+.profile-intro-camera:hover { background: var(--ink); }
+.profile-intro-camera:focus-within { outline: 2px solid var(--accent-dark); outline-offset: 2px; }
+.profile-intro-camera svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.profile-intro-camera input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.profile-intro-photo-actions { display: flex; gap: 18px; padding-bottom: 4px; }
+.profile-editor .profile-intro-photo-actions label { display: inline; }
+.profile-intro-preview { margin-top: 14px; }
+.profile-intro-preview h2 { margin: 0; font-size: 26px; line-height: 1.25; }
+.profile-intro-preview p { margin: 4px 0 0; color: var(--ink); font-size: 16px; line-height: 1.5; }
+.profile-intro-preview p:empty { display: none; }
+.profile-intro-preview .profile-intro-meta { color: var(--muted); font-size: 14px; }
+.profile-intro .profile-editor-hint { margin: 10px 0 0; }
+.profile-intro .profile-card-body { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+
+.profile-editor-rows { display: grid; }
+.profile-editor-row { padding: 16px 0; border-top: 1px solid var(--line); }
+.profile-editor-row:first-child { padding-top: 0; border-top: 0; }
+.profile-entry { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 14px; align-items: start; }
+.profile-entry .profile-list-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 8px; background: var(--soft); color: var(--accent-dark); font-size: 18px; font-weight: 800; }
+.profile-entry-text strong, .profile-entry-text span, .profile-entry-text small { display: block; line-height: 1.45; overflow-wrap: anywhere; }
+.profile-entry-text strong { font-size: 16px; }
+.profile-entry-text span { font-size: 14px; }
+.profile-entry-text small { color: var(--muted); font-size: 13px; }
+.profile-entry-text span:empty, .profile-entry-text small:empty { display: none; }
+.profile-editor-row-controls { display: flex; gap: 2px; }
+.profile-editor-row-controls button { width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--muted); font: inherit; font-size: 15px; cursor: pointer; }
+.profile-editor-row-controls button:hover { background: var(--soft); color: var(--ink); }
+.profile-editor-row-controls [data-remove]:hover { color: #8a2a2a; }
+.profile-editor-row:first-child [data-move="-1"], .profile-editor-row:last-child [data-move="1"] { visibility: hidden; }
+.profile-editor-row.is-editing .profile-entry [data-edit] { background: rgba(116,71,97,.12); color: var(--accent-dark); }
+.profile-entry-form { align-items: start; margin: 14px 0 0 62px; padding: 18px; border-radius: 10px; background: var(--soft); }
+.profile-editor-row:not(.is-editing) .profile-entry-form { display: none; }
+.profile-entry-done { display: flex; justify-content: flex-end; }
+
+.profile-aside-account { display: grid; gap: 12px; font-size: 14px; overflow-wrap: anywhere; }
+.profile-aside-account .profile-editor-text-button { justify-self: start; padding: 0; }
+.profile-strength .profile-strength-head { flex-wrap: wrap; gap: 6px; }
+.profile-aside .profile-editor-actions { position: static; display: grid; gap: 12px; margin: 0; padding: 20px; border-top: 1px solid var(--line); background: #fff; backdrop-filter: none; }
+.profile-aside .profile-editor-actions .partner-button { justify-content: center; }
+.profile-aside .profile-editor-actions a { font-size: 14px; }
+
+@media (max-width: 900px) {
+  .profile-layout { grid-template-columns: 1fr; }
+  /* Flatten the sidebar so its cards can sit around the main column. */
+  .profile-aside { display: contents; }
+  .profile-aside-account { order: -2; }
+  .profile-strength { order: -1; }
+  .profile-aside .profile-editor-actions { position: sticky; bottom: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; margin: 0 -8px; padding: 12px 16px; border-radius: 10px 10px 0 0; box-shadow: 0 -4px 16px rgba(23,24,29,.08); }
+  .profile-aside .profile-editor-actions { flex-wrap: nowrap; gap: 12px; }
+  .profile-aside .profile-editor-actions .partner-button { flex: none; width: auto; min-height: 44px; }
+  .profile-aside .profile-editor-actions a { display: none; }
+  .profile-editor-dirty { font-size: 13px; }
+}
+@media (max-width: 640px) {
+  .profile-card { padding: 18px 16px; }
+  .profile-intro { padding-top: 0; }
+  .profile-intro-cover { height: 100px; margin: 0 -16px; }
+  .profile-intro-top { margin-top: -56px; }
+  .profile-intro-avatar { width: 112px; height: 112px; font-size: 34px; }
+  .profile-intro-photo-actions { flex-direction: column; gap: 4px; }
+  .profile-entry-form { margin-left: 0; padding: 14px; }
+}
+
+/* Membership + teams on the profile editor. */
+.profile-editor-membership:empty { display: none; }
+.profile-editor-membership { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.7; }
+.profile-editor-teams { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.profile-editor-team { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+.profile-editor-team:has(input:checked) { border-color: var(--accent-dark); background: rgba(116,71,97,.06); }
+.profile-editor .profile-editor-team select { width: auto; padding: 5px 8px; font-size: 13px; }
+
+/* Member posts (supabase/007-social.sql) — built in the browser on
+   /anetaret/<slug>/ and /rrjeti/postimet/. */
+.post-list { display: grid; gap: 12px; }
+.post-card { padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.post-card-author { display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: center; color: var(--ink); text-decoration: none; }
+.post-card-author strong { display: block; font-size: 14px; }
+.post-card-author small { display: block; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.post-card-author:hover strong { text-decoration: underline; }
+.post-card-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; font-size: 13px; }
+.post-card-body { margin: 12px 0 0; font-size: 15px; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+.post-card-body a { color: var(--accent-dark); }
+.post-card-delete { color: var(--muted); padding-bottom: 0; }
+.post-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; }
+.feed-tag { display: inline-block; padding: 3px 9px; border: 1px solid rgba(23,24,29,.18); border-radius: 999px; color: var(--ink); font-size: 11px; font-weight: 700; }
+.tag-filter { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag-filter[hidden] { display: none; }
+.tag-filter button { padding: 6px 10px; border: 1px solid #d4d0ca; border-radius: 999px; color: var(--ink); background: #fff; font: 700 11px var(--font-body); cursor: pointer; }
+.tag-filter button small { color: var(--muted); font-weight: 400; }
+.tag-filter button[aria-pressed=true] { border-color: var(--ink); color: #fff; background: var(--ink); }
+.tag-filter button[aria-pressed=true] small { color: rgba(255,255,255,.7); }
+
+/* Ideas as LinkedIn-style feed cards (ideaRowHtml in src/scripts/ideas.ts) —
+   on the Mundësitë feed (/projektet/ide/) and the network feed on /rrjeti/. */
+.idea-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.idea-row { padding: 18px 20px; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 12px; background: #fff; }
+.idea-row[hidden] { display: none; }
+.idea-row-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.idea-row-number { flex: 0 0 auto; color: var(--muted); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.idea-row-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0 0; }
+.idea-status { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.idea-status::before { content: '●'; font-size: 8px; line-height: 1; }
+.idea-status.is-open { color: #2b5a92; background: rgba(45,100,170,.1); }
+.idea-status.is-resolved { color: #246247; background: rgba(42,112,82,.1); }
+.idea-row-title { margin: 10px 0 6px; font-size: 18px; font-weight: 700; line-height: 1.35; }
+.idea-row-title a { color: var(--ink); text-decoration: none; }
+.idea-row-title a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.idea-row-desc { margin: 0; color: #333438; font-size: 15px; line-height: 1.6; }
+.idea-row-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.idea-row-more, .idea-row-reply { color: var(--accent-dark); font-size: 14px; font-weight: 700; text-decoration: none; }
+.idea-row-more:hover, .idea-row-reply:hover { text-decoration: underline; text-underline-offset: 3px; }
+.idea-row-full { margin-top: 10px; }
+.idea-row-full summary { color: var(--accent-dark); font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }
+.idea-row-full summary::-webkit-details-marker { display: none; }
+.idea-row-full[open] summary { margin-bottom: 12px; }
+.idea-row-rich { color: #333438; font-size: 15px; line-height: 1.7; }
+.idea-row-rich p, .idea-row-rich ul, .idea-row-rich ol, .idea-row-rich blockquote { margin: 0 0 14px; }
+.idea-row-rich h1, .idea-row-rich h2, .idea-row-rich h3, .idea-row-rich h4 { margin: 20px 0 10px; font-size: 17px; }
+.idea-row-rich a { color: var(--accent-dark); text-decoration: underline; word-break: break-word; }
+
+/* Sign-in (/anetaresohu/profili/ when signed out) and registration (/anetaresohu/regjistrohu/):
+   one centered column of white cards on the grey page. */
+.profile-edit-page .profile-editor.auth-shell { max-width: 760px; margin-inline: auto; }
+.auth-shell .profile-editor-intro { text-align: center; }
+.auth-shell .profile-editor-intro p { margin-inline: auto; }
+.auth-shell .profile-editor-status { max-width: 520px; margin-inline: auto; text-align: center; }
+.auth-shell fieldset, .auth-shell .profile-editor-card { border-color: #e0dfdc; background: #fff; box-shadow: 0 1px 2px rgba(23,24,29,.05), 0 8px 24px rgba(23,24,29,.04); }
+.auth-shell fieldset { padding: 28px; }
+.auth-shell legend { float: left; width: 100%; margin: 0 0 18px; padding: 0; font-size: 18px; }
+.auth-shell legend + * { clear: both; }
+.auth-shell .profile-editor-card { max-width: 440px; margin: 0 auto; padding: 36px; text-align: center; }
+.auth-shell .profile-editor-card p { margin: 0 0 22px; }
+.auth-shell .auth-card label { text-align: left; }
+.auth-shell .auth-card .partner-button { justify-content: center; width: 100%; margin-top: 16px; border: 0; font: inherit; font-weight: 700; cursor: pointer; }
+.auth-shell .profile-editor-card .auth-card-foot { margin: 22px 0 0; padding-top: 18px; border-top: 1px solid var(--line); font-size: 14px; }
+.auth-card a { color: var(--accent-dark); font-weight: 700; text-decoration: none; }
+.auth-shell .register-consent { padding: 0 4px; }
+.auth-shell .profile-editor-actions { justify-content: space-between; margin: 0; padding: 16px 24px; border: 1px solid #e0dfdc; border-radius: 14px; }
+@media (max-width: 640px) {
+  .auth-shell .profile-editor-card { padding: 26px 20px; }
+  .auth-shell fieldset { padding: 20px 16px; }
+  .auth-shell .profile-editor-actions { padding: 14px 16px; }
+}
