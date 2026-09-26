@@ -1,0 +1,19 @@
+---
+interface Props {
+  target: string;
+  title?: string;
+  label?: string;
+}
+const { target, title = "Illyrian Brains", label = "Vazhdo" } = Astro.props;
+---
+<html lang="sq">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>{title}</title>
+    <link rel="canonical" href={target} />
+    <script is:inline define:vars={{ target }}>location.replace(target);</script>
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+  </head>
+  <body><a href={target}>{label}</a></body>
+</html>

@@ -3,10 +3,7 @@
 // (the `organizations` table; see supabase/006 and 011). Members may add and
 // manage several entities here; admins review them before directory publication.
 import '../../styles/account-organizations.css';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import '../../styles/directory.css';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
+import AccountPage from '../../components/AccountPage.astro';
 import { partnerCategoryLabels } from '../../data/partners';
 import { businessCategoryLabels, businessStageLabels } from '../../data/businesses';
 import { cities } from '../../data/cities';
@@ -21,17 +18,7 @@ export function getStaticPaths() {
 const categoryLabels = { ...partnerCategoryLabels, ...businessCategoryLabels } as Record<string, string>;
 const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Shto një subjekt', all: 'Të gjitha subjektet', empty: 'Ende nuk ke shtuar asnjë subjekt që përfaqëson.' };
 ---
-<BaseLayout title="Përfaqësimi · Illyrian Brains" description="Menaxho shoqatat, OJF-të dhe bizneset që përfaqëson në rrjet.">
-  <Header />
-  <main>
-    <section class="section tone-white profile-editor-section">
-      <div class="container profile-editor orgs-page" id="orgs" data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey} data-labels={JSON.stringify(labels)}>
-        <header class="profile-editor-intro">
-          <p class="eyebrow">Llogaria ime</p>
-          <h1>Përfaqësimi</h1>
-          <p>Subjektet që përfaqëson dhe personat përgjegjës për to.</p>
-        </header>
-        <p class="profile-editor-status" id="orgs-status" role="status" aria-live="polite"></p>
+<AccountPage title="Përfaqësimi · Illyrian Brains" description="Menaxho shoqatat, OJF-të dhe bizneset që përfaqëson në rrjet." heading="Përfaqësimi" intro="Subjektet që përfaqëson dhe personat përgjegjës për to." containerId="orgs" containerClass="orgs-page" containerAttrs={{ 'data-supabase-url': supabaseUrl, 'data-supabase-key': supabaseKey, 'data-labels': JSON.stringify(labels) }} statusId="orgs-status">
 
         <div class="profile-editor-card" id="signed-out" hidden>
           <h2>Hyr për të vazhduar</h2>
@@ -85,7 +72,7 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
 
           <div class="orgs-list-wrap">
             <div class="orgs-list-head">
-              <h2><span id="list-title">Subjektet që përfaqësoj</span> <span class="orgs-count" id="org-count"></span></h2>
+              <h2><span id="list-title">Subjektet që menaxhoj</span> <span class="orgs-count" id="org-count"></span></h2>
               <label id="status-filter-wrap" hidden><span class="sr-only">Filtro sipas statusit</span><select id="status-filter"><option value="">Të gjitha</option><option value="pending">Në shqyrtim</option><option value="published">Publikuar</option><option value="hidden">Jo publike</option></select></label>
             </div>
             <div class="orgs-list" id="org-list"></div>
@@ -106,9 +93,5 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
           </form>
           <div class="offers-list" id="offers-list"></div>
         </section>
-      </div>
-    </section>
-  </main>
-  <Footer />
-</BaseLayout>
+</AccountPage>
 <script src="../../scripts/account-organizations.ts"></script>

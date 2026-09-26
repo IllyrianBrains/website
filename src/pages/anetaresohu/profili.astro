@@ -2,26 +2,13 @@
 // Members sign in with an emailed magic link and edit their own profile;
 // admins (the `admins` table) can pick any member. Everything is saved through
 // the save_member_profile() database function — see supabase/002-editing.sql.
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import '../../styles/directory.css';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
+import AccountPage from '../../components/AccountPage.astro';
 import { cities } from '../../data/cities';
 const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || '';
 const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '';
 const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.localeCompare(b, 'sq'));
 ---
-<BaseLayout title="Profili yt · Illyrian Brains" description="Përditëso profilin tënd në drejtorinë e anëtarëve të Illyrian Brains Network.">
-  <Header />
-  <main>
-    <section class="section tone-white profile-editor-section profile-edit-page">
-      <div class="container profile-editor" id="profile-editor" data-site={Astro.site?.origin} data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}>
-        <header class="profile-editor-intro" id="signin-intro" hidden>
-          <h1>Hyr</h1>
-          <p>Hyr në llogarinë tënde për të përditësuar profilin në <a href="/anetaret/">drejtorinë e anëtarëve</a>.</p>
-        </header>
-
-        <p class="profile-editor-status" id="editor-status" role="status" aria-live="polite"></p>
+<AccountPage title="Profili yt · Illyrian Brains" description="Përditëso profilin tënd në drejtorinë e anëtarëve të Illyrian Brains Network." heading="Hyr" intro={'Hyr në llogarinë tënde për të përditësuar profilin në <a href="/anetaret/">drejtorinë e anëtarëve</a>.'} sectionClass="profile-edit-page" containerId="profile-editor" containerAttrs={{ 'data-site': Astro.site?.origin, 'data-supabase-url': supabaseUrl, 'data-supabase-key': supabaseKey }} introId="signin-intro" introHidden={true} statusId="editor-status">
 
         <form class="profile-editor-card auth-card" id="login-form" hidden>
           <h2>Hyr me email</h2>
@@ -146,17 +133,6 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
                   <p class="profile-editor-hint">Jep detaje konkrete që ekipi i rrjetit të kuptojë kë duhet të kontaktojë dhe çfarë prezantimi apo mbështetjeje të organizojë. Ky informacion shfaqet edhe në profilin tënd publik.</p>
                 </section>
 
-                <section class="profile-card" id="section-help-match">
-                  <div class="profile-card-head"><h2>Si lidhem me rrjetin</h2></div>
-                  <div class="profile-editor-grid profile-card-body">
-                    <div class="profile-editor-wide profile-editor-label">Mund të ndihmoj me<div class="profile-editor-chips">{["Mentorim", "Prezantime", "Punësim", "Këshilla për zhvendosje", "Bashkëpunim", "Klientë", "Investim"].map(value => <label class="profile-editor-chip"><input type="checkbox" name="help_offered" value={value} /> {value}</label>)}</div></div>
-                    <div class="profile-editor-wide profile-editor-label">Po kërkoj<div class="profile-editor-chips">{["Mentorim", "Prezantime", "Punësim", "Këshilla për zhvendosje", "Bashkëpunim", "Klientë", "Investim"].map(value => <label class="profile-editor-chip"><input type="checkbox" name="looking_for" value={value} /> {value}</label>)}</div></div>
-                    <label class="profile-editor-wide">Si dëshiron të kontaktohesh?<select name="contact_preference"><option value="introduction">Përmes një prezantimi nga ekipi i IB</option><option value="linkedin">Përmes LinkedIn</option><option value="website">Përmes faqes personale</option><option value="none">Nuk dua kontakt për momentin</option></select></label>
-                    <label class="profile-editor-wide profile-editor-chip"><input type="checkbox" name="weekly_digest" /> Përmbledhje javore me njoftime nga abonimet e mia</label>
-                  </div>
-                  <p class="profile-editor-hint">Përmbledhja është zgjedhje vullnetare. Emaili yt nuk publikohet.</p>
-                </section>
-
                 <section class="profile-card" id="section-return">
                   <div class="profile-card-head"><h2>Kthimi në Shqipëri / Kosovë</h2><span class="profile-card-private">Privat</span></div>
                   <div class="profile-editor-grid profile-card-body">
@@ -192,15 +168,11 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
 
             <div class="profile-card profile-account-tools">
               <strong>Të dhënat e llogarisë</strong>
-              <p class="profile-editor-hint">Shkarko një kopje ose çaktivizo profilin publik.</p>
+              <p class="profile-editor-hint">Shkarko një kopje ose fshih profilin publik. Riaktivizimi bëhet nga ekipi i IB.</p>
               <button class="profile-editor-text-button" type="button" id="export-data">Shkarko të dhënat</button>
               <button class="profile-editor-text-button profile-danger" type="button" id="deactivate-account">Çaktivizo profilin</button>
             </div>
           </aside>
         </form>
-      </div>
-    </section>
-  </main>
-  <Footer />
-</BaseLayout>
+      </AccountPage>
 <script src="../../scripts/account-profile.ts"></script>

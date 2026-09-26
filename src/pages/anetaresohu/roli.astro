@@ -3,10 +3,7 @@
 // own (read-only); admins pick any member and set it through save_member_admin()
 // — see supabase/004-membership-teams.sql. Same magic-link session as
 // /anetaresohu/profili/.
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import '../../styles/directory.css';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
+import AccountPage from '../../components/AccountPage.astro';
 const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || '';
 const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '';
 // Short versions of the cards on /anetaresohu/.
@@ -17,17 +14,7 @@ const types = [
   { name: 'Kontribues', text: 'Punon në një nga ekipet e rrjetit, nga kudo.' },
 ];
 ---
-<BaseLayout title="Roli në rrjet · Illyrian Brains" description="Anëtarësia dhe ekipet e tua në Illyrian Brains Network.">
-  <Header />
-  <main>
-    <section class="section tone-white profile-editor-section">
-      <div class="container profile-editor" id="role" data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}>
-        <header class="profile-editor-intro">
-          <h1>Roli në rrjet</h1>
-          <p>Lloji i anëtarësisë dhe ekipet ku bën pjesë. I cakton ekipi i IB.</p>
-        </header>
-
-        <p class="profile-editor-status" id="role-status" role="status" aria-live="polite"></p>
+<AccountPage title="Roli në rrjet · Illyrian Brains" description="Anëtarësia dhe ekipet e tua në Illyrian Brains Network." heading="Roli në rrjet" intro="Shiko rolin tënd, ekipet ku kontribuon dhe statusin e anëtarësisë në një vend." containerId="role" containerAttrs={{ 'data-supabase-url': supabaseUrl, 'data-supabase-key': supabaseKey }} statusId="role-status">
 
         <div class="profile-editor-card" id="signed-out" hidden>
           <h2>Hyr për të vazhduar</h2>
@@ -42,6 +29,11 @@ const types = [
 
         <div id="role-content" hidden>
           <label class="role-picker" id="admin-picker" hidden>Anëtari<select id="member-picker"></select></label>
+          <section class="role-overview" aria-label="Përmbledhja e rolit">
+            <div><span>Roli aktual</span><strong id="current-role">—</strong></div>
+            <div><span>Ekipet</span><strong id="current-team-count">0</strong></div>
+            <div><span>Kontributi vjetor</span><strong id="current-fee">—</strong></div>
+          </section>
 
           <section class="profile-card">
             <div class="profile-card-head"><h2>Anëtarësia</h2></div>
@@ -74,11 +66,7 @@ const types = [
           <p class="role-change" id="change-note">Dëshiron të bëhesh organizator, të bashkohesh me një ekip ose të ndryshosh rolin? <a href="mailto:illyrianbrains@gmail.com?subject=Kërkesë%20për%20rolin%20në%20rrjet">Na shkruaj me email →</a></p>
           <button class="partner-button" type="button" id="save" data-admin hidden>Ruaj ndryshimet <span aria-hidden="true">✓</span></button>
         </div>
-      </div>
-    </section>
-  </main>
-  <Footer />
-</BaseLayout>
+      </AccountPage>
 <script>
   import { createClient } from '@supabase/supabase-js';
   import { memberSession } from '../../scripts/member-session';
@@ -141,8 +129,12 @@ const types = [
       });
     }
     const own = members.find((member: any) => (member.email || '').toLowerCase() === email);
+    if (!isAdmin && !own) {
+      document.querySelector<HTMLElement>('#no-profile')!.hidden = false;
+      return;
+    }
     const requested = members.find((member: any) => member.username === new URLSearchParams(location.search).get('u'));
-    let memberId: number = (isAdmin && requested ? requested : own || members[0]).id;
+    let memberId: number = (isAdmin ? requested || own || members[0] : own).id;
     picker.value = String(memberId);
 
     const load = async (id: number) => {
@@ -159,6 +151,9 @@ const types = [
       feeYear.value = member.fee_paid_year ?? '';
 
       const memberTeams: { team_slug: string; role: string }[] = member.member_teams || [];
+      document.querySelector('#current-role')!.textContent = member.membership_type || 'Në pritje';
+      document.querySelector('#current-team-count')!.textContent = String(memberTeams.length);
+      document.querySelector('#current-fee')!.textContent = member.fee_paid_year ? String(member.fee_paid_year) : 'Pa regjistruar';
       const teamName = (slug: string) => allTeams.find(team => team.slug === slug)?.name || slug;
       teamList.replaceChildren(...(memberTeams.length ? memberTeams.map(entry => {
         const item = document.createElement('li');
@@ -207,6 +202,11 @@ const types = [
 
 <style>
   #role-content { display: grid; gap: 18px; }
+  .role-overview { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #fff; box-shadow: 0 2px 8px rgba(23,24,29,.05); }
+  .role-overview > div { padding: 18px 20px; border-right: 1px solid var(--line); }
+  .role-overview > div:last-child { border-right: 0; }
+  .role-overview span { display: block; color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+  .role-overview strong { display: block; margin-top: 6px; color: var(--accent-dark); font-size: 20px; }
   .role-picker { max-width: 420px; }
   .role-types { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
   .profile-editor .role-type { position: relative; display: grid; gap: 4px; align-content: start; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); font-weight: 400; }
@@ -225,4 +225,9 @@ const types = [
   .role-teams :global(.member-slide-badge) { padding: 3px 8px; border-radius: 999px; background: rgba(180,138,45,.16); color: #8a6415; font-size: 12px; }
   .role-change { margin: 0; color: var(--muted); font-size: 15px; }
   #save { justify-self: start; margin-top: 0; }
+  @media (max-width: 620px) {
+    .role-overview { grid-template-columns: 1fr; }
+    .role-overview > div { border-right: 0; border-bottom: 1px solid var(--line); }
+    .role-overview > div:last-child { border-bottom: 0; }
+  }
 </style>

@@ -306,10 +306,6 @@ import { createClient } from '@supabase/supabase-js';
       };
       setChecked('mentoring_interests', (member.mentoring_interests || []).map((value: string) => aspirationAliases[value] || value));
       setChecked('business_interests', (member.business_interests || []).map((value: string) => aspirationAliases[value] || value));
-      setChecked('help_offered', member.help_offered || []);
-      setChecked('looking_for', member.looking_for || []);
-      field('contact_preference').value = member.contact_preference || 'introduction';
-      field('weekly_digest').checked = Boolean(member.weekly_digest);
       setChecked('return_plan', member.return_plan ? [member.return_plan] : []);
       setChecked('return_countries', member.return_countries || []);
       drawReturnCountries();
@@ -353,6 +349,23 @@ import { createClient } from '@supabase/supabase-js';
       }
     });
     document.querySelector('#photo-remove')!.addEventListener('click', () => { avatar = null; drawPhoto(); changed(); });
+
+    document.querySelector<HTMLButtonElement>('#export-data')!.addEventListener('click', async () => {
+      const { data, error } = await supabase.rpc('my_data_export');
+      if (error || !data) return say(`Të dhënat nuk u shkarkuan: ${error?.message || 'nuk u gjetën'}`, 'error');
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+      link.download = 'illyrian-brains-te-dhenat-e-mia.json';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+    document.querySelector<HTMLButtonElement>('#deactivate-account')!.addEventListener('click', async () => {
+      if (!confirm('Ta fshehim profilin tënd publik? Të dhënat ruhen dhe ekipi mund ta riaktivizojë.')) return;
+      const { error } = await supabase.rpc('deactivate_my_membership');
+      if (error) return say(`Profili nuk u çaktivizua: ${error.message}`, 'error');
+      await supabase.auth.signOut();
+      location.reload();
+    });
 
     form.addEventListener('submit', async event => {
       event.preventDefault();

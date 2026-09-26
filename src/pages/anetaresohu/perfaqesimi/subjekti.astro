@@ -68,6 +68,7 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
             <section class="profile-card org-edit-save">
               <button class="partner-button" type="submit">Ruaj ndryshimet <span aria-hidden="true">✓</span></button>
               <a href="/anetaresohu/perfaqesimi/">Anulo</a>
+              <button class="profile-editor-text-button org-edit-delete" id="org-delete" type="button">Tërhiq subjektin</button>
             </section>
           </aside>
         </form>
@@ -118,6 +119,8 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
     const supabase = createClient(url, key);
     const { session, isAdmin: admin } = await memberSession(supabase);
     isAdmin = admin;
+    const deleteButton = document.querySelector<HTMLButtonElement>('#org-delete')!;
+    deleteButton.textContent = isAdmin ? 'Fshi subjektin' : 'Tërhiq subjektin';
     if (!session) location.href = '/anetaresohu/profili/';
     else {
       const requests: any[] = [supabase.from('organizations').select('*').eq('id', id).single()];
@@ -154,6 +157,15 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
           });
         }
         say(''); form.hidden = false;
+        deleteButton.addEventListener("click", async () => {
+          if (!confirm(`Të hiqet “${item.name}”?`)) return;
+          deleteButton.disabled = true;
+          say("Duke hequr subjektin…");
+          const { error } = await supabase.rpc("delete_organization", { p_id: id });
+          if (error) { deleteButton.disabled = false; say(`Nuk u hoq: ${error.message}`, "error"); }
+          else location.href = "/anetaresohu/perfaqesimi/";
+        });
+
 
         document.querySelector<HTMLInputElement>('#edit-logo-input')!.addEventListener('change', async event => {
           const input = event.target as HTMLInputElement; const file = input.files?.[0]; input.value = ''; if (!file) return;
@@ -193,6 +205,7 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
   .org-edit-layout { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 22px; align-items: start; }
   .org-edit-main { display: grid; gap: 16px; }
   .org-edit-aside { position: sticky; top: 96px; display: grid; gap: 16px; }
+  .org-edit-delete { justify-self: center; color: #923b3b; }
   .org-edit-settings { display: grid; gap: 14px; }
   .org-edit-hint { margin: 5px 0 10px; color: var(--muted); font-size: 12px; }
   .org-representative-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; max-height: 310px; overflow: auto; }

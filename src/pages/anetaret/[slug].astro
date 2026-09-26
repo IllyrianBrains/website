@@ -27,6 +27,7 @@ const years = (item: { startYear?: number | null; endYear?: number | null; curre
   const end = item.current ? 'sot' : item.endYear;
   return item.startYear && end ? `${item.startYear} – ${end}` : String(item.startYear || end || '');
 };
+const introUrl = `mailto:illyrianbrains@gmail.com?subject=${encodeURIComponent(`Kërkesë për prezantim me ${member.name}`)}&body=${encodeURIComponent(`Përshëndetje, do të doja një prezantim me ${member.name}.\n\nArsyeja: `)}`;
 const related = relatedMembers(member, directoryMembers, 6);
 const firstName = member.name.split(' ')[0];
 ---
@@ -57,6 +58,9 @@ const firstName = member.name.split(' ')[0];
             <div class="member-drawer-actions">
               <button class="partner-button member-follow-button" type="button" id="follow-button" hidden>Ndiq <span aria-hidden="true">+</span></button>
               <a class="partner-button" href="/anetaresohu/profili/" id="edit-own" hidden>Edito profilin <span aria-hidden="true">→</span></a>
+              <a class="partner-button" href={introUrl} id="request-intro">Kërko prezantim <span aria-hidden="true">→</span></a>
+              <button class="profile-editor-text-button" type="button" id="report-member" hidden>Raporto</button>
+              <button class="profile-editor-text-button" type="button" id="block-member" hidden>Blloko</button>
               {member.linkedinUrl && <a class="partner-button" href={member.linkedinUrl} target="_blank" rel="noreferrer">LinkedIn <span>↗</span></a>}
               {member.website && <a class="partner-button" href={member.website} target="_blank" rel="noreferrer">Faqja personale <span>↗</span></a>}
             </div>
@@ -163,6 +167,8 @@ const firstName = member.name.split(' ')[0];
   const username = root.dataset.username!;
   const url = root.dataset.supabaseUrl, key = root.dataset.supabaseKey;
   const followButton = document.querySelector<HTMLButtonElement>('#follow-button')!;
+  const reportButton = document.querySelector<HTMLButtonElement>('#report-member')!;
+  const blockButton = document.querySelector<HTMLButtonElement>('#block-member')!;
   const counts = document.querySelector<HTMLElement>('#follow-counts')!;
   const status = document.querySelector<HTMLElement>('#follow-status')!;
 
@@ -201,6 +207,37 @@ const firstName = member.name.split(' ')[0];
     });
     if (!supabase) followButton.title = 'Hyr për ta ndjekur';
     showStats();
+
+    let safety: any = null;
+    if (supabase) {
+      const { data } = await supabase.rpc('member_safety_state', { p_username: username });
+      if (data && !data.is_me) {
+        safety = data;
+        reportButton.hidden = false;
+        blockButton.hidden = false;
+        if (data.is_blocked) followButton.hidden = true;
+        blockButton.textContent = data.is_blocked ? 'Zhblloko' : 'Blloko';
+      }
+      reportButton.addEventListener('click', async () => {
+        const reason = prompt('Përshkruaj shkurt problemin (nuk i shfaqet anëtarit):');
+        if (!reason) return;
+        const { error } = await supabase.rpc('report_content', { p_kind: 'member', p_target: safety?.member_id, p_reason: reason });
+        status.textContent = error ? `Raportimi nuk u dërgua: ${error.message}` : 'Raportimi u dërgua te ekipi i IB.';
+      });
+      blockButton.addEventListener('click', async () => {
+        if (!safety || (!safety.is_blocked && !confirm('Ta bllokosh këtë anëtar? Ndjekjet mes jush do të hiqen.'))) return;
+        blockButton.disabled = true;
+        const { error } = await supabase.rpc('set_block', { p_username: username, p_on: !safety.is_blocked });
+        blockButton.disabled = false;
+        if (error) status.textContent = `Nuk u krye: ${error.message}`;
+        else {
+          safety.is_blocked = !safety.is_blocked;
+          blockButton.textContent = safety.is_blocked ? 'Zhblloko' : 'Blloko';
+          followButton.hidden = safety.is_blocked;
+          status.textContent = safety.is_blocked ? 'Anëtari u bllokua.' : 'Anëtari u zhbllokua.';
+        }
+      });
+    }
 
     const response = await fetch(`${url}/rest/v1/public_member_posts?username=eq.${encodeURIComponent(username)}&order=created_at.desc&limit=5`, { headers });
     const posts: MemberPost[] = response.ok ? await response.json() : [];

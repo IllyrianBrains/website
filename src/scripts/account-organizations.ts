@@ -63,10 +63,7 @@ import { createClient } from '@supabase/supabase-js';
     return new Promise<Blob>((resolve, reject) => canvas.toBlob(blob => (blob ? resolve(blob) : reject(new Error('Logoja nuk u lexua.'))), 'image/png'));
   };
 
-  // ── Editing an existing one ──
-  let editingId: number | null = null;
   const resetForm = (hide = true) => {
-    editingId = null;
     form.reset();
     logo = null;
     drawLogo();
@@ -94,7 +91,6 @@ import { createClient } from '@supabase/supabase-js';
     if (isAdmin) {
       const { data } = await supabase.from('members').select('id,name,username,email,status').order('name');
       assignableMembers = data || [];
-      document.querySelector('#list-title')!.textContent = labels.all;
       document.querySelector<HTMLElement>('#status-filter-wrap')!.hidden = false;
     }
     document.querySelector<HTMLElement>('#signed-in')!.hidden = false;
@@ -123,23 +119,7 @@ import { createClient } from '@supabase/supabase-js';
       else { say(done, 'ok'); load(); }
     };
 
-    const edit = (item: any) => {
-      editingId = item.id;
-      form.hidden = false;
-      const checked = itemCategories(item);
-      categoryBoxes.forEach(box => { box.checked = checked.includes(box.value); });
-      kindField.value = item.kind;
-      drawKind();
-      ['name', ...(item.kind === 'business' ? ['stage'] : []), 'city', 'country', 'description', 'website', 'linkedin', 'instagram'].forEach(name => { if (name !== 'stage' || item.stage) field(name).value = item[name] || ''; });
-      logo = item.logo;
-      drawLogo();
-      document.querySelector('#form-title')!.textContent = `Ndrysho “${item.name}”`;
-      submit.firstChild!.textContent = 'Ruaj ndryshimet ';
-      cancel.hidden = false;
-      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-
-    const card = (item: any) => {
+    const card = (item: any, editable = true) => {
       const article = el('article', `org-card org-card--${item.kind}`);
       const head = el('div', 'org-card-head');
       if (item.logo) {
@@ -152,7 +132,11 @@ import { createClient } from '@supabase/supabase-js';
       const badges = el('div', 'org-card-badges');
       badges.append(el('span', 'org-kind', item.kind === 'ngo' ? 'OJF' : 'Biznes'), el('span', `org-status org-status--${item.status}`, stateLabel[item.status]));
       const title = el('h3');
-      if (item.status === 'published') {
+      if (editable) {
+        const link = el('a', '', item.name) as HTMLAnchorElement;
+        link.href = `/anetaresohu/perfaqesimi/subjekti/?id=${item.id}`;
+        title.append(link);
+      } else if (item.status === 'published') {
         const link = el('a', '', item.name) as HTMLAnchorElement;
         link.href = item.kind === 'ngo' ? '/shoqatat/' : '/bizneset/';
         title.append(link);
@@ -181,59 +165,36 @@ import { createClient } from '@supabase/supabase-js';
         article.append(row);
       }
 
-      if (isAdmin) {
-        const admin = el('div', 'org-admin profile-editor-grid');
-        const statusLabel = el('label', '', 'Statusi');
-        const select = document.createElement('select');
-        Object.entries(stateLabel).forEach(([value, label]) => select.append(new Option(label, value, false, value === item.status)));
-        statusLabel.append(select);
-        const personLabel = el('label', '', 'Personi përgjegjës');
-        const person = document.createElement('select');
-        person.append(new Option('— Pa person —', ''));
-        assignableMembers.forEach(member => person.append(new Option(`${member.name} (@${member.username})${member.status === 'ok' ? '' : ' · në pritje'}`, String(member.id), false, Number(member.id) === Number(item.member_id))));
-        personLabel.append(person);
-        const noteLabel = el('label', 'profile-editor-wide', 'Shënim për personin');
-        const note = document.createElement('textarea');
-        note.rows = 2;
-        note.maxLength = 2000;
-        note.value = item.admin_note || '';
-        noteLabel.append(note);
-        const saveAdmin = async () => {
-          const save = admin.querySelector<HTMLButtonElement>('button')!;
-          save.disabled = true;
-          const { error: assignmentError } = await supabase.rpc('assign_organization_member', { p_id: item.id, p_member_id: person.value ? Number(person.value) : null });
-          const { error } = assignmentError ? { error: assignmentError } : await supabase.rpc('update_organization_admin', { p_id: item.id, p_status: select.value, p_admin_note: note.value });
-          save.disabled = false;
-          if (error) say(`Nuk u ruajt: ${error.message}`, 'error');
-          else { say('Përfaqësuesi dhe statusi u ruajtën.', 'ok'); load(); }
-        };
-        admin.append(statusLabel, personLabel, noteLabel, button('Ruaj ndryshimet', saveAdmin));
-        article.append(admin);
-      } else if (item.admin_note) {
+      if (!isAdmin && editable && item.admin_note) {
         const reply = el('div', 'org-reply');
         reply.append(el('strong', '', 'Përgjigja e ekipit'), el('p', '', item.admin_note));
         article.append(reply);
       }
 
-      const actions = el('div', 'org-actions');
-      const manage = el('a', 'org-action', 'Hap dhe edito →') as HTMLAnchorElement;
-      manage.href = `/anetaresohu/perfaqesimi/subjekti/?id=${item.id}`;
-      actions.append(manage);
-      actions.append(button(isAdmin ? 'Fshi' : 'Tërhiq', () => {
-        if (confirm(`Të hiqet “${item.name}”?`)) run(supabase.rpc('delete_organization', { p_id: item.id }), 'U hoq.');
-      }, 'org-action org-remove'));
-      article.append(actions);
+      if (editable) {
+        const actions = el('div', 'org-actions');
+        const manage = el('a', 'org-action', 'Menaxho profilin →') as HTMLAnchorElement;
+        manage.href = `/anetaresohu/perfaqesimi/subjekti/?id=${item.id}`;
+        actions.append(manage);
+        article.append(actions);
+      }
       return article;
     };
 
     async function load() {
       let query = supabase.from('organizations').select('*, members!organizations_member_id_fkey(name, username)').order('created_at', { ascending: false });
       if (isAdmin && filter.value) query = query.eq('status', filter.value);
-      const { data, error } = await query;
+      const [{ data, error }, { data: representatives }] = await Promise.all([
+        query,
+        isAdmin ? supabase.from('organization_representatives').select('organization_id,member_id') : Promise.resolve({ data: [] }),
+      ]);
       if (error) return say(`Nuk u ngarkuan: ${error.message}`, 'error');
-      document.querySelector('#org-count')!.textContent = data?.length ? String(data.length) : '';
-      if (!data?.length) list.replaceChildren(el('p', 'org-empty', isAdmin && filter.value ? 'Asgjë me këtë status.' : labels.empty));
-      else list.replaceChildren(...data.map(card));
+      const ownMember = assignableMembers.find(member => (member.email || '').toLowerCase() === (session.user.email || '').toLowerCase());
+      const represented = new Set((representatives || []).filter((row: any) => Number(row.member_id) === Number(ownMember?.id)).map((row: any) => Number(row.organization_id)));
+      const managed = isAdmin ? (data || []).filter((item: any) => Number(item.member_id) === Number(ownMember?.id) || represented.has(Number(item.id))) : data || [];
+      document.querySelector('#org-count')!.textContent = managed.length ? String(managed.length) : '';
+      if (!managed.length) list.replaceChildren(el('p', 'org-empty', isAdmin && filter.value ? 'Asnjë nga subjektet e tua nuk ka këtë status.' : labels.empty));
+      else list.replaceChildren(...managed.map(card));
     }
     filter.addEventListener('change', load);
 
@@ -246,7 +207,7 @@ import { createClient } from '@supabase/supabase-js';
       if (!categories.length) return say('Zgjidh të paktën një kategori.', 'error');
       submit.disabled = true;
       say('Duke dërguar…');
-      const { data: savedId, error } = await supabase.rpc('save_organization', { p_id: editingId, p: {
+      const { data: savedId, error } = await supabase.rpc('save_organization', { p_id: null, p: {
         kind, name: value('name'), category: categories[0], categories, stage: kind === 'business' ? value('stage') : null,
         city: value('city'), country: value('country'), description: value('description'),
         website: normalizeUrl(value('website')), linkedin: normalizeUrl(value('linkedin')), instagram: normalizeUrl(value('instagram')),

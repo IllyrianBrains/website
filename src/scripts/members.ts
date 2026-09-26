@@ -17,17 +17,21 @@ interface Suggestable {
   fieldsOfExpertise?: string[];
   specialty?: string[];
   avatar?: string;
-  aspirations?: { field?: string; mentoring?: string[] };
+  aspirations?: { field?: string; subfield?: string; mentoring?: string[]; business?: string[] };
 }
 
-// "People also in this city or field": the same city counts most, then each
-// shared field of expertise, then working in the field the member wants to move
-// into (more if they also mentor), then each shared skill. Members sharing nothing
-// aren't suggested; ties go to members with a photo, then by name.
+// Rank useful introductions, not just similar profiles. Complementary intentions
+// count most; location and shared skills provide useful context.
 export function relatedMembers<T extends Suggestable>(member: Suggestable, all: T[], limit = 6, exclude: string[] = []) {
   const lower = (values?: string[]) => new Set((values || []).map(value => value.toLocaleLowerCase('sq')));
   const fields = lower(member.fieldsOfExpertise), skills = lower(member.specialty);
   const city = member.city?.toLocaleLowerCase('sq');
+  const intentions = [...(member.aspirations?.mentoring || []), ...(member.aspirations?.business || [])];
+  const complementary = [
+    { need: ['Lidhje me një mentor', 'Kërkoj mentor'], offer: ['Mundësi për të mentoruar', 'Dua të jem mentor'], offered: 'Mund të jetë mentor', sought: 'Kërkon mentorim' },
+    { need: ['Mundësi pune', 'Kërkoj punë'], offer: ['Kandidatë për punësim', 'Punësoj'], offered: 'Po kërkon kandidatë', sought: 'Po kërkon mundësi pune' },
+    { need: ['Financim për projekt / biznes', 'Kërkoj investim'], offer: ['Mundësi investimi', 'Dua të investoj'], offered: 'I interesuar për investim', sought: 'Po kërkon financim' },
+  ];
   return all
     .filter(other => other.username !== member.username && !exclude.includes(other.username))
     .map(other => {
@@ -35,10 +39,20 @@ export function relatedMembers<T extends Suggestable>(member: Suggestable, all: 
       const sharedFields = (other.fieldsOfExpertise || []).filter(value => fields.has(value.toLocaleLowerCase('sq')));
       const sharedSkills = (other.specialty || []).filter(value => skills.has(value.toLocaleLowerCase('sq')));
       const aspired = member.aspirations?.field;
+      const sameGoalField = Boolean(aspired && other.aspirations?.field?.toLocaleLowerCase('sq') === aspired.toLocaleLowerCase('sq'));
+      const aspiredSubfield = member.aspirations?.subfield;
+      const sameGoalSubfield = Boolean(aspiredSubfield && other.aspirations?.subfield?.toLocaleLowerCase('sq') === aspiredSubfield.toLocaleLowerCase('sq'));
       const worksInAspired = Boolean(aspired && (other.fieldsOfExpertise || []).includes(aspired));
       const mentors = worksInAspired && Boolean(other.aspirations?.mentoring?.some(value => ['Dua të jem mentor', 'Mundësi për të mentoruar'].includes(value)));
-      const score = (sameCity ? 3 : 0) + sharedFields.length * 2 + (worksInAspired ? 2 : 0) + (mentors ? 1 : 0) + sharedSkills.length;
-      const reason = [mentors ? `Mentor në ${aspired}` : worksInAspired ? `Punon në ${aspired}` : '', sameCity ? `Edhe në ${other.city}` : '', ...sharedFields, ...sharedSkills].filter(Boolean).slice(0, 3).join(' · ');
+      const theirIntentions = [...(other.aspirations?.mentoring || []), ...(other.aspirations?.business || [])];
+      const intentMatch = complementary.map(pair => {
+        if (pair.need.some(value => intentions.includes(value)) && pair.offer.some(value => theirIntentions.includes(value))) return pair.offered;
+        if (pair.offer.some(value => intentions.includes(value)) && pair.need.some(value => theirIntentions.includes(value))) return pair.sought;
+        return '';
+      }).find(Boolean);
+      const sharedGoal = intentions.find(value => theirIntentions.includes(value) && ['Prezantim me bashkëthemelues', 'Prezantim me klientë / partnerë'].includes(value));
+      const score = (intentMatch ? 6 : 0) + (sharedGoal ? 3 : 0) + (worksInAspired ? 4 : 0) + (mentors ? 2 : 0) + (sameGoalField ? 2 : 0) + (sameGoalSubfield ? 2 : 0) + sharedFields.length * 3 + (sameCity ? 2 : 0) + sharedSkills.length;
+      const reason = [intentMatch, mentors ? "Mentor në " + aspired : worksInAspired ? "Ekspertizë në " + aspired : "", sameGoalSubfield ? "Synim i përbashkët: " + aspiredSubfield : sameGoalField ? "Synim i përbashkët: " + aspired : "", sharedGoal, ...sharedFields.map(value => "Fushë e përbashkët: " + value), sameCity ? "Edhe në " + other.city : "", ...sharedSkills.map(value => "Aftësi: " + value)].filter(Boolean).slice(0, 3).join(" · ");
       return { member: other, score, reason };
     })
     .filter(item => item.score > 0)

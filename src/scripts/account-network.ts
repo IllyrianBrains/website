@@ -17,7 +17,7 @@ import { createClient } from '@supabase/supabase-js';
       document.querySelector<HTMLElement>('#signed-out')!.hidden = false;
       return;
     }
-    const [{ data: network, error }, { data: rows }, { data: subscriptions }, { data: categories }, { data: posts }, { data: ideas }, { data: notificationReadAt }, { data: organizations }, { data: offers }] = await Promise.all([
+    const [{ data: network, error }, { data: rows }, { data: subscriptions }, { data: categories }, { data: posts }, { data: ideas }, { data: notificationReadAt }, { data: organizations }, { data: offers }, { data: blockedUsernames }] = await Promise.all([
       supabase.rpc('my_network'),
       supabase.from('public_member_profiles').select('profile').order('name'),
       supabase.rpc('my_subscriptions'),
@@ -27,10 +27,12 @@ import { createClient } from '@supabase/supabase-js';
       supabase.rpc('my_subscription_read_state'),
       supabase.from('public_organizations').select('id,name').order('name'),
       supabase.from('public_organization_offers').select('*').order('created_at', { ascending: false }).limit(100),
+      supabase.rpc('my_blocked_usernames'),
     ]);
     if (error) return say(`Rrjeti nuk u ngarkua: ${error.message}`, 'error');
     if (!network) return say('Profili yt ende nuk është aprovuar. Sapo të aprovohet, rrjeti yt shfaqet këtu.');
-    const members: any[] = (rows || []).map((row: any) => row.profile);
+    const blocked = new Set<string>(Array.isArray(blockedUsernames) ? blockedUsernames : []);
+    const members: any[] = (rows || []).map((row: any) => row.profile).filter((member: any) => !blocked.has(member.username));
     const byUsername = new Map(members.map(member => [member.username, member]));
     const me = byUsername.get(network.username) || { username: network.username, name: session.user.email || 'Ti' };
     let following: string[] = network.following;
@@ -117,8 +119,8 @@ import { createClient } from '@supabase/supabase-js';
         chips.replaceChildren(...groups);
       }
       const feed = document.querySelector<HTMLElement>('#subscription-feed')!;
-      const postItems = (posts || []).map((post: MemberPost) => ({ post, member: byUsername.get(post.username) })).map(({ post, member }) => ({ date: post.created_at, post, topics: followedTopics.filter(topic => topic.kind !== 'organization' && topicMatches(member, topic, post.tags || [])) })).filter(item => item.topics.length);
-      const ideaItems = (ideas || []).map((idea: any) => ({ date: idea.created_at, idea, topics: followedTopics.filter(topic => topic.kind !== 'organization' && topicMatches(byUsername.get(idea.author_username), topic, idea.tags || [])) })).filter((item: any) => item.topics.length);
+      const postItems = (posts || []).filter((post: MemberPost) => !blocked.has(post.username)).map((post: MemberPost) => ({ post, member: byUsername.get(post.username) })).map(({ post, member }: any) => ({ date: post.created_at, post, topics: followedTopics.filter(topic => topic.kind !== 'organization' && topicMatches(member, topic, post.tags || [])) })).filter((item: any) => item.topics.length);
+      const ideaItems = (ideas || []).filter((idea: any) => !blocked.has(idea.author_username)).map((idea: any) => ({ date: idea.created_at, idea, topics: followedTopics.filter(topic => topic.kind !== 'organization' && topicMatches(byUsername.get(idea.author_username), topic, idea.tags || [])) })).filter((item: any) => item.topics.length);
       const offerItems = (offers || []).map((offer: any) => ({ date: offer.created_at, offer, topics: followedTopics.filter(topic => topic.kind === 'organization' && topic.value === String(offer.organization_id)) })).filter((item: any) => item.topics.length);
       const allRelevant: any[] = [...postItems, ...ideaItems, ...offerItems].sort((a, b) => b.date.localeCompare(a.date));
       const unread = allRelevant.filter(item => new Date(item.date).getTime() > lastNotificationRead).length;
@@ -130,28 +132,33 @@ import { createClient } from '@supabase/supabase-js';
         const empty = document.createElement('p'); empty.className = 'network-people-empty'; empty.textContent = followedTopics.length ? 'Nuk ka ende përditësime nga abonimet e zgjedhura.' : 'Shto një qytet ose fushë profesionale për të marrë përditësime këtu.'; feed.replaceChildren(empty);
       } else feed.replaceChildren(...relevant.map((item: any) => {
         const wrap = document.createElement('div'); wrap.className = `my-subscription-post${new Date(item.date).getTime() > lastNotificationRead ? ' is-unread' : ''}`;
-        const reason = document.createElement('p'); reason.className = 'my-subscription-reason'; reason.textContent = item.topics.map((topic: Subscription) => topic.kind === 'organization' ? organizationNames.get(topic.value) || 'Subjekt' : topic.value).join(' · ');
         if (item.post) {
           const card = postElement(item.post);
           const body = card.querySelector<HTMLElement>('.post-card-body');
           if (body) body.textContent = preview(item.post.body);
-          card.classList.add('subscription-preview-card'); wrap.append(reason, card);
+          const link = document.createElement('a'); link.className = 'subscription-card-link'; link.href = '/rrjeti/postimet/'; link.textContent = 'Shiko postimet →';
+          card.append(link); card.classList.add('subscription-preview-card'); wrap.append(card);
         }
         else if (item.idea) {
           const card = document.createElement('article'); card.className = 'post-card offer-notification';
-          const meta = document.createElement('small'); meta.textContent = [item.idea.name || 'Njoftim nga rrjeti', new Date(item.idea.created_at).toLocaleDateString('sq-AL')].join(' · ');
+          const meta = document.createElement('div'); meta.className = 'subscription-card-meta';
+          const author = document.createElement(item.idea.author_username ? 'a' : 'span'); author.textContent = item.idea.name || 'Njoftim nga rrjeti'; if (item.idea.author_username) author.setAttribute('href', memberUrl(item.idea.author_username));
+          const date = document.createElement('time'); date.dateTime = item.idea.created_at; date.textContent = new Date(item.idea.created_at).toLocaleDateString('sq-AL', { day: 'numeric', month: 'short', year: 'numeric' }); meta.append(author, date);
           const title = document.createElement('h4'); title.textContent = item.idea.title;
           const description = document.createElement('p'); description.className = 'post-card-body'; description.textContent = preview(item.idea.description || '');
           const link = document.createElement('a'); link.href = `/projektet/ide/${encodeURIComponent(item.idea.slug)}/`; link.textContent = 'Lexo njoftimin →';
-          card.append(meta, title, description, link); wrap.append(reason, card);
+          card.append(meta, title, description, link); wrap.append(card);
         } else {
           const card = document.createElement('article'); card.className = 'post-card offer-notification';
-          const meta = document.createElement('small'); meta.textContent = `${item.offer.organization_name} · Ofertë`;
+          const meta = document.createElement('div'); meta.className = 'subscription-card-meta';
+          const organization = document.createElement('span'); organization.textContent = item.offer.organization_name;
+          const date = document.createElement('time'); date.dateTime = item.offer.created_at; date.textContent = new Date(item.offer.created_at).toLocaleDateString('sq-AL', { day: 'numeric', month: 'short', year: 'numeric' }); meta.append(organization, date);
           const title = document.createElement('h4'); title.textContent = item.offer.title;
           const description = document.createElement('p'); description.className = 'post-card-body'; description.textContent = preview(item.offer.description);
           card.append(meta, title, description);
+          if (item.offer?.expires_at) { const deadline = document.createElement('p'); deadline.className = 'subscription-card-deadline'; deadline.textContent = 'Afati: ' + new Date(item.offer.expires_at).toLocaleDateString('sq-AL'); card.append(deadline); }
           const link = document.createElement('a'); link.href = `/rrjeti/postimet/#offer-${item.offer.id}`; link.textContent = 'Shiko te Postimet →'; card.append(link);
-          wrap.append(reason, card);
+          wrap.append(card);
         }
         return wrap;
       }));
@@ -180,9 +187,6 @@ import { createClient } from '@supabase/supabase-js';
     // strongest of them plus everyone I follow or who follows me.
     const related = relatedMembers(me, members, 400);
     const reasonOf = new Map(related.map(({ member, reason }) => [member.username, reason]));
-    // Similarity out of what relatedMembers() could score for me: city 3, each field 2,
-    // working in the field I aim for 2 (+1 if they mentor), each skill 1.
-    const possibleScore = (me.city ? 3 : 0) + myFields.length * 2 + (me.aspirations?.field ? 3 : 0) + (me.specialty || []).length;
     const topScore = related[0]?.score || 1;
 
     // --- Follow ---------------------------------------------------------------
@@ -275,28 +279,26 @@ import { createClient } from '@supabase/supabase-js';
     const groups = [...groupMap.values()].sort((a, b) => (a.key === 'direct' ? 1 : 0) - (b.key === 'direct' ? 1 : 0) || b.hubs.length - a.hubs.length || b.members.length - a.members.length);
 
     // --- Recommended connections ----------------------------------------------
-    // The scored relatedMembers() as a grid of cards, best match first. Each card is
-    // tinted by its score relative to the best match, and shows its % of what we
-    // could share at most.
-    const PAGE = 24;
+    // Keep existing follows in their own list; this area is for discovery.
+    const PAGE = 18;
     let shown = PAGE;
     const moreButton = document.querySelector<HTMLButtonElement>('#recommended-more')!;
     moreButton.addEventListener('click', () => { shown += PAGE; renderRecommended(); });
     const renderRecommended = () => {
+      const recommended = related.filter(({ member }) => !following.includes(member.username));
       const wrap = document.querySelector<HTMLElement>('#recommended')!;
-      if (!related.length) {
+      if (!recommended.length) {
         const note = document.createElement('p');
         note.className = 'network-people-empty';
-        note.textContent = 'Ende askush nuk ndan qytetin apo fushat e tua.';
+        note.textContent = 'Nuk gjetëm ende një lidhje të re. Plotëso synimet dhe fushat në profil për rekomandime më të mira.';
         wrap.replaceChildren(note);
-      } else wrap.replaceChildren(...related.slice(0, shown).map(({ member, reason, score }) => {
+      } else wrap.replaceChildren(...recommended.slice(0, shown).map(({ member, reason, score }) => {
         const card = document.createElement('article');
         card.className = 'my-network-match';
         card.style.setProperty('--match', String(score / topScore));
-        const percent = document.createElement('span');
-        percent.className = 'my-network-match-score';
-        percent.textContent = `${Math.min(100, Math.round((100 * score) / (possibleScore || score)))}%`;
-        percent.title = 'Sa ndani nga qyteti, fushat dhe aftësitë e tua';
+        const strength = document.createElement('span');
+        strength.className = 'my-network-match-score';
+        strength.textContent = score >= 8 ? 'Përputhje e fortë' : score >= 5 ? 'Përputhje e mirë' : 'Me interes';
         const head = document.createElement('a');
         head.className = 'my-network-match-head';
         head.href = memberUrl(member.username);
@@ -322,11 +324,11 @@ import { createClient } from '@supabase/supabase-js';
           foot.append(badge);
         }
         foot.append(followButton(member));
-        card.append(percent, head, shared, foot);
+        card.append(strength, head, shared, foot);
         return card;
       }));
-      moreButton.hidden = shown >= related.length;
-      moreButton.textContent = `Shfaq më shumë (${related.length - Math.min(shown, related.length)})`;
+      moreButton.hidden = shown >= recommended.length;
+      moreButton.textContent = `Shfaq më shumë (${recommended.length - Math.min(shown, recommended.length)})`;
     };
     renderRecommended();
 

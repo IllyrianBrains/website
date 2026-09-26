@@ -1,6 +1,6 @@
 // Builds src/data/members.json from the Supabase member directory (see
 // supabase/schema.sql) — the successor to scripts/sync-members-sheet.mjs.
-// Reads only the public_member_community view, which already filters to
+// Reads only the public_member_profiles view, which already filters to
 // status = 'ok' and drops private columns, so everything here is publishable.
 // Its `profile` column is already shaped like members.json (see
 // supabase/002-editing.sql) — the live /anetaret/ page reads the same column.
@@ -31,7 +31,7 @@ async function main() {
     if (!existsSync(TEAMS_PATH)) await writeFile(TEAMS_PATH, '[]\n');
     return;
   }
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/public_member_community?select=profile&order=name`, { headers: authHeaders(SUPABASE_PUBLISHABLE_KEY) });
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/public_member_profiles?select=profile&order=name`, { headers: authHeaders(SUPABASE_PUBLISHABLE_KEY) });
   if (!response.ok) throw new Error(`Supabase HTTP ${response.status}: ${await response.text()}`);
   const members = (await response.json()).map((row) => row.profile);
   await writeFile(DATA_PATH, JSON.stringify(members, null, 2) + '\n');

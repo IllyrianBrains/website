@@ -1,0 +1,58 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/directory.css";
+import Header from "./Header.astro";
+import Footer from "./Footer.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  heading: string;
+  intro: string;
+  eyebrow?: string;
+  sectionClass?: string;
+  containerClass?: string;
+  containerId?: string;
+  containerAttrs?: Record<string, string | undefined>;
+  introId?: string;
+  introHidden?: boolean;
+  statusId: string;
+}
+
+const {
+  title,
+  description,
+  heading,
+  intro,
+  eyebrow = "Llogaria ime",
+  sectionClass = "",
+  containerClass = "",
+  containerId,
+  containerAttrs = {},
+  introId,
+  introHidden = false,
+  statusId,
+} = Astro.props;
+---
+<BaseLayout title={title} description={description}>
+  <Header />
+  <main>
+    <section class:list={["section", "tone-white", "profile-editor-section", sectionClass]}>
+      <div class:list={["container", "profile-editor", "account-page", containerClass]} id={containerId} {...containerAttrs}>
+        <header class="profile-editor-intro account-page-intro" id={introId} hidden={introHidden}>
+          {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+          <h1>{heading}</h1>
+          <p set:html={intro}></p>
+        </header>
+        <p class="profile-editor-status" id={statusId} role="status" aria-live="polite"></p>
+        <slot />
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .account-page-intro .eyebrow { margin: 0 0 8px; color: var(--accent-dark); font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+  .account-page-intro .eyebrow + h1 { margin-top: 0; }
+</style>

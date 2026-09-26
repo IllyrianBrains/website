@@ -69,7 +69,7 @@ const snapshot = members.filter(member => member.teams?.length || member.members
   if(supabaseUrl&&supabaseKey){
     const aliases=JSON.parse(sections.dataset.cityAliases||'{}');
     const get=(path:string)=>fetch(`${supabaseUrl}/rest/v1/${path}`,{headers:{apikey:supabaseKey,...(supabaseKey.startsWith('eyJ')&&{Authorization:`Bearer ${supabaseKey}`})}}).then(response=>response.ok?response.json():Promise.reject(response.status));
-    Promise.all([get('teams?select=slug,name,description&order=sort_order,name'),get('public_member_community?select=profile&order=name')])
+    Promise.all([get('teams?select=slug,name,description&order=sort_order,name'),get('public_member_profiles?select=profile&order=name')])
       .then(([teams,rows]:[any[],any[]])=>build(teams,rows.map(row=>({...row.profile,city:(row.profile.city&&aliases[row.profile.city.toLowerCase()])||row.profile.city}))))
       .catch(error=>console.warn('Live team data unavailable, showing the build snapshot.',error));
   }

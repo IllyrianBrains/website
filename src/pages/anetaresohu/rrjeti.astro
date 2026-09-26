@@ -4,26 +4,13 @@
 // them — with potential connections to follow, and who they follow / who follows
 // them. Following is supabase/007-social.sql (set_follow(), my_network()); members
 // come from the public_member_profiles view. Writing posts is on /rrjeti/postimet/.
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import '../../styles/directory.css';
+import AccountPage from '../../components/AccountPage.astro';
 import '../../styles/account-network.css';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
 import { cities } from '../../data/cities';
 const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || '';
 const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '';
 ---
-<BaseLayout title="Rrjeti im · Illyrian Brains" description="Ti në rrjetin e Illyrian Brains: njerëzit nga qyteti dhe fusha jote, dhe lidhjet e mundshme.">
-  <Header />
-  <main>
-    <section class="section tone-white profile-editor-section">
-      <div class="container profile-editor my-network" id="network" data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey} data-cities={JSON.stringify(cities.map(city => city.city).sort((a, b) => a.localeCompare(b, 'sq')))}>
-        <header class="profile-editor-intro">
-          <h1>Rrjeti im</h1>
-          <p>Ti, qyteti yt dhe fushat e tua — dhe njerëzit që i ndani. Ndiq ata që të interesojnë dhe gjej lidhje të reja.</p>
-        </header>
-
-        <p class="profile-editor-status" id="network-status" role="status" aria-live="polite"></p>
+<AccountPage title="Rrjeti im · Illyrian Brains" description="Ti në rrjetin e Illyrian Brains: njerëzit nga qyteti dhe fusha jote, dhe lidhjet e mundshme." heading="Rrjeti im" intro="Gjej njerëzit që mund të të ndihmojnë me hapin tënd të ardhshëm — dhe shiko pse mund të vlejë një prezantim." containerId="network" containerClass="my-network" containerAttrs={{ 'data-supabase-url': supabaseUrl, 'data-supabase-key': supabaseKey, 'data-cities': JSON.stringify(cities.map(city => city.city).sort((a, b) => a.localeCompare(b, 'sq'))) }} statusId="network-status">
 
         <div class="profile-editor-card" id="signed-out" hidden>
           <h2>Hyr për të vazhduar</h2>
@@ -51,7 +38,9 @@ const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPA
 
           <section class="profile-editor-card my-network-section my-subscriptions" id="subscriptions-panel" aria-label="Njoftimet dhe abonimet">
             <div class="my-subscriptions-body">
-              <div class="my-subscriptions-manager">
+              <details class="my-subscriptions-settings">
+                <summary><span><strong>Menaxho abonimet</strong><small>Zgjidh qytetet, fushat dhe subjektet që dëshiron të ndjekësh.</small></span><i aria-hidden="true"></i></summary>
+                <div class="my-subscriptions-manager">
                 <section class="my-subscriptions-picker" aria-labelledby="subscriptions-add-title">
                   <div class="my-subscriptions-section-head"><span class="my-subscriptions-step">1</span><div><h3 id="subscriptions-add-title">Shto abonim</h3><p>Zgjidh çfarë dëshiron të ndjekësh.</p></div></div>
                   <div class="my-subscriptions-controls">
@@ -64,9 +53,10 @@ const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPA
                   <div class="my-subscriptions-section-head"><span class="my-subscriptions-step">2</span><div><h3 id="subscriptions-active-title">Abonimet aktive <b id="subscription-total">0</b></h3><p>Kliko × për të ndaluar një abonim.</p></div></div>
                   <div class="my-subscription-chips" id="subscription-chips"></div>
                 </section>
-              </div>
+                </div>
+              </details>
               <section class="my-subscription-updates" aria-labelledby="subscription-updates-title">
-                <div class="my-subscription-feed-head"><div><span class="my-subscriptions-step">●</span><h3 id="subscription-updates-title">Njoftimet e fundit</h3></div><div><button type="button" id="notifications-read" hidden>Shënoji si të lexuara</button></div></div>
+                <div class="my-subscription-feed-head"><div><span class="my-subscriptions-step">●</span><div><h3 id="subscription-updates-title">Njoftimet e fundit</h3><p>Postime dhe mundësi nga abonimet e tua.</p></div></div><div><button type="button" id="notifications-read" hidden>Shënoji si të lexuara</button><a href="/rrjeti/postimet/">Të gjitha postimet →</a></div></div>
                 <div class="my-subscription-feed" id="subscription-feed"><p class="network-people-empty">Shto një qytet, fushë profesionale ose subjekt për të marrë përditësime këtu.</p></div>
               </section>
             </div>
@@ -100,9 +90,9 @@ const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPA
               </details>
 
               <details class="profile-editor-card my-network-section" id="recommended-panel" open>
-                <summary class="my-subscriptions-head"><span><span class="eyebrow">Lidhje të reja</span><strong>Sipas qytetit dhe fushës</strong><small>Lidhjet e rekomanduara, nga ato me më shumë të përbashkëta.</small></span><i aria-hidden="true"></i></summary>
+                <summary class="my-subscriptions-head"><span><span class="eyebrow">Lidhje të reja</span><strong>Persona të rekomanduar për ty</strong><small>Bazuar te synimet, ekspertiza dhe vendndodhja jote.</small></span><i aria-hidden="true"></i></summary>
                 <div class="my-network-section-body">
-                  <div class="my-network-recommended-head"><p>Sa më e errët karta, aq më të ngjashëm jeni.</p></div>
+                  <div class="my-network-recommended-head"><p>Fillojmë me njerëzit që mund t'i përgjigjen një synimi konkret në profilin tënd.</p></div>
                   <div class="my-network-recommended" id="recommended"></div>
                   <button type="button" class="my-network-more" id="recommended-more" hidden>Shfaq më shumë</button>
                 </div>
@@ -110,9 +100,5 @@ const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPA
             </div>
           </div>
         </div>
-      </div>
-    </section>
-  </main>
-  <Footer />
-</BaseLayout>
+      </AccountPage>
 <script src="../../scripts/account-network.ts"></script>

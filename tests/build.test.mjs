@@ -25,6 +25,26 @@ test('key pages are built', { skip }, () => {
   }
 });
 
+test('member workspaces use the stable account-page shell', { skip }, () => {
+  const workspaces = [
+    ['anetaresohu/profili', 'profile-editor', 'editor-status'],
+    ['anetaresohu/rrjeti', 'network', 'network-status'],
+    ['anetaresohu/roli', 'role', 'role-status'],
+    ['anetaresohu/perfaqesimi', 'orgs', 'orgs-status'],
+  ];
+  for (const [route, rootId, statusId] of workspaces) {
+    const html = page(route);
+    assert.match(html, /class="[^"]*account-page/, route + ' does not use the shared account shell');
+    assert.match(html, new RegExp('id="' + rootId + '"'), route + ' is missing its script root');
+    assert.match(html, new RegExp('id="' + statusId + '"'), route + ' is missing its live status region');
+  }
+  const profile = page('anetaresohu/profili');
+  assert.equal((profile.match(/name="city"/g) || []).length, 1, 'profile must render one city field');
+  const organization = page('anetaresohu/perfaqesimi/subjekti');
+  assert.match(organization, /id="edit-form"/, 'organization profile editor is missing');
+  assert.match(organization, /id="admin-settings"/, 'organization management settings are missing');
+});
+
 test('every internal link and asset points to a built file', { skip }, () => {
   const exists = path => existsSync(path) && (statSync(path).isFile() || existsSync(join(path, 'index.html')));
   const broken = new Set();
