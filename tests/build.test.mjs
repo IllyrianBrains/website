@@ -55,10 +55,9 @@ test('no page renders "undefined" or "[object Object]" into links or text', { sk
   assert.deepEqual(bad.map(file => relative(dist, file)), []);
 });
 
-test('writing posts and ideas/requests is hidden (postsEnabled/ideasEnabled in rrjeti/postimet.astro)', { skip }, () => {
+test('notification creation is available on the Njoftimet page', { skip }, () => {
   const html = page('rrjeti/postimet');
-  assert.match(html, /<section class="activity-composer"[^>]*\shidden/, 'the composer is visible again — update this test if that was intended');
-  assert.ok(!/data-compose=/.test(html), 'no "write" button on Postimet');
-  const linking = htmlFiles.filter(file => /href="\/rrjeti\/postimet\/#(?:shkruaj-ide|post-body)"/.test(readFileSync(file, 'utf8')));
-  assert.deepEqual(linking.map(file => relative(dist, file)), [], 'pages still link to the hidden composer');
+  assert.match(html, /id="notification-form"/, 'notification form is missing');
+  assert.match(html, /href="#njoftim-i-ri"/, 'create-notification action is missing');
+  assert.match(html, /name="city"[^>]*required/, 'city is required for new notifications');
 });

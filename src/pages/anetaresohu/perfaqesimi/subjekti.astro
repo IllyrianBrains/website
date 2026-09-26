@@ -1,0 +1,213 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/directory.css';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { partnerCategoryLabels } from '../../../data/partners';
+import { businessCategoryLabels, businessStageLabels } from '../../../data/businesses';
+import { cities } from '../../../data/cities';
+const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || '';
+const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '';
+const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.localeCompare(b, 'sq'));
+---
+<BaseLayout title="Menaxho subjektin · Illyrian Brains" description="Përditëso të dhënat dhe përfaqësuesin e një subjekti.">
+  <Header />
+  <main>
+    <section class="section tone-white profile-editor-section org-edit-page">
+      <div class="container profile-editor org-edit" id="org-edit" data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}>
+        <a class="org-edit-back" href="/anetaresohu/perfaqesimi/">← Kthehu te Përfaqësimi</a>
+        <header class="profile-editor-intro"><p class="eyebrow">Përfaqësimi</p><h1 id="page-title">Menaxho subjektin</h1><p id="page-description">Përditëso informacionin, lidhjet dhe personin përgjegjës.</p></header>
+        <p class="profile-editor-status" id="edit-status" role="status" aria-live="polite">Duke ngarkuar…</p>
+        <section class="profile-editor-card org-edit-error" id="edit-error" hidden><h2>Subjekti nuk u gjet</h2><p>Linku mund të jetë i pasaktë ose nuk ke të drejtë ta menaxhosh këtë subjekt.</p></section>
+
+        <form class="org-edit-layout" id="edit-form" hidden>
+          <div class="org-edit-main">
+            <section class="profile-card">
+              <div class="profile-card-head"><h2>Të dhënat kryesore</h2></div>
+              <div class="profile-editor-grid">
+                <label>Lloji *<select name="kind"><option value="ngo">Shoqatë / OJF / nismë</option><option value="business">Biznes / startup / profesion i pavarur</option></select></label>
+                <label>Emri *<input name="name" required minlength="2" maxlength="120" /></label>
+                <label id="edit-stage" hidden>Faza<select name="stage">{Object.entries(businessStageLabels).map(([value,label]) => <option value={value}>{label}</option>)}</select></label>
+                <label>Qyteti<input name="city" list="edit-city-options" maxlength="80" /></label>
+                <datalist id="edit-city-options">{cityNames.map(city => <option value={city} />)}</datalist>
+                <label>Shteti<input name="country" maxlength="80" /></label>
+                <label class="profile-editor-wide">Përshkrimi<textarea name="description" rows="5" maxlength="1000" placeholder="Çfarë bën subjekti dhe për kë?"></textarea></label>
+              </div>
+            </section>
+
+            <section class="profile-card">
+              <div class="profile-card-head"><h2>Kategoritë</h2></div>
+              <div data-categories-for="ngo" class="profile-editor-chips">{Object.entries(partnerCategoryLabels).map(([value,label]) => <label class="profile-editor-chip"><input type="checkbox" name="categories" value={value} /> {label}</label>)}</div>
+              <div data-categories-for="business" class="profile-editor-chips" hidden>{Object.entries(businessCategoryLabels).map(([value,label]) => <label class="profile-editor-chip"><input type="checkbox" name="categories" value={value} /> {label}</label>)}</div>
+            </section>
+
+            <section class="profile-card">
+              <div class="profile-card-head"><h2>Lidhjet</h2></div>
+              <div class="profile-editor-grid">
+                <label class="profile-editor-wide">Faqja e internetit<input name="website" inputmode="url" placeholder="https://…" /></label>
+                <label>LinkedIn<input name="linkedin" inputmode="url" /></label>
+                <label>Instagram<input name="instagram" inputmode="url" /></label>
+              </div>
+            </section>
+
+            <section class="profile-card">
+              <div class="profile-card-head"><h2>Logoja</h2></div>
+              <div class="org-edit-logo"><div><img id="edit-logo-preview" alt="" hidden /><span id="edit-logo-empty">Pa logo</span></div><label class="org-action">Ngarko logo<input id="edit-logo-input" type="file" accept="image/jpeg,image/png,image/webp" hidden /></label><button class="profile-editor-text-button" id="edit-logo-remove" type="button">Hiq</button></div>
+            </section>
+          </div>
+
+          <aside class="org-edit-aside">
+            <section class="profile-card" id="admin-settings" hidden>
+              <div class="profile-card-head"><h2>Menaxhimi</h2></div>
+              <div class="org-edit-settings">
+                <div><span class="profile-editor-label">Përfaqësuesit</span><p class="org-edit-hint">Zgjidh një ose më shumë persona që përfaqësojnë subjektin.</p><div class="org-representative-grid" id="representative-grid"></div></div>
+                <label>Statusi<select name="status"><option value="pending">Në shqyrtim</option><option value="published">Publikuar</option><option value="hidden">Jo publike</option></select></label>
+                <label>Shënim për personin<textarea name="admin_note" rows="4" maxlength="2000"></textarea></label>
+              </div>
+            </section>
+            <section class="profile-card org-edit-save">
+              <button class="partner-button" type="submit">Ruaj ndryshimet <span aria-hidden="true">✓</span></button>
+              <a href="/anetaresohu/perfaqesimi/">Anulo</a>
+            </section>
+          </aside>
+        </form>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  import { createClient } from '@supabase/supabase-js';
+  import { memberSession } from '../../../scripts/member-session';
+
+  const root = document.querySelector<HTMLElement>('#org-edit')!;
+  const form = document.querySelector<HTMLFormElement>('#edit-form')!;
+  const statusLine = document.querySelector<HTMLElement>('#edit-status')!;
+  const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement;
+  const say = (text: string, kind = '') => { statusLine.textContent = text; statusLine.dataset.kind = kind; };
+  const id = Number(new URLSearchParams(location.search).get('id'));
+  const url = root.dataset.supabaseUrl, key = root.dataset.supabaseKey;
+  let logo: string | null = null;
+  let isAdmin = false;
+
+  const normalizeUrl = (value: string) => { const text = value.trim(); return text && !/^https?:\/\//i.test(text) ? `https://${text}` : text; };
+  const drawKind = () => {
+    const kind = field('kind').value;
+    document.querySelectorAll<HTMLElement>('[data-categories-for]').forEach(group => { group.hidden = group.dataset.categoriesFor !== kind; });
+    document.querySelector<HTMLElement>('#edit-stage')!.hidden = kind !== 'business';
+  };
+  const drawLogo = () => {
+    const image = document.querySelector<HTMLImageElement>('#edit-logo-preview')!;
+    image.hidden = !logo; document.querySelector<HTMLElement>('#edit-logo-empty')!.hidden = Boolean(logo);
+    if (logo) image.src = logo;
+  };
+  field('kind').addEventListener('change', () => { form.querySelectorAll<HTMLInputElement>('input[name="categories"]').forEach(box => { box.checked = false; }); drawKind(); });
+  document.querySelector('#edit-logo-remove')!.addEventListener('click', () => { logo = null; drawLogo(); });
+
+  const shrink = async (file: File) => {
+    const bitmap = await createImageBitmap(file); const scale = Math.min(1, 400 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas'); canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    return new Promise<Blob>((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Logoja nuk u lexua.')), 'image/png'));
+  };
+
+  if (!url || !key || !Number.isInteger(id) || id <= 0) {
+    say('Link i pavlefshëm.', 'error'); document.querySelector<HTMLElement>('#edit-error')!.hidden = false;
+  } else {
+    const supabase = createClient(url, key);
+    const { session, isAdmin: admin } = await memberSession(supabase);
+    isAdmin = admin;
+    if (!session) location.href = '/anetaresohu/profili/';
+    else {
+      const requests: any[] = [supabase.from('organizations').select('*').eq('id', id).single()];
+      if (isAdmin) requests.push(supabase.from('members').select('id,name,username,status').order('name'));
+      if (isAdmin) requests.push(supabase.from('organization_representatives').select('member_id').eq('organization_id', id));
+      const [organizationResult, membersResult, representativesResult] = await Promise.all(requests);
+      const item = organizationResult.data;
+      if (organizationResult.error || !item) {
+        say('Subjekti nuk u gjet ose nuk ke akses.', 'error'); document.querySelector<HTMLElement>('#edit-error')!.hidden = false;
+      } else {
+        document.querySelector('#page-title')!.textContent = item.name;
+        document.querySelector('#page-description')!.textContent = item.kind === 'ngo' ? 'Përditëso të dhënat e shoqatës ose OJF-së.' : 'Përditëso të dhënat e biznesit.';
+        ['kind','name','stage','city','country','description','website','linkedin','instagram','status','admin_note'].forEach(name => { if (form.elements.namedItem(name)) field(name).value = item[name] || ''; });
+        const categories = [item.category, ...(item.other_categories || [])];
+        form.querySelectorAll<HTMLInputElement>('input[name="categories"]').forEach(box => { box.checked = categories.includes(box.value); });
+        logo = item.logo; drawLogo(); drawKind();
+        if (isAdmin) {
+          document.querySelector<HTMLElement>('#admin-settings')!.hidden = false;
+          const selected = new Set((representativesResult?.data || []).map((row: any) => Number(row.member_id)));
+          if (!selected.size && item.member_id) selected.add(Number(item.member_id));
+          const grid = document.querySelector<HTMLElement>('#representative-grid')!;
+          (membersResult.data || []).forEach((person: any) => {
+            const label = document.createElement('label');
+            label.className = 'org-representative-option';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'representative_ids';
+            checkbox.value = String(person.id);
+            checkbox.checked = selected.has(Number(person.id));
+            const text = document.createElement('span');
+            text.textContent = `${person.name} (@${person.username})${person.status === 'ok' ? '' : ' · në pritje'}`;
+            label.append(checkbox, text);
+            grid.append(label);
+          });
+        }
+        say(''); form.hidden = false;
+
+        document.querySelector<HTMLInputElement>('#edit-logo-input')!.addEventListener('change', async event => {
+          const input = event.target as HTMLInputElement; const file = input.files?.[0]; input.value = ''; if (!file) return;
+          say('Duke ngarkuar logon…');
+          try {
+            const { data, error } = await supabase.storage.from('avatars').upload(`${session.user.id}/logo-${Date.now()}.png`, await shrink(file), { contentType: 'image/png' });
+            if (error) throw error; logo = supabase.storage.from('avatars').getPublicUrl(data.path).data.publicUrl; drawLogo(); say('');
+          } catch (error: any) { say(`Logoja nuk u ngarkua: ${error.message}`, 'error'); }
+        });
+
+        form.addEventListener('submit', async event => {
+          event.preventDefault(); if (!form.reportValidity()) return;
+          const kind = field('kind').value;
+          const categories = [...form.querySelectorAll<HTMLInputElement>(`[data-categories-for="${kind}"] input[name="categories"]:checked`)].map(box => box.value);
+          if (!categories.length) return say('Zgjidh të paktën një kategori.', 'error');
+          const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!; button.disabled = true; say('Duke ruajtur…');
+          const value = (name: string) => field(name).value.trim();
+          let { error } = await supabase.rpc('save_organization', { p_id: id, p: {
+            kind, name: value('name'), category: categories[0], categories, stage: kind === 'business' ? value('stage') : null,
+            city: value('city'), country: value('country'), description: value('description'), website: normalizeUrl(value('website')),
+            linkedin: normalizeUrl(value('linkedin')), instagram: normalizeUrl(value('instagram')), logo,
+          }});
+          if (!error && isAdmin) { const representativeIds = [...form.querySelectorAll<HTMLInputElement>('input[name="representative_ids"]:checked')].map(input => Number(input.value)); ({ error } = await supabase.rpc('set_organization_representatives', { p_id: id, p_member_ids: representativeIds })); }
+          if (!error && isAdmin) ({ error } = await supabase.rpc('update_organization_admin', { p_id: id, p_status: value('status'), p_admin_note: value('admin_note') }));
+          button.disabled = false;
+          if (error) say(`Nuk u ruajt: ${error.message}`, 'error');
+          else say('Ndryshimet u ruajtën.', 'ok');
+        });
+      }
+    }
+  }
+</script>
+
+<style>
+  .org-edit { max-width: 1080px; }
+  .org-edit-back { display: inline-block; margin-bottom: 28px; color: var(--accent-dark); font-size: 13px; font-weight: 700; text-decoration: none; }
+  .org-edit-layout { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 22px; align-items: start; }
+  .org-edit-main { display: grid; gap: 16px; }
+  .org-edit-aside { position: sticky; top: 96px; display: grid; gap: 16px; }
+  .org-edit-settings { display: grid; gap: 14px; }
+  .org-edit-hint { margin: 5px 0 10px; color: var(--muted); font-size: 12px; }
+  .org-representative-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; max-height: 310px; overflow: auto; }
+  .org-representative-option { display: flex; gap: 8px; align-items: flex-start; padding: 10px; border: 1px solid var(--line); border-radius: 9px; background: #fff; font-size: 12px; line-height: 1.35; cursor: pointer; }
+  .org-representative-option:has(input:checked) { border-color: var(--accent-dark); background: var(--soft); }
+  .org-representative-option input { margin-top: 2px; }
+  .org-edit-save { display: grid; gap: 12px; }
+  .org-edit-save .partner-button { justify-content: center; margin: 0; border: 0; cursor: pointer; }
+  .org-edit-save a { color: var(--accent-dark); font-size: 13px; font-weight: 700; text-align: center; text-decoration: none; }
+  .org-edit-logo { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .org-edit-logo > div { display: grid; width: 110px; height: 78px; place-items: center; overflow: hidden; border: 1px dashed var(--line); border-radius: 10px; background: var(--soft); }
+  .org-edit-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .org-edit-logo span { color: var(--muted); font-size: 12px; }
+  .org-edit-logo .org-action { cursor: pointer; }
+  .org-edit-error { max-width: 600px; }
+  @media(max-width:800px){.org-edit-layout{grid-template-columns:1fr}.org-edit-aside{position:static}.org-edit-aside{order:-1}}
+</style>
+

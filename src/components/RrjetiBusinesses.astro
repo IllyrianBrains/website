@@ -1,5 +1,6 @@
 ---
 import '../styles/directory.css';
+import { organizations, organizationSlug } from '../data/organizations';
 import DirectoryNetworkGraph from './DirectoryNetworkGraph.astro';
 import SectionTitle from './SectionTitle.astro';
 import RrjetiSection from './RrjetiSection.astro';
@@ -94,7 +95,7 @@ const businessMapCities = cities
                   {business.logo && <img class="business-logo" src={business.logo} alt={`Logoja e ${business.name}`} loading="lazy" />}
                 </div>
               )}
-              <h3>{business.name}</h3>
+              <h3><a href={`/organizatat/${organizationSlug(organizations.find(item => item.name === business.name)!)}/`}>{business.name}</a></h3>
               <p>{business.description}</p>
               {(business.website || business.linkedin || business.instagram) && <div class="business-links">
                 {business.website && <a href={business.website} target="_blank" rel="noreferrer">Faqja zyrtare <span aria-hidden="true">↗</span></a>}

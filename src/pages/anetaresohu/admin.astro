@@ -33,6 +33,22 @@ const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPA
             <article><span>Qytete</span><strong id="stat-cities">0</strong><small>Me të paktën një profil</small></article>
           </section>
 
+          <section class="profile-card admin-network" aria-labelledby="admin-network-title">
+            <div class="admin-network-head">
+              <div><p class="eyebrow">Pamja e rrjetit</p><h2 id="admin-network-title">Si lidhet komuniteti</h2><p>Shiko shpërndarjen e anëtarëve sipas qyteteve dhe ekspertizës. Zgjidh një nyje për të izoluar lidhjet e saj.</p></div>
+              <div class="admin-network-summary" aria-live="polite"><strong id="network-visible-count">0</strong><span>profile në pamje</span><small id="network-connection-count">0 lidhje</small></div>
+            </div>
+            <div class="admin-network-controls">
+              <label class="admin-network-search"><span class="sr-only">Kërko në rrjet</span><input id="network-search" type="search" placeholder="Kërko emër, qytet, ekspertizë…" /></label>
+              <label><span class="sr-only">Shfaq lidhjet</span><select id="network-dimension"><option value="all">Qytete + ekspertizë</option><option value="city">Vetëm qytetet</option><option value="expertise">Vetëm ekspertiza</option></select></label>
+              <label><span class="sr-only">Filtro statusin</span><select id="network-status"><option value="ok">Anëtarët aktivë</option><option value="">Të gjitha profilet</option><option value="pending">Në pritje</option></select></label>
+              <button id="network-reset" type="button">Rivendos</button>
+            </div>
+            <div class="admin-network-legend" aria-label="Legjenda"><span><i class="network-person"></i>Anëtar</span><span><i class="network-city"></i>Qytet</span><span><i class="network-expertise"></i>Ekspertizë</span><span><i class="network-pending"></i>Në pritje</span></div>
+            <div id="admin-network-graph" role="img" aria-label="Graf interaktiv i anëtarëve të Illyrian Brains, qyteteve dhe ekspertizës"></div>
+            <div class="admin-network-footer"><p id="network-note">Kliko mbi një nyje për të parë lidhjet.</p><p><span aria-hidden="true">↔</span> Tërhiq për të lëvizur · rrotëzo për zmadhim</p></div>
+          </section>
+
           <div class="admin-overview">
             <section class="profile-card admin-panel">
               <div class="admin-panel-head"><div><p class="eyebrow">Veprim i nevojshëm</p><h2>Regjistrimet e reja</h2></div><span class="admin-count" id="pending-count"></span></div>
@@ -71,6 +87,7 @@ const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPA
 
 <script>
   import { createClient } from '@supabase/supabase-js';
+  import { initAdminNetwork } from '../../scripts/admin-network';
   import { memberSession } from '../../scripts/member-session';
 
   const root = document.querySelector<HTMLElement>('#admin-dashboard')!;
@@ -116,6 +133,8 @@ const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPA
           if (city) cityCounts.set(city, (cityCounts.get(city) || 0) + 1);
         });
         const cities = [...cityCounts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'sq'));
+
+        initAdminNetwork(members);
 
         document.querySelector('#stat-total')!.textContent = String(members.length);
         document.querySelector('#stat-pending')!.textContent = String(pending.length);

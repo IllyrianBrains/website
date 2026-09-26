@@ -1,5 +1,6 @@
 ---
 import '../styles/directory.css';
+import { organizations, organizationSlug } from '../data/organizations';
 import DirectoryNetworkGraph from './DirectoryNetworkGraph.astro';
 import SectionTitle from './SectionTitle.astro';
 import RrjetiSection from './RrjetiSection.astro';
@@ -105,7 +106,7 @@ const partnerMapCities = cities
                   {partner.logo && <img class="partner-logo" src={partner.logo} alt={`Logoja e ${partner.name}`} loading="lazy" />}
                 </div>
               )}
-              <h3>{partner.name}</h3>
+              <h3><a href={`/organizatat/${organizationSlug(organizations.find(item => item.name === partner.name)!)}/`}>{partner.name}</a></h3>
               <p>{partner.description}</p>
               {partner.collaborationTypes.length > 0 && (
                 <div class="partner-projects">{partner.collaborationTypes.map(type => <span class="partner-project-tag">{type}</span>)}</div>

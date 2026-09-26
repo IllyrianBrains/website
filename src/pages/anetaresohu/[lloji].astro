@@ -96,7 +96,7 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
           <div class="offers-heading"><div><p class="eyebrow">Nga subjektet që përfaqëson</p><h2>Ofertat</h2><p>Publiko projekte, thirrje për vullnetarë, përfitime dhe kërkesa bashkëpunimi në një format të vetëm.</p></div></div>
           <form class="offers-form" id="offer-form">
             <label>Subjekti *<select name="organization_id" id="offer-organization" required><option value="">Zgjidh subjektin</option></select></label>
-            <label>Lloji *<select name="kind"><option value="project">Projekt</option><option value="volunteer">Kërkesë për vullnetarë</option><option value="benefit">Përfitim / kupon</option><option value="collaboration">Bashkëpunim</option></select></label>
+            <label>Lloji *<select name="kind"><option value="job">Vend pune</option><option value="internship">Praktikë</option><option value="event">Event</option><option value="project">Projekt</option><option value="volunteer">Kërkesë për vullnetarë</option><option value="benefit">Përfitim / kupon</option><option value="collaboration">Bashkëpunim</option></select></label>
             <label class="profile-editor-wide">Titulli *<input name="title" required minlength="3" maxlength="160" /></label>
             <label class="profile-editor-wide">Përshkrimi *<textarea name="description" required minlength="10" maxlength="2000" rows="4" placeholder="Çfarë ofrohet, për kë është dhe si mund të përfshihet dikush?"></textarea></label>
             <label>Linku<input name="url" inputmode="url" placeholder="https://…" /></label>
@@ -329,7 +329,9 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
       }
 
       const actions = el('div', 'org-actions');
-      actions.append(button('Ndrysho', () => edit(item), 'org-action'));
+      const manage = el('a', 'org-action', 'Hap dhe edito →') as HTMLAnchorElement;
+      manage.href = `/anetaresohu/perfaqesimi/subjekti/?id=${item.id}`;
+      actions.append(manage);
       actions.append(button(isAdmin ? 'Fshi' : 'Tërhiq', () => {
         if (confirm(`Të hiqet “${item.name}”?`)) run(supabase.rpc('delete_organization', { p_id: item.id }), 'U hoq.');
       }, 'org-action org-remove'));
@@ -338,7 +340,7 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
     };
 
     async function load() {
-      let query = supabase.from('organizations').select('*, members(name, username)').order('created_at', { ascending: false });
+      let query = supabase.from('organizations').select('*, members!organizations_member_id_fkey(name, username)').order('created_at', { ascending: false });
       if (isAdmin && filter.value) query = query.eq('status', filter.value);
       const { data, error } = await query;
       if (error) return say(`Nuk u ngarkuan: ${error.message}`, 'error');
@@ -357,7 +359,7 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
       if (!categories.length) return say('Zgjidh të paktën një kategori.', 'error');
       submit.disabled = true;
       say('Duke dërguar…');
-      const { error } = await supabase.rpc('save_organization', { p_id: editingId, p: {
+      const { data: savedId, error } = await supabase.rpc('save_organization', { p_id: editingId, p: {
         kind, name: value('name'), category: categories[0], categories, stage: kind === 'business' ? value('stage') : null,
         city: value('city'), country: value('country'), description: value('description'),
         website: normalizeUrl(value('website')), linkedin: normalizeUrl(value('linkedin')), instagram: normalizeUrl(value('instagram')),
@@ -365,6 +367,10 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
       } });
       submit.disabled = false;
       if (error) return say(`Nuk u dërgua: ${error.message}`, 'error');
+      if (savedId) {
+        location.href = `/anetaresohu/perfaqesimi/subjekti/?id=${savedId}`;
+        return;
+      }
       say(isAdmin ? 'U ruajt.' : 'Faleminderit! Ekipi i IB do ta shqyrtojë dhe do të dalë në drejtori pas miratimit.', 'ok');
       resetForm();
       load();
@@ -373,7 +379,7 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
     const offerForm = document.querySelector<HTMLFormElement>('#offer-form')!;
     const offerList = document.querySelector<HTMLElement>('#offers-list')!;
     const offerOrganization = document.querySelector<HTMLSelectElement>('#offer-organization')!;
-    const offerKindLabels: Record<string, string> = { project: 'Projekt', volunteer: 'Vullnetarë', benefit: 'Përfitim / kupon', collaboration: 'Bashkëpunim' };
+    const offerKindLabels: Record<string, string> = { job: 'Vend pune', internship: 'Praktikë', event: 'Event', project: 'Projekt', volunteer: 'Vullnetarë', benefit: 'Përfitim / kupon', collaboration: 'Bashkëpunim' };
     async function loadOffers() {
       const [{ data: organizations }, { data: offers, error }] = await Promise.all([
         supabase.from('organizations').select('id,name,status').order('name'),

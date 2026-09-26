@@ -3,47 +3,46 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import Header from '../../../components/Header.astro';
 import Footer from '../../../components/Footer.astro';
 import ideas from '../../../data/ideas.json';
+import { directoryMembers as members } from '../../../data/members';
 import { formatDate, ideaMailto, renderMarkdown, type Idea } from '../../../scripts/ideas';
+import { memberUrl } from '../../../scripts/members';
 
-// Same "#" number as the list: the Supabase id, or (before the switch, no
-// ids yet) the oldest idea is #1.
 export function getStaticPaths() {
   return (ideas as Idea[]).map((idea, index) => ({ params: { slug: idea.slug }, props: { idea, number: idea.id ?? ideas.length - index } }));
 }
-
 const { idea, number } = Astro.props as { idea: Idea; number: number };
 const descriptionHtml = renderMarkdown(idea.description);
 const mailto = ideaMailto(idea, number);
 const publishedDate = formatDate(idea.date);
+const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('sq').replace(/[^a-z0-9]/g, '');
+const authorName = idea.name || 'Anëtar i rrjetit';
+const author = idea.author_username ? members.find(member => member.username === idea.author_username) : members.find(member => normalize(member.name) === normalize(authorName) || normalize(member.username) === normalize(authorName));
+const authorUrl = author ? memberUrl(author.username) : `/anetaret/?search=${encodeURIComponent(authorName)}`;
 ---
-<BaseLayout title={`${idea.title} · Mundësitë · Illyrian Brains`} description={idea.title}>
+<BaseLayout title={`${idea.title} · Njoftimet · Illyrian Brains`} description={idea.title}>
   <Header />
-  <main>
-    <section class="section tone-dark idea-detail-hero">
+  <main class="notification-detail-page">
+    <section class="section notification-detail-shell">
       <div class="container city-page">
-        <a class="idea-back-link" href="/projektet/ide/"><span aria-hidden="true">←</span> Të gjitha mundësitë</a>
-        <div class="idea-detail-badges">
-          <span class="idea-detail-number">#{number}</span>
-          {(idea.tags || []).map(tag => <span class="idea-detail-tag">#{tag}</span>)}
-          <span class={`idea-status ${idea.resolved ? 'is-resolved' : 'is-open'}`}>{idea.resolved ? 'E zgjidhur' : 'Ende aktive'}</span>
-        </div>
-        <h1>{idea.title}</h1>
-        {(idea.name || publishedDate) && (
-          <p class="idea-detail-meta">
-            {idea.name && <>Nga {idea.name}</>}
-            {idea.name && publishedDate && ' · '}
-            {publishedDate}
-          </p>
-        )}
-      </div>
-    </section>
-
-    <section class="section tone-white">
-      <div class="container city-page idea-detail-layout">
-        <div class="idea-detail-rich" set:html={descriptionHtml} />
-        <div class="idea-detail-actions">
-          <a class="partner-button" href={mailto}>Përgjigju me email <span aria-hidden="true">↗</span></a>
-        </div>
+        <a class="idea-back-link" href="/rrjeti/postimet/"><span aria-hidden="true">←</span> Të gjitha njoftimet</a>
+        <article class="notification-detail-card">
+          <header class="notification-detail-head">
+            <div class="idea-detail-badges">
+              <span class="idea-detail-number">#{number}</span>
+              {(idea.tags || []).map(tag => <span class="idea-detail-tag">{tag}</span>)}
+              <span class:list={['idea-status', idea.resolved ? 'is-resolved' : 'is-open']}>{idea.resolved ? 'Përfunduar' : 'Aktive'}</span>
+            </div>
+            <h1>{idea.title}</h1>
+            <div class="notification-detail-byline">
+              <a href={authorUrl} class="notification-detail-author"><span aria-hidden="true">●</span><strong>{authorName}</strong><small>Shiko profilin në rrjet</small></a>
+              {publishedDate && <time>{publishedDate}</time>}
+            </div>
+          </header>
+          <div class="notification-detail-body">
+            <div class="idea-detail-rich" set:html={descriptionHtml} />
+            <div class="idea-detail-actions"><a class="partner-button" href={mailto}>Përgjigju me email <span aria-hidden="true">↗</span></a></div>
+          </div>
+        </article>
       </div>
     </section>
   </main>
@@ -51,41 +50,6 @@ const publishedDate = formatDate(idea.date);
 </BaseLayout>
 
 <style>
-  .idea-detail-hero { padding-block: clamp(40px, 6vw, 60px) clamp(48px, 7vw, 70px); }
-  .idea-back-link { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 30px; color: rgba(255,255,255,.68); font-size: 14px; font-weight: 600; }
-  .idea-back-link:hover { color: #fff; }
-  .idea-detail-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; }
-  .idea-detail-number { color: rgba(255,255,255,.55); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .idea-detail-tag { display: inline-block; padding: 3px 10px; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; color: #fff; font-size: 11px; font-weight: 700; }
-  .idea-status { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px; font-size: 11px; font-weight: 700; }
-  .idea-status::before { content: '✓'; font-size: 11px; font-weight: 900; line-height: 1; }
-  .idea-status.is-open { color: rgba(255,255,255,.55); background: rgba(255,255,255,.1); }
-  .idea-status.is-resolved { color: #8fe3bb; background: rgba(255,255,255,.1); }
-  .idea-detail-hero h1 { max-width: 800px; margin: 0; font-size: clamp(32px, 4.6vw, 48px); font-weight: 400; line-height: 1.15; color: #fff; }
-  .idea-detail-meta { margin: 16px 0 0; color: rgba(255,255,255,.6); font-size: 14px; }
-
-  .idea-detail-layout { max-width: 760px; padding-block: clamp(44px, 7vw, 70px); }
-  .idea-detail-rich { color: #333438; font-size: 16px; line-height: 1.75; }
-  .idea-detail-rich :global(p) { margin: 0 0 18px; }
-  .idea-detail-rich :global(h1), .idea-detail-rich :global(h2), .idea-detail-rich :global(h3), .idea-detail-rich :global(h4) { margin: 30px 0 14px; font-weight: 700; color: var(--ink); }
-  .idea-detail-rich :global(h1:first-child), .idea-detail-rich :global(h2:first-child), .idea-detail-rich :global(h3:first-child), .idea-detail-rich :global(h4:first-child) { margin-top: 0; }
-  .idea-detail-rich :global(h1) { font-size: 26px; }
-  .idea-detail-rich :global(h2) { font-size: 22px; }
-  .idea-detail-rich :global(h3) { font-size: 19px; }
-  .idea-detail-rich :global(h4) { font-size: 17px; }
-  .idea-detail-rich :global(ul), .idea-detail-rich :global(ol) { margin: 0 0 18px; padding-left: 25px; }
-  .idea-detail-rich :global(li) { margin-bottom: 9px; padding-left: 4px; }
-  .idea-detail-rich :global(li::marker) { color: var(--accent); }
-  .idea-detail-rich :global(a) { color: var(--accent-dark); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; word-break: break-word; }
-  .idea-detail-rich :global(strong) { color: var(--ink); font-weight: 700; }
-  .idea-detail-rich :global(blockquote) { margin: 0 0 20px; padding: 16px 22px; border-left: 3px solid var(--accent); background: #f4eef1; }
-  .idea-detail-rich :global(blockquote p) { margin: 0; color: var(--ink); }
-  .idea-detail-rich :global(code) { padding: 2px 6px; border-radius: 4px; background: #f1eef0; font-size: 14px; }
-  .idea-detail-rich :global(hr) { margin: 28px 0; border: 0; border-top: 1px solid var(--line); }
-  .idea-detail-rich :global(table) { display: block; max-width: 100%; margin: 0 0 20px; overflow-x: auto; border-collapse: collapse; font-size: 14px; }
-  .idea-detail-rich :global(th), .idea-detail-rich :global(td) { padding: 8px 14px; border: 1px solid var(--line); text-align: left; }
-  .idea-detail-actions { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--line); }
-  @media (max-width: 560px) {
-    .idea-detail-hero h1 { font-size: 30px; }
-  }
+  .notification-detail-page{background:#f5f3f0}.notification-detail-shell{padding-block:clamp(38px,6vw,72px) clamp(60px,9vw,110px);background:radial-gradient(circle at 15% 0,rgba(116,71,97,.08),transparent 34%),#f5f3f0}.idea-back-link{display:inline-flex;align-items:center;gap:10px;margin-bottom:24px;color:var(--accent-dark);font-size:13px;font-weight:750;text-decoration:none}.idea-back-link:hover{text-decoration:underline;text-underline-offset:4px}.notification-detail-card{overflow:hidden;border:1px solid rgba(116,71,97,.16);border-radius:20px;background:#fffdfa;box-shadow:0 24px 70px rgba(31,25,29,.09)}.notification-detail-head{padding:clamp(28px,5vw,58px);border-bottom:1px solid var(--line);background:linear-gradient(145deg,#fff,#faf6f8)}.idea-detail-badges{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:20px}.idea-detail-number{color:var(--muted);font-size:12px;font-weight:800}.idea-detail-tag,.idea-status{display:inline-flex;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800}.idea-detail-tag{border:1px solid rgba(116,71,97,.2);color:var(--accent-dark);background:#fff}.idea-status.is-open{color:#2b5a92;background:rgba(45,100,170,.1)}.idea-status.is-resolved{color:#246247;background:rgba(42,112,82,.1)}.notification-detail-head h1{max-width:900px;margin:0;color:var(--ink);font-size:clamp(34px,5vw,56px);font-weight:400;line-height:1.08;letter-spacing:-.035em}.notification-detail-byline{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:28px}.notification-detail-author{display:grid;grid-template-columns:auto 1fr;column-gap:9px;color:var(--ink);text-decoration:none}.notification-detail-author>span{grid-row:1/3;align-self:center;color:var(--accent);font-size:9px}.notification-detail-author strong{font-size:14px}.notification-detail-author small{color:var(--muted);font-size:11px}.notification-detail-author:hover strong{text-decoration:underline}.notification-detail-byline time{color:var(--muted);font-size:12px}.notification-detail-body{max-width:820px;margin-inline:auto;padding:clamp(30px,5vw,60px)}.idea-detail-rich{color:#38383c;font-size:16px;line-height:1.8}.idea-detail-rich :global(p){margin:0 0 19px}.idea-detail-rich :global(h1),.idea-detail-rich :global(h2),.idea-detail-rich :global(h3),.idea-detail-rich :global(h4){margin:32px 0 14px;color:var(--ink);font-weight:700}.idea-detail-rich :global(h1){font-size:27px}.idea-detail-rich :global(h2){font-size:23px}.idea-detail-rich :global(h3){font-size:20px}.idea-detail-rich :global(h4){font-size:17px}.idea-detail-rich :global(ul),.idea-detail-rich :global(ol){margin:0 0 20px;padding-left:26px}.idea-detail-rich :global(li){margin-bottom:9px;padding-left:4px}.idea-detail-rich :global(li::marker){color:var(--accent)}.idea-detail-rich :global(a){color:var(--accent-dark);font-weight:700;text-decoration:underline;text-underline-offset:3px;word-break:break-word}.idea-detail-rich :global(strong){color:var(--ink)}.idea-detail-rich :global(blockquote){margin:24px 0;padding:18px 22px;border-left:3px solid var(--accent);border-radius:0 10px 10px 0;background:#f5eef2}.idea-detail-rich :global(blockquote p){margin:0}.idea-detail-rich :global(code){padding:2px 6px;border-radius:4px;background:#f1eef0;font-size:14px}.idea-detail-rich :global(hr){margin:30px 0;border:0;border-top:1px solid var(--line)}.idea-detail-rich :global(table){display:block;max-width:100%;margin-bottom:22px;overflow-x:auto;border-collapse:collapse;font-size:14px}.idea-detail-rich :global(th),.idea-detail-rich :global(td){padding:9px 14px;border:1px solid var(--line);text-align:left}.idea-detail-actions{margin-top:42px;padding-top:30px;border-top:1px solid var(--line)}
+  @media(max-width:600px){.notification-detail-shell{padding-top:28px}.notification-detail-card{border-radius:14px}.notification-detail-head,.notification-detail-body{padding:24px 20px}.notification-detail-head h1{font-size:32px}.notification-detail-byline{align-items:flex-start;flex-direction:column;gap:12px}}
 </style>

@@ -4,569 +4,109 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import RrjetiSection from '../../components/RrjetiSection.astro';
 import ideas from '../../data/ideas.json';
+import { cities } from '../../data/cities';
+import { directoryMembers as members } from '../../data/members';
+import { excerpt, formatDate, plainText, type Idea } from '../../scripts/ideas';
+import { memberUrl } from '../../scripts/members';
 import '../../styles/directory.css';
-import { ideaRowHtml, type Idea } from '../../scripts/ideas';
-const openIdeas=(ideas as Idea[]).filter(idea=>!idea.resolved).length;
-const feedHtml=(ideas as Idea[]).slice(0,30).map((idea,index)=>ideaRowHtml(idea,idea.id??ideas.length-index,true)).reverse().join('');
+
+const normalizePerson = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('sq').replace(/[^a-z0-9]/g, '');
+const notifications = (ideas as Idea[])
+  .map(idea => {
+    const tags = idea.tags || [];
+    const searchable = `${idea.title} ${plainText(idea.description)} ${tags.join(' ')}`.toLocaleLowerCase('sq');
+    const city = cities.find(item => searchable.includes(item.city.toLocaleLowerCase('sq')));
+    const authorName = idea.name || 'Anëtar i rrjetit';
+    const author = idea.author_username
+      ? members.find(member => member.username === idea.author_username)
+      : members.find(member => normalizePerson(member.name) === normalizePerson(authorName) || normalizePerson(member.username) === normalizePerson(authorName));
+    return { ...idea, tags, city, searchable, authorName, authorUrl: author ? memberUrl(author.username) : `/anetaret/?search=${encodeURIComponent(authorName)}` };
+  })
+  .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+const categories = [...new Set(notifications.flatMap(item => item.tags))].sort((a, b) => a.localeCompare(b, 'sq'));
+const referencedCities = [...new Map(notifications.filter(item => item.city).map(item => [item.city!.slug, item.city!])).values()].sort((a, b) => a.city.localeCompare(b.city, 'sq'));
+const notificationCities = referencedCities.map(city => ({ ...city, count: notifications.filter(item => item.city?.slug === city.slug).length }));
+const openNotifications = notifications.filter(item => !item.resolved).length;
 const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || '';
 const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '';
-// Writing is switched off for now: member posts (create_post) and ideas/requests
-// (submit_idea). With both off the composer is hidden; existing posts and ideas are
-// still shown and reload live. Set either to true to bring that kind back.
-const postsEnabled = false;
-const ideasEnabled = false;
-const writingEnabled = postsEnabled || ideasEnabled;
 ---
-<BaseLayout title="Postimet · Illyrian Brains" description="Lajme, kërkesa, vende pune dhe mundësi bashkëpunimi nga rrjeti Illyrian Brains.">
+<BaseLayout title="Njoftimet · Illyrian Brains" description="Njoftime, kërkesa, evente dhe mundësi bashkëpunimi nga rrjeti Illyrian Brains.">
   <Header />
   <main>
-    <RrjetiSection eyebrow="Nga komuniteti" title="Postime." description="Lajme, kërkesa, vende pune dhe mundësi bashkëpunimi nga rrjeti." stats={[{ value: ideas.length, label: 'Publikime' }, { value: openIdeas, label: 'Ende aktive' }, { value: ideas.length - openIdeas, label: 'Të zgjidhura' }]}>
-      {postsEnabled
-        ? <a slot="actions" href="#post-body" data-compose="post">Shkruaj postim <span aria-hidden="true">→</span></a>
-        : ideasEnabled && <a slot="actions" href="#shkruaj-ide" data-compose="idea">Shto një mundësi <span aria-hidden="true">→</span></a>}
-      <div slot="results" class="chat" id="chat" data-view="list">
-        <aside class="chat-channels" aria-label="Kanalet">
-          <div class="chat-channels-head"><p class="chat-channels-title">Kanalet</p><button type="button" class="chat-collapse" id="chat-collapse" aria-expanded="true" aria-controls="chat-channels" title="Mbyll kanalet">«</button></div>
-          <label class="chat-search"><span aria-hidden="true">⌕</span><input id="activity-search" type="search" placeholder="Kërko kanal ose mesazh…" aria-label="Kërko kanale, postime dhe mundësi" /></label>
-          <ul class="chat-channel-list" id="chat-channels"></ul>
-        </aside>
-        <div class="chat-pane">
-          <header class="chat-pane-head">
-            <button type="button" class="chat-back" id="chat-back" aria-label="Kthehu te kanalet">←</button>
-            <span class="chat-channel-avatar" id="chat-pane-avatar" aria-hidden="true">#</span>
-            <div><strong id="chat-pane-title">Të gjitha</strong><small id="chat-pane-meta"></small></div>
-          </header>
-          <div class="chat-messages" id="chat-messages"><ul class="idea-list unified-feed" id="unified-feed" set:html={feedHtml}></ul><p class="activity-empty" id="activity-empty" hidden>Asnjë mesazh në këtë kanal.</p></div>
-      <section class="activity-composer" id="composer" aria-label="Shkruaj në rrjet" hidden={!writingEnabled} data-writing-enabled={String(writingEnabled)} data-posts-enabled={String(postsEnabled)} data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey} data-built-slugs={JSON.stringify((ideas as Idea[]).map(idea => idea.slug))}>
-        <button type="button" class="composer-toggle" id="composer-toggle" aria-expanded="true" aria-controls="composer" title="Mbyll"><span class="composer-toggle-label">✎ Shkruaj në rrjet</span><span class="composer-toggle-icon" aria-hidden="true">⌄</span></button>
-        <div class="activity-composer-signed-out" id="composer-signed-out">
-          <p><strong>Ke diçka për rrjetin?</strong> Hyr si anëtar për të {postsEnabled ? 'shkruar një postim ose për të ' : ''}publikuar një mundësi a kërkesë.</p>
-          <div><a class="partner-button" href="/anetaresohu/profili/">Hyr <span aria-hidden="true">→</span></a><a class="activity-composer-alt" href="/anetaresohu/regjistrohu/">Regjistrohu</a></div>
-        </div>
-        <form class="activity-composer-form" id="composer-form" data-kind={postsEnabled ? 'post' : 'idea'} hidden>
-          <fieldset class="activity-composer-kind" aria-label="Çfarë po shkruan?" hidden={!postsEnabled}>
-            {postsEnabled && <label><input type="radio" name="kind" value="post" checked /> Postim</label>}
-            <label><input type="radio" name="kind" value="idea" checked={!postsEnabled} /> Mundësi / kërkesë</label>
-          </fieldset>
-          <div class="activity-composer-idea">
-            <label>Titulli *<input name="title" minlength="3" maxlength="160" placeholder="p.sh. Kërkoj bashkëpunëtor për një projekt në Mynih" /></label>
-          </div>
-          <label class="activity-composer-body"><span id="composer-body-label">Ndaj diçka me rrjetin</span><textarea id="post-body" name="body" rows="2" maxlength="3000" required placeholder="Një projekt i ri, një event, një pyetje për komunitetin…"></textarea></label>
-          <label>Etiketat<input name="tags" maxlength="200" placeholder="p.sh. Berlin, punë, IT — deri në 5, të ndara me presje" /></label>
-          <div class="activity-composer-idea activity-composer-options">
-            <label class="profile-editor-check"><input type="radio" name="visibility" value="public" checked /> Publike te Postimet</label>
-            <label class="profile-editor-check"><input type="radio" name="visibility" value="team" /> Vetëm ekipi i IB</label>
-            <label class="profile-editor-check" data-public-only><input type="checkbox" name="show_name" checked /> Shfaq emrin tim</label>
-            <label class="profile-editor-check" data-public-only><input type="checkbox" name="show_email" /> Shfaq emailin tim, që të tjerët të më shkruajnë direkt</label>
-          </div>
-          <div class="activity-composer-foot">
-            <small id="composer-hint">Postimet janë publike dhe dalin edhe në profilin tënd.</small>
-            <button class="partner-button" type="submit">Posto <span aria-hidden="true">→</span></button>
-          </div>
-        </form>
-        <p class="profile-editor-status" id="composer-status" role="status" aria-live="polite"></p>
-      </section>
-        </div>
+    <RrjetiSection eyebrow="Nga komuniteti" title="Njoftimet e rrjetit." description="Njoftime, kërkesa, evente dhe mundësi bashkëpunimi nga komunitetet tona. Filtro sipas qytetit ose kategorisë për të gjetur atë që të intereson." stats={[{ value: notifications.length, label: 'Njoftime' }, { value: openNotifications, label: 'Aktive' }, { value: categories.length, label: 'Kategori' }]} filtersLabel="Filtro njoftimet">
+      <a slot="actions" href="#njoftim-i-ri" data-open-notification>Krijo njoftim <span aria-hidden="true">→</span></a>
+      <div slot="filters" class="member-filters notification-filters">
+        <div class="member-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="notification-search" type="search" placeholder="Kërko njoftim…" aria-label="Kërko njoftime" /></div>
+        <select id="notification-city" aria-label="Filtro sipas qytetit"><option value="">Të gjitha qytetet</option><option value="__global">Rrjeti global</option>{referencedCities.map(city => <option value={city.slug}>{city.city}</option>)}</select>
+        <select id="notification-category" aria-label="Filtro sipas kategorisë"><option value="">Të gjitha kategoritë</option>{categories.map(category => <option value={category.toLocaleLowerCase('sq')}>{category}</option>)}</select>
+        <select id="notification-status" aria-label="Filtro sipas statusit"><option value="">Çdo status</option><option value="active">Aktive</option><option value="resolved">Të përfunduara</option></select>
       </div>
+      <Fragment slot="results">
+        <p class="result-count" id="notification-result-count"></p>
+        <div class="notification-grid" id="notification-grid">
+          {notifications.map(item => (
+            <article class="notification-card" data-city={item.city?.slug || '__global'} data-categories={item.tags.map(tag => tag.toLocaleLowerCase('sq')).join('|')} data-status={item.resolved ? 'resolved' : 'active'} data-search={item.searchable}>
+              <div class="notification-card-meta">{item.city ? <a class="notification-location" href={`/qytetet/${item.city.slug}/`}><span aria-hidden="true">⌖</span>{item.city.city}</a> : <span class="notification-location"><span aria-hidden="true">◎</span>Rrjeti global</span>}<span>{formatDate(item.date)}</span></div>
+              <div class="notification-card-tags">{item.tags.map(tag => <span>{tag}</span>)}<span class:list={['notification-status', item.resolved ? 'is-resolved' : 'is-active']}>{item.resolved ? 'Përfunduar' : 'Aktive'}</span></div>
+              <h2><a href={`/projektet/ide/${encodeURIComponent(item.slug)}/`}>{item.title}</a></h2>
+              <p>{excerpt(plainText(item.description), 180)}</p>
+              <footer><a class="notification-author" href={item.authorUrl}><span aria-hidden="true">●</span>{item.authorName}</a><a href={`/projektet/ide/${encodeURIComponent(item.slug)}/`}>Lexo njoftimin <span aria-hidden="true">→</span></a></footer>
+            </article>
+          ))}
+        </div>
+        <p class="notification-empty" id="notification-empty" hidden>Asnjë njoftim nuk përputhet me filtrat.</p>
+        <div class="notification-more-wrap"><button type="button" class="partner-button" id="notification-more" hidden>Shfaq më shumë njoftime <span aria-hidden="true">↓</span></button></div>
+      </Fragment>
+
+      <section class="section tone-grey notification-create-section"><div class="container">
+        <details class="notification-create-panel" id="njoftim-i-ri">
+          <summary><div class="notification-create-heading"><div><p class="eyebrow">Nga anëtarët</p><h2>Krijo një njoftim.</h2></div><p>Ndaj një event, kërkesë, mundësi ose lajm me rrjetin. Emri dhe profili yt do të shfaqen me njoftimin.</p></div><span class="notification-create-toggle"><b>Hap formularin</b><i aria-hidden="true">↓</i></span></summary>
+        <div class="notification-create-card" data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}>
+          <div class="notification-auth-prompt" id="notification-auth-prompt"><strong>Hyr për të publikuar</strong><p>Vetëm anëtarët e aprovuar mund të krijojnë njoftime.</p><a class="partner-button" href="/anetaresohu/profili/">Hyr në llogari <span aria-hidden="true">→</span></a></div>
+          <form id="notification-form" hidden>
+            <label>Titulli *<input name="title" required minlength="3" maxlength="160" placeholder="Titulli i njoftimit" /></label>
+            <div class="notification-form-row">
+              <label>Qyteti *<select name="city" required><option value="">Zgjidh qytetin</option>{cities.slice().sort((a,b) => a.city.localeCompare(b.city, 'sq')).map(city => <option value={city.city}>{city.city}, {city.country}</option>)}</select></label>
+              <label>Kategoritë *<input name="categories" required maxlength="120" placeholder="p.sh. Evente, Karriera" /></label>
+            </div>
+            <label>Përshkrimi *<textarea name="description" required maxlength="20000" rows="7" placeholder="Shkruaj informacionin e plotë për komunitetin…"></textarea></label>
+            <label class="notification-email-option"><input type="checkbox" name="show_email" /> Lejo anëtarët të më kontaktojnë me email</label>
+            <div class="notification-form-foot"><p id="notification-form-status" role="status" aria-live="polite"></p><button class="partner-button" type="submit">Publiko njoftimin <span aria-hidden="true">→</span></button></div>
+          </form>
+        </div>
+        </details>
+      </div></section>
+
+      <section class="section tone-white notification-map-section"><div class="container">
+        <p class="eyebrow">Sipas vendndodhjes</p><div class="notification-map-heading"><h2>Njoftimet në hartë.</h2><p>Shiko qytetet që përmenden në njoftimet e rrjetit. Zgjidh një pikë në hartë për të filtruar kartat sipas qytetit.</p></div>
+        <div class="notification-map-layout"><div id="notification-map" data-cities={JSON.stringify(notificationCities)} aria-label="Harta e qyteteve të përmendura në njoftime"></div></div>
+      </div></section>
     </RrjetiSection>
   </main>
   <Footer />
 </BaseLayout>
+
 <script>
-  // WhatsApp-style: each tag (supabase/009-tags.sql) is a channel on the left, newest
-  // activity first; "Të gjitha" shows everything and "Të përgjithshme" the untagged items.
-  // An item with several tags shows in each of their channels. Messages run oldest → newest.
-  const ALL = '', GENERAL = '__general';
-  const chat = document.querySelector<HTMLElement>('#chat')!;
-  const channelList = document.querySelector<HTMLElement>('#chat-channels')!;
-  const messages = document.querySelector<HTMLElement>('#chat-messages')!;
-  const activitySearch = document.querySelector<HTMLInputElement>('#activity-search')!;
-  const activityEmpty = document.querySelector<HTMLElement>('#activity-empty')!;
-  const feedItems = () => [...document.querySelectorAll<HTMLElement>('#unified-feed>li')];
-  const keyOf = (tag: string) => tag.toLocaleLowerCase('sq');
-  const tagsOf = (item: HTMLElement): string[] => { try { return JSON.parse(item.dataset.tags || '[]'); } catch { return []; } };
-  const previewOf = (item: HTMLElement) => {
-    const author = item.querySelector('.post-card-author strong')?.textContent || '';
-    const text = (item.querySelector('.idea-row-title, .offer-card-title, .post-card-body')?.textContent || '').trim();
-    return author ? `${author}: ${text}` : text;
-  };
-  const shortDate = (date?: string) => {
-    if (!date || isNaN(Date.parse(date))) return '';
-    const day = new Date(date);
-    return day.toDateString() === new Date().toDateString()
-      ? day.toLocaleTimeString('sq-AL', { hour: '2-digit', minute: '2-digit' })
-      : day.toLocaleDateString('sq-AL', { day: 'numeric', month: 'short' });
-  };
-  let channel = ALL;
-  let channelLabel = 'Të gjitha';
-  let prefilledTag = '';
+  const grid=document.querySelector<HTMLElement>('#notification-grid'),search=document.querySelector<HTMLInputElement>('#notification-search'),city=document.querySelector<HTMLSelectElement>('#notification-city'),category=document.querySelector<HTMLSelectElement>('#notification-category'),status=document.querySelector<HTMLSelectElement>('#notification-status'),count=document.querySelector<HTMLElement>('#notification-result-count'),empty=document.querySelector<HTMLElement>('#notification-empty'),more=document.querySelector<HTMLButtonElement>('#notification-more');
+  const cards=grid?[...grid.querySelectorAll<HTMLElement>('.notification-card')]:[];let expanded=false;
+  const columnCount=()=>grid?Math.max(1,getComputedStyle(grid).gridTemplateColumns.split(' ').length):1;
+  const renderNotifications=()=>{const query=(search?.value||'').trim().toLocaleLowerCase('sq');const matched=cards.filter(card=>(!query||(card.dataset.search||'').includes(query))&&(!city?.value||card.dataset.city===city.value)&&(!category?.value||(card.dataset.categories||'').split('|').includes(category.value))&&(!status?.value||card.dataset.status===status.value));const limit=columnCount()*3,shown=new Set(expanded?matched:matched.slice(0,limit));cards.forEach(card=>card.hidden=!shown.has(card));if(count)count.textContent=`${matched.length} ${matched.length===1?'njoftim u gjet':'njoftime u gjetën'}`;if(empty)empty.hidden=matched.length>0;if(more)more.hidden=expanded||matched.length<=limit};
+  const reset=()=>{expanded=false;renderNotifications()};search?.addEventListener('input',reset);[city,category,status].forEach(control=>control?.addEventListener('change',reset));more?.addEventListener('click',()=>{expanded=true;renderNotifications()});window.addEventListener('resize',renderNotifications);renderNotifications();
+  const createPanel=document.querySelector<HTMLDetailsElement>('#njoftim-i-ri');document.querySelector<HTMLAnchorElement>('[data-open-notification]')?.addEventListener('click',()=>{if(createPanel)createPanel.open=true});
 
-  const render = () => {
-    const query = activitySearch.value.trim().toLocaleLowerCase('sq');
-    const matches = (item: HTMLElement) => !query || (item.dataset.search || item.textContent || '').toLocaleLowerCase('sq').includes(query);
-    const channels = new Map<string, { label: string; items: HTMLElement[] }>([[ALL, { label: 'Të gjitha', items: [] }]]);
-    feedItems().forEach(item => {
-      const tags = tagsOf(item);
-      const own = tags.length ? tags.map(tag => [keyOf(tag), tag]) : [[GENERAL, 'Të përgjithshme']];
-      new Map([[ALL, 'Të gjitha'], ...own] as [string, string][]).forEach((label, key) => {
-        if (!channels.has(key)) channels.set(key, { label, items: [] });
-        channels.get(key)!.items.push(item);
-      });
-    });
-    // A channel whose name matches the search shows all its messages, otherwise only the matching ones.
-    const shown = new Map([...channels].map(([key, { label, items }]) => [key, { label, items: label.toLocaleLowerCase('sq').includes(query) ? items : items.filter(matches) }]));
-    const latest = (items: HTMLElement[]) => items.reduce((max, item) => (item.dataset.date || '') > max ? item.dataset.date || '' : max, '');
-    const visible = [...shown].filter(([key, { items }]) => key === ALL || items.length)
-      .sort(([a, x], [b, y]) => a === ALL ? -1 : b === ALL ? 1 : latest(y.items).localeCompare(latest(x.items)));
-    if (!shown.has(channel) || (channel !== ALL && !shown.get(channel)!.items.length)) channel = ALL;
-    channelList.replaceChildren(...visible.map(([key, { label, items }]) => {
-      const last = items[items.length - 1];
-      const row = document.createElement('li');
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'chat-channel';
-      button.setAttribute('aria-current', String(key === channel));
-      button.title = `${label} — ${last ? `${shortDate(last.dataset.date)} · ${previewOf(last)}` : 'Asnjë mesazh ende'}`;
-      const icon = document.createElement('span');
-      icon.className = 'chat-channel-icon';
-      icon.setAttribute('aria-hidden', 'true');
-      icon.textContent = key === ALL ? '★' : key === GENERAL ? '💬' : '#';
-      const name = document.createElement('span');
-      name.className = 'chat-channel-name';
-      name.textContent = label;
-      const count = document.createElement('span');
-      count.className = 'chat-channel-count';
-      count.textContent = String(items.length);
-      button.append(icon, name, count);
-      button.addEventListener('click', () => { selectChannel(key, label); chat.dataset.view = 'pane'; });
-      row.append(button);
-      return row;
-    }));
-    const current = shown.get(channel)!;
-    channelLabel = current.label;
-    const inPane = new Set(current.items);
-    feedItems().forEach(item => item.hidden = !inPane.has(item));
-    activityEmpty.hidden = inPane.size > 0;
-    document.querySelector('#chat-pane-title')!.textContent = channel === ALL || channel === GENERAL ? current.label : `#${current.label}`;
-    document.querySelector('#chat-pane-avatar')!.textContent = channel === ALL ? '★' : channel === GENERAL ? '💬' : '#';
-    document.querySelector('#chat-pane-meta')!.textContent = `${inPane.size} ${inPane.size === 1 ? 'mesazh' : 'mesazhe'}`;
-  };
-
-  // Opening a channel jumps to its newest message and puts its tag in the composer
-  // (unless the member already typed their own tags).
-  function selectChannel(key: string, label: string) {
-    channel = key;
-    render();
-    messages.scrollTop = messages.scrollHeight;
-    const tagsInput = document.querySelector<HTMLInputElement>('#composer-form input[name="tags"]');
-    if (tagsInput && (!tagsInput.value.trim() || tagsInput.value === prefilledTag)) {
-      prefilledTag = key === ALL || key === GENERAL ? '' : label;
-      tagsInput.value = prefilledTag;
-    }
-  }
-  document.querySelector('#chat-back')!.addEventListener('click', () => chat.dataset.view = 'list');
-  // Desktop: the sidebar folds down to a strip of channel icons; the choice is remembered per browser.
-  const collapse = document.querySelector<HTMLButtonElement>('#chat-collapse')!;
-  const setCollapsed = (collapsed: boolean) => {
-    chat.dataset.collapsed = String(collapsed);
-    collapse.setAttribute('aria-expanded', String(!collapsed));
-    collapse.textContent = collapsed ? '»' : '«';
-    collapse.title = collapsed ? 'Hap kanalet' : 'Mbyll kanalet';
-  };
-  try { setCollapsed(localStorage.getItem('postimet-channels-collapsed') === '1'); } catch {}
-  collapse.addEventListener('click', () => {
-    const collapsed = chat.dataset.collapsed !== 'true';
-    setCollapsed(collapsed);
-    try { localStorage.setItem('postimet-channels-collapsed', collapsed ? '1' : '0'); } catch {}
-  });
-  activitySearch.addEventListener('input', render);
-  render();
-  messages.scrollTop = messages.scrollHeight;
-
-  // Writing lives here (it used to be on /anetaresohu/rrjeti/ and /anetaresohu/kerkesat/):
-  // a post (create_post, supabase/007-social.sql) or an idea/request (submit_idea,
-  // 005-ideas.sql). The board above was built at the last deploy with ideas only; it is
-  // reloaded live with the published ideas and the members' posts, oldest first like a chat.
-  // supabase-js is loaded only for signed-in visitors.
-  import { ideaFromRow, ideaRowHtml, type Idea } from '../../scripts/ideas';
-  import { postElement, type MemberPost } from '../../scripts/members';
-
-  const composer = document.querySelector<HTMLElement>('#composer')!;
-  const form = document.querySelector<HTMLFormElement>('#composer-form')!;
-  const feed = document.querySelector<HTMLElement>('#unified-feed')!;
-  const statusLine = document.querySelector<HTMLElement>('#composer-status')!;
-  const body = form.querySelector<HTMLTextAreaElement>('#post-body')!;
-  const say = (text: string, kind = '') => { statusLine.textContent = text; statusLine.dataset.kind = kind; };
-  const { supabaseUrl, supabaseKey } = composer.dataset;
-  const builtSlugs = new Set<string>(JSON.parse(composer.dataset.builtSlugs || '[]'));
-  const headers = { apikey: supabaseKey || '', ...(supabaseKey?.startsWith('eyJ') && { Authorization: `Bearer ${supabaseKey}` }) };
-  const read = (path: string) => fetch(`${supabaseUrl}/rest/v1/${path}`, { headers }).then(response => response.ok ? response.json() : Promise.reject(response.status));
-  let me: { username: string | null; isAdmin: boolean } | null = null;
-  let supabase: any = null;
-
-  const postsEnabled = composer.dataset.postsEnabled === 'true';
-  const kindValue = () => postsEnabled ? form.querySelector<HTMLInputElement>('input[name="kind"]:checked')!.value : 'idea';
-  const syncKind = () => {
-    const isIdea = kindValue() === 'idea';
-    form.dataset.kind = isIdea ? 'idea' : 'post';
-    form.querySelector<HTMLInputElement>('input[name="title"]')!.required = isIdea;
-    body.required = !isIdea;
-    body.maxLength = isIdea ? 20000 : 3000;
-    body.placeholder = isIdea ? 'Çfarë kërkon ose çfarë ofron? Mund të përdorësh Markdown: **i theksuar**, - lista, [link](https://…)' : 'Një projekt i ri, një event, një pyetje për komunitetin…';
-    document.querySelector('#composer-body-label')!.textContent = isIdea ? 'Përshkrimi' : 'Ndaj diçka me rrjetin';
-    const isPublic = form.querySelector<HTMLInputElement>('input[name="visibility"]:checked')!.value === 'public';
-    form.querySelectorAll<HTMLElement>('[data-public-only]').forEach(label => label.hidden = !isPublic);
-    document.querySelector('#composer-hint')!.textContent = !isIdea ? 'Postimet janë publike dhe dalin edhe në profilin tënd.'
-      : isPublic ? 'Del menjëherë te Postimet si mundësi.' : 'E sheh vetëm ekipi i IB, nuk del publikisht.';
-  };
-  form.querySelectorAll<HTMLInputElement>('input[name="kind"], input[name="visibility"]').forEach(input => input.addEventListener('change', syncKind));
-
-  // "Shkruaj postim" (and links from elsewhere: #post-body, #shkruaj-ide)
-  // open the chat pane, pick the kind and put the cursor in the form, or show the sign-in prompt.
-  // The writing bar folds like the sidebar (one line, "Shkruaj në rrjet"); remembered per browser.
-  const composerToggle = document.querySelector<HTMLButtonElement>('#composer-toggle')!;
-  const setComposerCollapsed = (collapsed: boolean) => {
-    chat.dataset.composerCollapsed = String(collapsed);
-    composerToggle.setAttribute('aria-expanded', String(!collapsed));
-    composerToggle.title = collapsed ? 'Hap' : 'Mbyll';
-    try { localStorage.setItem('postimet-composer-collapsed', collapsed ? '1' : '0'); } catch {}
-  };
-  try { if (localStorage.getItem('postimet-composer-collapsed') === '1') setComposerCollapsed(true); } catch {}
-  composerToggle.addEventListener('click', () => {
-    const collapsed = chat.dataset.composerCollapsed !== 'true';
-    setComposerCollapsed(collapsed);
-    if (!collapsed && !form.hidden) body.focus();
-  });
-
-  const openComposer = (kind: string) => {
-    if (!postsEnabled) kind = 'idea';
-    chat.dataset.view = 'pane';
-    if (chat.dataset.composerCollapsed === 'true') setComposerCollapsed(false);
-    if (form.hidden) return composer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    form.querySelector<HTMLInputElement>(`input[name="kind"][value="${kind}"]`)!.checked = true;
-    syncKind();
-    composer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    (kind === 'idea' ? form.querySelector<HTMLInputElement>('input[name="title"]')! : body).focus({ preventScroll: true });
-  };
-  document.querySelectorAll<HTMLAnchorElement>('[data-compose]').forEach(link => link.addEventListener('click', event => {
-    event.preventDefault();
-    openComposer(link.dataset.compose!);
-  }));
-
-  // One post as a note on the board; its author or an admin can delete it.
-  const postNote = (post: MemberPost) => {
-    const item = document.createElement('li');
-    item.className = me && me.username === post.username ? 'post-note is-mine' : 'post-note';
-    item.dataset.date = post.created_at;
-    item.dataset.search = `${post.name} ${post.body} ${(post.tags || []).join(' ')}`.toLocaleLowerCase('sq');
-    item.dataset.tags = JSON.stringify(post.tags || []);
-    const canDelete = me && (me.isAdmin || me.username === post.username);
-    item.append(postElement(post, canDelete ? async () => {
-      if (!confirm('Të fshihet ky postim?')) return;
-      const { error } = await supabase.rpc('delete_post', { p_id: post.id });
-      if (error) say(`Nuk u fshi: ${error.message}`, 'error');
-      else loadFeed();
-    } : undefined));
-    return item;
-  };
-
-  interface OrganizationOffer {
-    id: string;
-    kind: 'project' | 'volunteer' | 'benefit' | 'collaboration';
-    title: string;
-    description: string;
-    url: string | null;
-    expires_at: string | null;
-    created_at: string;
-    organization_name: string;
-    organization_kind: string;
-    organization_logo: string | null;
-  }
-  const offerLabels: Record<OrganizationOffer['kind'], string> = {
-    project: 'Projekt',
-    volunteer: 'Vullnetarizëm',
-    benefit: 'Përfitim',
-    collaboration: 'Bashkëpunim',
-  };
-  const offerNote = (offer: OrganizationOffer) => {
-    const item = document.createElement('li');
-    item.id = `offer-${offer.id}`;
-    item.className = 'offer-note';
-    item.dataset.date = offer.created_at;
-    const kindLabel = offerLabels[offer.kind] || 'Ofertë';
-    item.dataset.tags = JSON.stringify(['Oferta', kindLabel, offer.organization_name]);
-    item.dataset.search = `${offer.organization_name} ${kindLabel} ${offer.title} ${offer.description}`.toLocaleLowerCase('sq');
-
-    const card = document.createElement('article');
-    card.className = 'offer-card';
-    const header = document.createElement('header');
-    header.className = 'offer-card-head';
-    const identity = document.createElement('div');
-    identity.className = 'offer-card-identity';
-    if (offer.organization_logo) {
-      const logo = document.createElement('img');
-      logo.src = offer.organization_logo;
-      logo.alt = '';
-      logo.loading = 'lazy';
-      identity.append(logo);
-    } else {
-      const fallback = document.createElement('span');
-      fallback.textContent = offer.organization_name.slice(0, 1).toUpperCase();
-      fallback.setAttribute('aria-hidden', 'true');
-      identity.append(fallback);
-    }
-    const meta = document.createElement('div');
-    const organization = document.createElement('strong');
-    organization.textContent = offer.organization_name;
-    const date = document.createElement('small');
-    date.textContent = new Date(offer.created_at).toLocaleDateString('sq-AL', { day: 'numeric', month: 'short', year: 'numeric' });
-    meta.append(organization, date);
-    identity.append(meta);
-    const badge = document.createElement('span');
-    badge.className = 'offer-card-kind';
-    badge.textContent = kindLabel;
-    header.append(identity, badge);
-
-    const title = document.createElement('h3');
-    title.className = 'offer-card-title';
-    title.textContent = offer.title;
-    const description = document.createElement('p');
-    description.className = 'post-card-body';
-    description.textContent = offer.description;
-    card.append(header, title, description);
-
-    const footer = document.createElement('footer');
-    if (offer.expires_at) {
-      const expiry = document.createElement('small');
-      expiry.textContent = `Afati: ${new Date(offer.expires_at).toLocaleDateString('sq-AL', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-      footer.append(expiry);
-    }
-    if (offer.url) {
-      const link = document.createElement('a');
-      link.href = offer.url;
-      link.target = '_blank';
-      link.rel = 'noreferrer';
-      link.textContent = 'Hap ofertën →';
-      footer.append(link);
-    }
-    if (footer.childNodes.length) card.append(footer);
-    item.append(card);
-    return item;
-  };
-
-  async function loadFeed() {
-    if (!supabaseUrl || !supabaseKey) return;
-    const [ideaRows, posts, offers] = await Promise.all([
-      read('public_ideas?select=*&order=created_at.desc&limit=30').catch(() => null),
-      read('public_member_posts?select=*&order=created_at.desc&limit=30').catch(() => []),
-      read('public_organization_offers?select=*&order=created_at.desc&limit=30').catch(() => []),
-    ]);
-    if (!ideaRows) return;   // keep the board as built
-    const ideas: Idea[] = ideaRows.map(ideaFromRow);
-    const items = [
-      ...ideas.map(idea => ({ date: idea.date || '', html: ideaRowHtml(idea, idea.id!, builtSlugs.has(idea.slug)) })),
-      ...(posts as MemberPost[]).map(post => ({ date: post.created_at, post })),
-      ...(offers as OrganizationOffer[]).map(offer => ({ date: offer.created_at, offer })),
-    ].sort((a, b) => a.date.localeCompare(b.date));
-    feed.replaceChildren(...items.map(item => {
-      if ('post' in item) return postNote(item.post!);
-      if ('offer' in item) return offerNote(item.offer!);
-      const template = document.createElement('template');
-      template.innerHTML = item.html!;
-      return template.content.firstElementChild!;
-    }));
-    const atBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 40;
-    render();
-    const linkedOffer = location.hash.startsWith('#offer-') ? document.querySelector<HTMLElement>(location.hash) : null;
-    if (linkedOffer) linkedOffer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    else if (atBottom) messages.scrollTop = messages.scrollHeight;
-  }
-
-  form.addEventListener('submit', async event => {
-    event.preventDefault();
-    const value = (name: string) => (form.elements.namedItem(name) as HTMLInputElement).value.trim();
-    const checked = (name: string) => (form.elements.namedItem(name) as HTMLInputElement).checked;
-    const isIdea = kindValue() === 'idea';
-    const postTags = value('tags').split(',').map(tag => tag.trim().replace(/^#+/, '')).filter(Boolean);
-    const wantsPublic = form.querySelector<HTMLInputElement>('input[name="visibility"]:checked')!.value === 'public';
-    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
-    submit.disabled = true;
-    say('Duke dërguar…');
-    const { error } = isIdea
-      ? await supabase.rpc('submit_idea', { p: {
-        title: value('title'), tags: postTags, description: value('body'),
-        wants_public: wantsPublic, show_name: wantsPublic && checked('show_name'), show_email: wantsPublic && checked('show_email'),
-      } })
-      : await supabase.rpc('create_post', { p_body: body.value, p_tags: postTags });
-    submit.disabled = false;
-    if (error) return say(`Nuk u dërgua: ${error.message}`, 'error');
-    form.reset();
-    form.querySelector<HTMLInputElement>('input[name="tags"]')!.value = prefilledTag;
-    syncKind();
-    say(!isIdea ? 'U postua.' : wantsPublic ? 'Faleminderit! U publikua te Postimet.' : 'Faleminderit! U dërgua te ekipi i IB.', 'ok');
-    await loadFeed();
-    messages.scrollTop = messages.scrollHeight;
-  });
-
-  async function start() {
-    const signedIn = (() => { try { return Object.keys(localStorage).some(key => /^sb-.+-auth-token$/.test(key)); } catch { return false; } })();
-    if (composer.dataset.writingEnabled === 'true' && signedIn && supabaseUrl && supabaseKey) {
-      // Show the form straight away for a stored session, so a signed-in member never sees
-      // the "Hyr" prompt while supabase-js loads; Posto waits until the session is checked.
-      const signedOut = document.querySelector<HTMLElement>('#composer-signed-out')!;
-      const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
-      signedOut.hidden = true;
-      form.hidden = false;
-      submit.disabled = true;
-      syncKind();
-      if (location.hash === '#post-body') openComposer('post');
-      if (location.hash === '#shkruaj-ide') openComposer('idea');
-      const [{ createClient }, { memberSession }] = await Promise.all([import('@supabase/supabase-js'), import('../../scripts/member-session')]);
-      supabase = createClient(supabaseUrl, supabaseKey);
-      const { session } = await memberSession(supabase, false);
-      if (session) {
-        const [{ data: network }, { data: isAdmin }] = await Promise.all([supabase.rpc('my_network'), supabase.rpc('is_admin')]);
-        me = { username: network?.username || null, isAdmin: Boolean(isAdmin) };
-        submit.disabled = false;
-        if (!network) say('Profili yt pret aprovimin nga ekipi i IB. Sapo të aprovohet, mund të postosh këtu.');
-      } else {
-        signedOut.hidden = false;
-        form.hidden = true;
-      }
-    }
-    loadFeed();
-  }
-  start();
+  const createCard=document.querySelector<HTMLElement>('.notification-create-card'),form=document.querySelector<HTMLFormElement>('#notification-form'),prompt=document.querySelector<HTMLElement>('#notification-auth-prompt'),formStatus=document.querySelector<HTMLElement>('#notification-form-status');
+  if(createCard&&form&&prompt){const {supabaseUrl,supabaseKey}=createCard.dataset;const stored=(()=>{try{return Object.keys(localStorage).some(key=>/^sb-.+-auth-token$/.test(key))}catch{return false}})();if(stored&&supabaseUrl&&supabaseKey){prompt.hidden=true;form.hidden=false;const submit=form.querySelector<HTMLButtonElement>('button[type="submit"]')!;submit.disabled=true;Promise.all([import('@supabase/supabase-js'),import('../../scripts/member-session')]).then(async([{createClient},{memberSession}])=>{const client=createClient(supabaseUrl,supabaseKey);const {session}=await memberSession(client,false);if(!session){prompt.hidden=false;form.hidden=true;return}submit.disabled=false;form.addEventListener('submit',async event=>{event.preventDefault();submit.disabled=true;if(formStatus)formStatus.textContent='Duke publikuar…';const data=new FormData(form);const cityValue=String(data.get('city')||'').trim();const categories=String(data.get('categories')||'').split(',').map(value=>value.trim().replace(/^#+/,'')).filter(Boolean);const tags=[cityValue,...categories].slice(0,5);const {data:slug,error}=await client.rpc('submit_idea',{p:{title:String(data.get('title')||''),description:String(data.get('description')||''),tags,wants_public:true,show_name:true,show_email:data.get('show_email')==='on'}});submit.disabled=false;if(error){if(formStatus)formStatus.textContent=`Nuk u publikua: ${error.message}`;return}form.reset();if(formStatus)formStatus.textContent=`U publikua me sukses. Njoftimi do të shfaqet në listë pas rifreskimit të të dhënave.`})}).catch(()=>{prompt.hidden=false;form.hidden=true})}}
 </script>
+
+<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script is:inline>
+  const mapElement=document.querySelector('#notification-map');if(mapElement&&window.L){const mapped=JSON.parse(mapElement.dataset.cities||'[]'),map=L.map(mapElement,{scrollWheelZoom:false}).setView([44,8],3);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);const markers=mapped.map(city=>L.circleMarker([city.lat,city.lng],{radius:Math.min(16,8+city.count),color:'#fff',weight:2,fillColor:'#744761',fillOpacity:.86}).bindTooltip(`${city.city} · ${city.count} ${city.count===1?'njoftim':'njoftime'}`,{direction:'top',offset:[0,-8]}).bindPopup(`<div class="map-popup"><strong>${city.city}</strong><span>${city.country}</span><small>${city.count} ${city.count===1?'njoftim':'njoftime'}</small><button class="map-popup-link notification-map-filter" type="button" data-city="${city.slug}">Shfaq njoftimet →</button></div>`).addTo(map));if(markers.length)map.fitBounds(L.featureGroup(markers).getBounds(),{padding:[38,38],maxZoom:6});mapElement.addEventListener('click',event=>{const button=event.target.closest('.notification-map-filter'),filter=document.querySelector('#notification-city');if(!button||!filter)return;filter.value=button.dataset.city||'';filter.dispatchEvent(new Event('change'));document.querySelector('#notification-grid')?.scrollIntoView({behavior:'smooth',block:'start'});map.closePopup()})}
+</script>
+
 <style>
-/* The messages come from set:html and the browser, so they carry no scope attribute: the
-   feed rules reach them through :global(). WhatsApp-style: channels on the left, the open channel's messages as bubbles on the right,
-   the composer docked under them. On phones one side shows at a time (data-view). */
-.chat{display:grid;grid-template-columns:minmax(200px,240px) minmax(0,1fr);height:min(82vh,820px);min-height:560px;margin-top:8px;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:0 1px 2px rgba(23,24,29,.04)}
-/* Slack-style sidebar: a slim list of channels (tags), the open one highlighted. The rows
-   are built in the browser, so they carry no scope attribute: hence :global(). */
-.chat-channels{display:flex;flex-direction:column;min-height:0;padding:14px 0;color:rgba(255,255,255,.78);background:#2b1f28}
-.chat-channels-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 10px 10px 16px}
-.chat-collapse{flex:none;width:28px;height:28px;padding:0;border:0;border-radius:6px;color:rgba(255,255,255,.75);background:none;font-size:16px;cursor:pointer}
-.chat-collapse:hover{color:#fff;background:rgba(255,255,255,.1)}
-.chat{transition:grid-template-columns .2s ease}
-.chat[data-collapsed=true]{grid-template-columns:60px minmax(0,1fr)}
-.chat[data-collapsed=true] .chat-channels-head{justify-content:center;margin:0 0 10px}
-.chat[data-collapsed=true] :is(.chat-channels-title,.chat-search){display:none}
-.chat[data-collapsed=true] .chat-channel-list{padding:0 6px}
-.chat[data-collapsed=true] :global(.chat-channel){justify-content:center;padding:8px 0}
-.chat[data-collapsed=true] :global(:is(.chat-channel-name,.chat-channel-count)){display:none}
-.chat-channels-title{margin:0;color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
-.chat-search{display:flex;align-items:center;gap:8px;margin:0 12px 10px;padding:7px 10px;border-radius:7px;color:rgba(255,255,255,.6);background:rgba(255,255,255,.1)}
-.chat-search input{width:100%;border:0;outline:0;background:none;color:#fff;font:13px var(--font-body)}
-.chat-search input::placeholder{color:rgba(255,255,255,.55)}
-.chat-channel-list{flex:1;min-height:0;margin:0;padding:0 8px;overflow-y:auto;list-style:none}
-:global(.chat-channel){display:flex;align-items:center;gap:8px;width:100%;padding:6px 10px;border:0;border-radius:6px;background:none;color:inherit;font:inherit;font-size:14px;text-align:left;cursor:pointer}
-:global(.chat-channel:hover){background:rgba(255,255,255,.08)}
-:global(.chat-channel[aria-current=true]){color:#fff;background:var(--accent-dark);font-weight:700}
-:global(.chat-channel-icon){flex:none;width:16px;opacity:.7;text-align:center}
-:global(.chat-channel-name){flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-:global(.chat-channel-count){flex:none;min-width:20px;padding:1px 6px;border-radius:999px;color:rgba(255,255,255,.85);background:rgba(255,255,255,.14);font-size:10px;font-weight:800;text-align:center}
-.chat-pane-head .chat-channel-avatar{display:grid;flex:none;place-items:center;width:38px;height:38px;border-radius:50%;color:#fff;background:var(--accent-dark);font-size:16px;font-weight:800}
-.chat-pane{display:flex;flex-direction:column;min-width:0;min-height:0;background:#efeae2}
-.chat-pane-head{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:#fff}
-.chat-pane-head div{display:grid;min-width:0}.chat-pane-head strong{font-size:15px}.chat-pane-head small{color:var(--muted);font-size:12px}
-.chat-back{display:none;padding:4px 8px;border:0;background:none;color:var(--ink);font-size:20px;cursor:pointer}
-.chat-messages{flex:1;min-height:0;padding:18px 22px;overflow-y:auto;background-image:radial-gradient(rgba(82,58,32,.07) 1px,transparent 1px);background-size:18px 18px}
-.unified-feed{display:flex;flex-direction:column;gap:10px;max-width:none;margin:0;padding:0;list-style:none}
-.unified-feed>:global(:is(.idea-row,.post-note,.offer-note)){position:relative;width:fit-content;min-width:min(280px,100%);max-width:min(620px,88%);margin:0;padding:10px 14px 8px;border:0;border-radius:4px 12px 12px 12px;background:#fff;box-shadow:0 1px 1px rgba(23,24,29,.12)}
-.unified-feed>:global(.post-note.is-mine){align-self:flex-end;border-radius:12px 4px 12px 12px;background:#d9fdd3}
-.unified-feed>:global([hidden]){display:none}
-.unified-feed :global(.post-card-avatar){width:28px;height:28px}
-.unified-feed :global(.post-card-author strong){font-size:13px;color:var(--accent-dark)}
-.unified-feed :global(.post-card-author small){font-size:10px}
-.unified-feed :global(.idea-row-number){font-size:10px}
-.unified-feed :global(.idea-row-badges){margin-top:8px}
-.unified-feed :global(.feed-tag),.unified-feed :global(.idea-status){padding:2px 7px;font-size:10px}
-.unified-feed :global(.idea-row-title){margin:8px 0 4px;font-size:16px;line-height:1.3}
-.unified-feed :global(.idea-row-desc){color:#333438;font-size:14px;line-height:1.5}
-.unified-feed :global(.idea-row-foot){margin-top:8px;padding-top:8px;border-color:rgba(23,24,29,.1)}
-.unified-feed :global(.idea-row-more),.unified-feed :global(.idea-row-reply){font-size:12px}
-.unified-feed :global(.post-note .post-card){padding:0;border:0;border-radius:0;background:none}
-.unified-feed :global(.post-card-body){margin:6px 0 0;font-size:14px;color:#333438}
-.unified-feed :global(.offer-card){display:grid;gap:8px}
-.unified-feed :global(.offer-card-head){display:flex;align-items:center;justify-content:space-between;gap:16px}
-.unified-feed :global(.offer-card-identity){display:flex;align-items:center;gap:9px;min-width:0}
-.unified-feed :global(.offer-card-identity>img),.unified-feed :global(.offer-card-identity>span){display:grid;flex:none;place-items:center;width:30px;height:30px;border-radius:50%;object-fit:cover;background:var(--soft);color:var(--accent-dark);font-size:12px;font-weight:800}
-.unified-feed :global(.offer-card-identity>div){display:grid;min-width:0}
-.unified-feed :global(.offer-card-identity strong){overflow:hidden;color:var(--accent-dark);font-size:13px;text-overflow:ellipsis;white-space:nowrap}
-.unified-feed :global(.offer-card-identity small){color:var(--muted);font-size:10px}
-.unified-feed :global(.offer-card-kind){flex:none;padding:3px 8px;border-radius:999px;background:var(--soft);color:var(--accent-dark);font-size:10px;font-weight:800}
-.unified-feed :global(.offer-card-title){margin:2px 0 0;font-size:16px;line-height:1.3}
-.unified-feed :global(.offer-card footer){display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding-top:7px;border-top:1px solid rgba(23,24,29,.1)}
-.unified-feed :global(.offer-card footer small){color:var(--muted);font-size:11px}
-.unified-feed :global(.offer-card footer a){color:var(--accent-dark);font-size:12px;font-weight:750}
-.unified-feed>:global(.offer-note:target){outline:3px solid rgba(116,71,97,.25);outline-offset:3px}
-.activity-empty{margin:0;padding:45px;color:var(--muted);text-align:center}
-.chat .activity-composer{position:relative;flex:none;max-height:60%;margin:0;padding:10px 44px 10px 14px;overflow-y:auto;border:0;border-top:1px solid var(--line);border-radius:0;background:#f5f3f0;box-shadow:none}
-/* In the chat the composer is a compact message bar: kind + tags on top, the message and
-   Posto side by side, and the idea-only fields (title, visibility) only when they apply.
-   Field labels stay for screen readers but are hidden visually (font-size:0). */
-.chat .activity-composer-form{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"kind tags tags" "title title title" "body body send" "opts opts opts" "hint hint hint";gap:8px 10px;align-items:end}
-.chat .activity-composer-kind{grid-area:kind;align-self:center}
-.chat .activity-composer-kind label{padding:6px 11px;font-size:12px}
-.chat .activity-composer-form>label:not(.activity-composer-body){grid-area:tags;font-size:0}
-.chat .activity-composer-form>.activity-composer-idea:not(.activity-composer-options){grid-area:title}
-.chat .activity-composer-idea>label:not(.profile-editor-check){font-size:0}
-.chat .activity-composer-body{grid-area:body;font-size:0}
-.chat .activity-composer-options{grid-area:opts;grid-template-columns:repeat(4,max-content);gap:4px 16px}
-.chat .activity-composer-options label{font-size:12px}
-.chat .activity-composer-foot{display:contents}
-.chat .activity-composer-foot small{grid-area:hint;font-size:11px}
-.chat .activity-composer-foot .partner-button{grid-area:send;justify-content:center;gap:8px;min-width:0;width:auto;height:44px;padding:0 18px;border-radius:22px}
-.chat .activity-composer-form input:not([type=radio]):not([type=checkbox]),.chat .activity-composer-form textarea{padding:9px 12px;font-size:14px}
-.chat .activity-composer-form textarea{min-height:44px;height:44px;max-height:200px;resize:none;border-radius:22px;padding:11px 16px;field-sizing:content}
-.chat .activity-composer .profile-editor-status{margin:6px 0 0;font-size:12px}
-.chat .activity-composer .profile-editor-status:empty{display:none}
-/* Expanded: a small ⌄ in the top-right corner. Collapsed: the whole composer is one clickable bar. */
-.composer-toggle{position:absolute;top:6px;right:8px;z-index:1;display:flex;align-items:center;gap:8px;padding:2px 8px;border:0;border-radius:6px;background:none;color:var(--muted);font:inherit;font-size:16px;cursor:pointer}
-.composer-toggle:hover{color:var(--ink);background:rgba(23,24,29,.06)}
-.composer-toggle-label{display:none}
-.chat[data-composer-collapsed=true] .activity-composer{padding:0}
-.chat[data-composer-collapsed=true] .activity-composer>:not(.composer-toggle){display:none}
-.chat[data-composer-collapsed=true] .composer-toggle{position:static;justify-content:space-between;width:100%;padding:12px 16px;border-radius:0;color:var(--accent-dark);font-size:14px;font-weight:700}
-.chat[data-composer-collapsed=true] .composer-toggle-label{display:inline}
-.chat[data-composer-collapsed=true] .composer-toggle-icon{transform:rotate(180deg)}
-.chat .activity-composer-signed-out p{font-size:14px}
-@media(max-width:760px){
-  .chat{grid-template-columns:1fr;height:78vh;min-height:480px}
-  .chat[data-view=list] .chat-pane,.chat[data-view=pane] .chat-channels{display:none}
-  .chat-back{display:block}.chat-collapse{display:none}
-  .chat[data-collapsed=true]{grid-template-columns:1fr}
-  .chat[data-collapsed=true] :is(.chat-channels-title,.chat-search){display:revert}
-  .chat[data-collapsed=true] .chat-search{display:flex}
-  .chat[data-collapsed=true] :global(.chat-channel){justify-content:flex-start;padding:6px 10px}
-  .chat[data-collapsed=true] :global(:is(.chat-channel-name,.chat-channel-count)){display:revert}
-  .chat-messages{padding:14px 10px}
-  .unified-feed>:global(:is(.idea-row,.post-note,.offer-note)){max-width:94%}
-  .chat .activity-composer-form{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"kind kind" "tags tags" "title title" "body send" "opts opts" "hint hint"}
-  .chat .activity-composer-options{grid-template-columns:1fr 1fr}
-}
-.activity-composer[hidden]{display:none}
-.activity-composer{margin-top:24px;padding:22px 24px;border:1px solid rgba(116,71,97,.2);border-radius:14px;background:#fff;box-shadow:0 1px 2px rgba(23,24,29,.04)}
-.activity-composer-signed-out{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 24px}.activity-composer-signed-out[hidden]{display:none}
-.activity-composer-signed-out p{max-width:620px;margin:0;color:var(--muted);font-size:15px;line-height:1.6}.activity-composer-signed-out strong{color:var(--ink)}
-.activity-composer-signed-out div{display:flex;align-items:center;gap:18px}.activity-composer-signed-out .partner-button{margin-top:0}
-.activity-composer-alt{color:var(--accent-dark);font-size:14px;font-weight:700}
-.activity-composer-form{display:grid;gap:14px}.activity-composer-form[hidden]{display:none}
-.activity-composer-kind{display:flex;gap:4px;width:max-content;max-width:100%;margin:0;padding:4px;border:0;border-radius:10px;background:var(--soft)}
-.activity-composer-kind label{position:relative;padding:8px 14px;border-radius:7px;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer}
-.activity-composer-kind input{position:absolute;opacity:0;pointer-events:none}
-.activity-composer-kind label:has(input:checked){background:var(--ink);color:#fff}.activity-composer-kind label:has(input:focus-visible){outline:3px solid rgba(116,71,97,.24)}
-.activity-composer-form>label,.activity-composer-idea>label:not(.profile-editor-check){display:grid;gap:6px;font-size:14px;font-weight:700}
-.activity-composer-form input:not([type=radio]):not([type=checkbox]),.activity-composer-form select,.activity-composer-form textarea{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:15px;font-weight:400}
-.activity-composer-form textarea{resize:vertical}
-.activity-composer-idea{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
-.activity-composer-form[data-kind=post] .activity-composer-idea{display:none}
-.activity-composer-options{grid-template-columns:repeat(2,max-content);gap:8px 22px}.activity-composer-options [hidden]{display:none}
-.activity-composer-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
-.activity-composer-foot small{color:var(--muted);font-size:13px}
-.activity-composer-foot .partner-button{margin-top:0;border:0;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
-.activity-composer .profile-editor-status{margin:14px 0 0}
-@media(max-width:700px){.activity-composer{padding:18px}.activity-composer-idea,.activity-composer-options{grid-template-columns:1fr}}
+  .notification-filters{display:grid;grid-template-columns:minmax(230px,1.35fr) repeat(3,minmax(155px,.75fr));gap:12px}.notification-filters>*{min-width:0}.notification-filters select{width:100%}.notification-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.notification-card{display:flex;min-height:330px;flex-direction:column;padding:20px;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:0 1px 2px rgba(23,24,29,.04);transition:.18s ease}.notification-card:hover{transform:translateY(-2px);border-color:rgba(116,71,97,.32);box-shadow:0 12px 28px rgba(23,24,29,.08)}.notification-card[hidden]{display:none}.notification-card-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--muted);font-size:11px}.notification-location{display:inline-flex;align-items:center;gap:5px;color:var(--accent-dark);font-weight:800;text-decoration:none}.notification-card-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}.notification-card-tags>span{padding:4px 8px;border-radius:999px;background:var(--soft);color:var(--accent-dark);font-size:10px;font-weight:800}.notification-card-tags .is-active{color:#2b5a92;background:rgba(45,100,170,.1)}.notification-card-tags .is-resolved{color:#246247;background:rgba(42,112,82,.1)}.notification-card h2{margin:18px 0 9px;font-size:20px;line-height:1.3}.notification-card h2 a{color:var(--ink);text-decoration:none}.notification-card>p{display:-webkit-box;margin:0;overflow:hidden;color:#4d4e53;font-size:14px;line-height:1.65;-webkit-box-orient:vertical;-webkit-line-clamp:4}.notification-card footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:18px;border-top:1px solid var(--line);font-size:11px}.notification-card footer>a{color:var(--accent-dark);font-weight:800;text-decoration:none}.notification-author{display:inline-flex;align-items:center;gap:6px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.notification-author>span{font-size:7px}.notification-more-wrap{display:flex;justify-content:center;margin-top:28px}.notification-empty{padding:48px 20px;color:var(--muted);text-align:center}
+  .notification-create-section{margin-top:72px;padding-block:34px;border-top:1px solid var(--line)}.notification-create-panel>summary{display:grid;grid-template-columns:1fr auto;align-items:center;gap:28px;padding:22px 24px;border:1px solid var(--line);border-radius:16px;background:#fff;cursor:pointer;list-style:none;box-shadow:0 8px 24px rgba(23,24,29,.05)}.notification-create-panel>summary::-webkit-details-marker{display:none}.notification-create-panel[open]>summary{border-radius:16px 16px 0 0}.notification-create-toggle{display:flex;align-items:center;gap:12px;color:var(--accent-dark);font-size:12px}.notification-create-toggle i{font-size:18px;font-style:normal;transition:transform .2s ease}.notification-create-panel[open] .notification-create-toggle i{transform:rotate(180deg)}.notification-create-panel[open] .notification-create-toggle b{font-size:0}.notification-create-panel[open] .notification-create-toggle b::after{content:"Mbyll formularin";font-size:12px}.notification-create-heading,.notification-map-heading{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,440px);align-items:end;gap:64px}.notification-create-heading h2,.notification-map-heading h2{margin:0;font-size:clamp(38px,5vw,58px);font-weight:400;line-height:1.05;letter-spacing:-.035em}.notification-create-heading>p,.notification-map-heading>p{margin:0;color:var(--muted);font-size:15px;line-height:1.7}.notification-create-card{max-width:none;margin:0;padding-top:28px;padding:28px;border:1px solid var(--line);border-radius:16px;background:var(--soft)}.notification-auth-prompt{text-align:center}.notification-auth-prompt p{margin:8px 0 18px;color:var(--muted)}#notification-form{display:grid;gap:18px}#notification-form[hidden],.notification-auth-prompt[hidden]{display:none}#notification-form label{display:grid;gap:7px;color:var(--ink);font-size:12px;font-weight:800}#notification-form input,#notification-form select,#notification-form textarea{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font:14px var(--font-body)}#notification-form textarea{resize:vertical}.notification-form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}#notification-form .notification-email-option{display:flex;align-items:center;gap:9px;font-weight:600}#notification-form .notification-email-option input{width:17px;height:17px}.notification-form-foot{display:flex;align-items:center;justify-content:space-between;gap:16px}.notification-form-foot p{margin:0;color:var(--muted);font-size:13px}.notification-form-foot p a{color:var(--accent-dark);font-weight:800}
+  .notification-map-section{border-top:1px solid var(--line)}.notification-map-layout{height:560px;margin-top:36px;overflow:hidden;border:1px solid var(--line);border-radius:16px;background:#f1f3f4;box-shadow:0 20px 55px rgba(23,24,29,.06)}#notification-map{z-index:1;min-height:560px}.notification-map-section :global(.notification-map-filter){padding:0;border:0;background:none;cursor:pointer}
+  @media(max-width:1050px){.notification-filters{grid-template-columns:repeat(3,1fr)}.notification-filters .member-search{grid-column:1/-1}.notification-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:700px){.notification-filters,.notification-grid,.notification-create-heading,.notification-map-heading,.notification-form-row{grid-template-columns:1fr}.notification-filters .member-search{grid-column:auto}.notification-card{min-height:285px}.notification-create-heading,.notification-map-heading{gap:16px}.notification-create-card{padding:20px}.notification-form-foot{align-items:stretch;flex-direction:column}.notification-map-layout{height:380px}#notification-map{min-height:380px}}
 </style>

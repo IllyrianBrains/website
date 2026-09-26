@@ -5,7 +5,11 @@ import rawOrganizations from './organizations.json';
 // added from /anetaresohu/shoqatat/ and /anetaresohu/bizneset/. organizations.json is written before
 // dev/build by scripts/sync-organizations-supabase.mjs and not committed.
 // partners.ts and businesses.ts build their lists from this.
+export interface OrganizationRepresentative { name: string; username: string; title?: string; avatar?: string; }
+export interface OrganizationOpportunity { id: number; kind: string; title: string; description: string; url?: string; expiresAt?: string; }
+
 export interface Organization {
+  id: number;
   kind: 'ngo' | 'business';
   name: string;
   category: string;
@@ -23,11 +27,19 @@ export interface Organization {
   relatedMembers: string[];
   relatedCities: string[];
   relatedPartners: string[];
-  /** Username of the member who added it, when their profile is public. */
+  /** Primary representative, retained for backwards compatibility. */
   username?: string;
+  representatives: OrganizationRepresentative[];
+  opportunities: OrganizationOpportunity[];
 }
 
+export const organizationSlug = (organization: Pick<Organization, 'id' | 'name'>) => {
+  const name = organization.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'organizate';
+  return `${name}-${organization.id}`;
+};
+
 export const organizations: Organization[] = (rawOrganizations as any[]).map(row => ({
+  id: Number(row.id),
   kind: row.kind,
   name: row.name,
   category: row.category,
@@ -46,4 +58,6 @@ export const organizations: Organization[] = (rawOrganizations as any[]).map(row
   relatedCities: row.related_cities ?? [],
   relatedPartners: row.related_partners ?? [],
   username: row.username || undefined,
+  representatives: (row.representatives ?? []).map((person: any) => ({ name: person.name, username: person.username, title: person.title || undefined, avatar: person.avatar || undefined })),
+  opportunities: (row.opportunities ?? []).map((item: any) => ({ id: Number(item.id), kind: item.kind, title: item.title, description: item.description, url: item.url || undefined, expiresAt: item.expires_at || undefined })),
 }));

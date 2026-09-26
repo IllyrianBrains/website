@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/directory.css';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { organizations, organizationSlug, type Organization } from '../../data/organizations';
+import { memberUrl } from '../../scripts/members';
+import { partnerCategoryLabels } from '../../data/partners';
+import { businessCategoryLabels, businessStageLabels } from '../../data/businesses';
+
+export function getStaticPaths() {
+  return organizations.map(organization => ({ params: { slug: organizationSlug(organization) }, props: { organization } }));
+}
+const { organization } = Astro.props as { organization: Organization };
+const categoryLabels = { ...partnerCategoryLabels, ...businessCategoryLabels } as Record<string,string>;
+const categories = [organization.category, ...organization.otherCategories].map(value => categoryLabels[value] || value);
+const place = [organization.city, organization.country].filter(Boolean).join(', ');
+const opportunityLabels: Record<string,string> = { job: 'Vend pune', internship: 'Praktikë', event: 'Event', project: 'Projekt', volunteer: 'Vullnetarizëm', benefit: 'Përfitim / kupon', collaboration: 'Bashkëpunim' };
+---
+<BaseLayout title={`${organization.name} · Illyrian Brains`} description={organization.description || `Profili i ${organization.name} në rrjetin Illyrian Brains.`}>
+  <Header />
+  <main>
+    <section class="section tone-grey organization-page">
+      <div class="container organization-shell">
+        <a class="organization-back" href={organization.kind === 'ngo' ? '/shoqatat/' : '/bizneset/'}>← {organization.kind === 'ngo' ? 'Të gjitha shoqatat' : 'Të gjitha bizneset'}</a>
+        <article class="organization-profile">
+          <header class="organization-head">
+            <div class="organization-logo">
+              {organization.logo ? <img src={organization.logo} alt={`Logoja e ${organization.name}`} /> : <span>{organization.name.charAt(0).toUpperCase()}</span>}
+            </div>
+            <div>
+              <p class="eyebrow">{organization.kind === 'ngo' ? 'Shoqatë / OJF' : 'Biznes'}</p>
+              <h1>{organization.name}</h1>
+              {place && <p class="organization-place">{place}</p>}
+              <div class="organization-tags">{categories.map(category => <span>{category}</span>)}{organization.stage && <span>{businessStageLabels[organization.stage] || organization.stage}</span>}</div>
+            </div>
+          </header>
+
+          <div class="organization-grid">
+            <section>
+              <h2>Rreth subjektit</h2>
+              <p>{organization.description || 'Nuk ka ende një përshkrim.'}</p>
+              {Boolean(organization.collaborations.length) && <><h2>Bashkëpunimi</h2><div class="organization-tags">{organization.collaborations.map(value => <span>{value}</span>)}</div></>}
+            </section>
+            <aside>
+              <h2>Lidhjet</h2>
+              <div class="organization-links">
+                {organization.website && <a href={organization.website} target="_blank" rel="noreferrer">Faqja zyrtare <span>↗</span></a>}
+                {organization.linkedin && <a href={organization.linkedin} target="_blank" rel="noreferrer">LinkedIn <span>↗</span></a>}
+                {organization.instagram && <a href={organization.instagram} target="_blank" rel="noreferrer">Instagram <span>↗</span></a>}
+              </div>
+              <a class="organization-manage" href={`/anetaresohu/perfaqesimi/subjekti/?id=${organization.id}`}>Menaxho këtë faqe →</a>
+            </aside>
+          </div>
+          <div class="organization-sections">
+            <section class="organization-panel organization-representatives">
+              <div class="panel-heading"><p class="eyebrow">Njerëzit</p><h2>Përfaqësuesit</h2><p>Personat e rrjetit që përfaqësojnë këtë organizatë.</p></div>
+              <div class="representative-grid">
+                {organization.representatives.map(person => <a class="representative-card" href={memberUrl(person.username)}>{person.avatar ? <img src={person.avatar} alt="" /> : <span>{person.name.charAt(0)}</span>}<div><strong>{person.name}</strong>{person.title && <small>{person.title}</small>}<small>@{person.username}</small></div><b aria-hidden="true">→</b></a>)}
+                {organization.representatives.length === 0 && organization.username && <a class="representative-card" href={memberUrl(organization.username)}><span>{organization.username.charAt(0).toUpperCase()}</span><div><strong>@{organization.username}</strong><small>Përfaqësues</small></div><b aria-hidden="true">→</b></a>}
+                {organization.representatives.length === 0 && !organization.username && <p class="organization-empty">Nuk ka ende përfaqësues publikë.</p>}
+              </div>
+            </section>
+            <section class="organization-panel organization-opportunities">
+              <div class="panel-heading"><p class="eyebrow">Mundësi nga organizata</p><h2>Oferta dhe pozicione të hapura</h2><p>Punë, praktika, evente, projekte dhe bashkëpunime.</p></div>
+              <div class="opportunity-grid">
+                {organization.opportunities.map(item => <article class="opportunity-card"><span>{opportunityLabels[item.kind] || item.kind}</span><h3>{item.title}</h3><p>{item.description}</p>{item.expiresAt && <small>Afati: {new Date(item.expiresAt + "T00:00:00").toLocaleDateString("sq-AL")}</small>}{item.url && <a href={item.url} target="_blank" rel="noreferrer">Shiko mundësinë <span aria-hidden="true">↗</span></a>}</article>)}
+                {organization.opportunities.length === 0 && <p class="organization-empty">Nuk ka mundësi të hapura për momentin.</p>}
+              </div>
+            </section>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .organization-page{min-height:70vh}.organization-shell{max-width:1080px}.organization-back{display:inline-block;margin-bottom:26px;color:var(--accent-dark);font-size:13px;font-weight:700;text-decoration:none}.organization-profile{overflow:hidden;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 16px 50px rgba(23,24,29,.07)}
+  .organization-head{display:grid;grid-template-columns:140px 1fr;gap:28px;align-items:center;padding:42px;background:linear-gradient(135deg,#faf7f9,#f2f4f4)}.organization-logo{display:grid;width:140px;height:110px;place-items:center;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#fff}.organization-logo img{max-width:100%;max-height:100%;object-fit:contain}.organization-logo span{color:#fff;font-size:42px;font-weight:800}.organization-logo:has(span){background:linear-gradient(145deg,var(--accent-dark),#294b5a)}.organization-head .eyebrow{margin:0 0 8px;color:var(--accent-dark)}.organization-head h1{margin:0;font-size:clamp(38px,6vw,64px);font-weight:400;line-height:1}.organization-place{margin:12px 0 0;color:var(--muted)}
+  .organization-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:18px}.organization-tags span{padding:6px 10px;border:1px solid var(--line);border-radius:99px;color:var(--accent-dark);background:#fff;font-size:11px;font-weight:700}.organization-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,.65fr);gap:24px;padding:32px}.organization-grid>section,.organization-grid>aside{padding:26px;border:1px solid var(--line);border-radius:14px;background:#fff}.organization-grid h2{margin:0 0 14px;font-size:19px}.organization-grid h2:not(:first-child){margin-top:30px}.organization-grid p{margin:0;color:var(--muted);font-size:16px;line-height:1.75;white-space:pre-line}
+  .organization-links{display:grid;grid-template-columns:1fr;gap:8px}.organization-links a,.organization-manage{display:block;padding:11px 12px;border-radius:8px;color:var(--accent-dark);background:var(--soft);font-size:13px;font-weight:700;text-decoration:none}.organization-manage{margin-top:16px;color:#fff;background:var(--accent-dark)}
+  .organization-sections{display:grid;gap:18px;padding:0 32px 32px}.organization-panel{padding:28px;border:1px solid var(--line);border-radius:14px;background:#fff}.panel-heading{margin-bottom:20px}.panel-heading .eyebrow{margin:0 0 5px}.panel-heading h2{margin:0;font-size:27px}.panel-heading>p:last-child{margin:7px 0 0;color:var(--muted);font-size:13px}.representative-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:12px}.representative-card{display:grid;grid-template-columns:50px minmax(0,1fr) auto;gap:12px;align-items:center;padding:15px;border:1px solid var(--line);border-radius:12px;color:inherit;background:var(--soft);text-decoration:none;transition:transform .18s ease,border-color .18s ease}.representative-card:hover{transform:translateY(-2px);border-color:var(--accent-dark)}.representative-card>img,.representative-card>span{display:grid;width:50px;height:50px;place-items:center;border-radius:50%;object-fit:cover;background:var(--accent-dark);color:#fff;font-size:18px;font-weight:800}.representative-card div{display:grid;min-width:0}.representative-card strong{font-size:14px}.representative-card small{overflow:hidden;color:var(--muted);font-size:11px;text-overflow:ellipsis;white-space:nowrap}.representative-card b{color:var(--accent-dark)}
+  .opportunity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}.opportunity-card{display:flex;min-height:210px;flex-direction:column;padding:20px;border:1px solid var(--line);border-radius:12px;background:var(--soft)}.opportunity-card>span{align-self:flex-start;padding:5px 8px;border-radius:99px;background:#fff;color:var(--accent-dark);font-size:10px;font-weight:800;text-transform:uppercase}.opportunity-card h3{margin:14px 0 8px;font-size:18px}.opportunity-card p{flex:1;margin:0;color:var(--muted);font-size:13px;line-height:1.55}.opportunity-card small{margin-top:14px;color:var(--muted)}.opportunity-card a{margin-top:14px;color:var(--accent-dark);font-size:13px;font-weight:800;text-decoration:none}.organization-empty{grid-column:1/-1;margin:0;padding:26px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);background:var(--soft);text-align:center}
+  @media(max-width:700px){.organization-head{grid-template-columns:1fr;padding:26px}.organization-logo{width:110px;height:86px}.organization-grid{grid-template-columns:1fr;padding:18px}.organization-sections{padding:0 18px 18px}.organization-panel{padding:20px}.representative-grid,.opportunity-grid{grid-template-columns:1fr}}
+</style>
+
