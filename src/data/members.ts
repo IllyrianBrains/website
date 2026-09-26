@@ -39,6 +39,13 @@ export interface MemberAspirations {
 }
 
 export type MembershipType = 'Pjesëmarrës' | 'Mbështetës' | 'Organizator' | 'Kontribues';
+export type ExperienceLevel = 'junior' | 'mid' | 'senior' | 'expert';
+export const experienceLevelLabels: Record<ExperienceLevel, string> = {
+  junior: 'Junior (0–2 vite)',
+  mid: 'Mid level (3–5 vite)',
+  senior: 'Senior (5–9 vite)',
+  expert: 'Expert (10+ vite)',
+};
 
 export interface Member {
   name: string;
@@ -58,6 +65,7 @@ export interface Member {
   team?: string[];            // team names
   teams?: MemberTeam[];
   membershipType?: MembershipType;
+  experienceLevel?: ExperienceLevel;
   inDirectory: boolean;
   profileUrl?: string;
   languages?: string[];

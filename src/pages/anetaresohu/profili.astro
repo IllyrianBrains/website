@@ -15,7 +15,7 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
   <Header />
   <main>
     <section class="section tone-white profile-editor-section profile-edit-page">
-      <div class="container profile-editor" id="profile-editor" data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}>
+      <div class="container profile-editor" id="profile-editor" data-site={Astro.site?.origin} data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}>
         <header class="profile-editor-intro" id="signin-intro" hidden>
           <h1>Hyr</h1>
           <p>Hyr në llogarinë tënde për të përditësuar profilin në <a href="/anetaret/">drejtorinë e anëtarëve</a>.</p>
@@ -71,6 +71,7 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
                     <label class="profile-editor-wide">Emri i plotë *<input name="name" required maxlength="120" /></label>
                     <label class="profile-editor-wide">Titulli<input name="headline" maxlength="160" placeholder="p.sh. Inxhiniere software" /></label>
                     <label class="profile-editor-wide">Kompania / institucioni<input name="company" maxlength="160" /></label>
+                    <label class="profile-editor-wide">Niveli i eksperiencës<select name="experience_level"><option value="">— Zgjidh nivelin —</option><option value="junior">Junior (0–2 vite)</option><option value="mid">Mid level (3–5 vite)</option><option value="senior">Senior (5–9 vite)</option><option value="expert">Expert (10+ vite)</option></select></label>
                     <label>Qyteti<input name="city" list="city-list" maxlength="80" /></label>
                     <datalist id="city-list">{cityNames.map(name => <option value={name} />)}</datalist>
                     <label>Shteti<input name="country" maxlength="80" /></label>
@@ -404,7 +405,10 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
       const email = (loginForm.elements.namedItem('email') as HTMLInputElement).value.trim();
       const button = loginForm.querySelector('button')!;
       button.disabled = true;
-      const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+      // The link in the email always opens the live site (illyrianbrains.org); only `npm run dev`
+      // keeps the local address, so signing in can be tested locally.
+      const siteOrigin = import.meta.env.DEV ? location.origin : root.dataset.site || location.origin;
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: siteOrigin + location.pathname } });
       button.disabled = false;
       if (error && /rate limit/i.test(error.message)) say('Janë dërguar shumë linqe hyrjeje brenda një ore. Prit pak dhe provo sërish, ose përdor linkun e fundit që ke marrë.', 'error');
       else if (error) say(`Linku nuk u dërgua: ${error.message}`, 'error');
@@ -472,7 +476,7 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
       const { data: member, error } = await supabase.from('members').select('*, member_experience(*), member_education(*)').eq('id', id).single();
       if (error || !member) return say(`Profili nuk u ngarkua: ${error?.message}`, 'error');
       memberId = id;
-      ['name', 'headline', 'company', 'city', 'country', 'about', 'website', 'linkedin_url'].forEach(name => { field(name).value = member[name] || ''; });
+      ['name', 'headline', 'company', 'experience_level', 'city', 'country', 'about', 'website', 'linkedin_url'].forEach(name => { field(name).value = member[name] || ''; });
       (field('status') as unknown as HTMLSelectElement).value = member.status;
       categoryBox.querySelectorAll<HTMLInputElement>('input').forEach(input => { input.checked = member.fields_of_expertise.includes(input.value); });
       const unknown = member.fields_of_expertise.filter((name: string) => !(categories || []).some((category: any) => category.name === name));
@@ -569,7 +573,8 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
         p_experience: readRows(experienceRows),
         p_education: readRows(educationRows),
       });
-      const { error } = profileError ? { error: profileError } : await supabase.rpc('save_member_aspirations', {
+      let error = profileError;
+      if (!error) ({ error } = await supabase.rpc('save_member_aspirations', {
         p_member_id: memberId,
         p: {
           aspiration_field: field('aspiration_field').value,
@@ -580,7 +585,11 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
           return_plan: checkedValues('return_plan')[0] || '',
           return_countries: checkedValues('return_countries'),
         },
-      });
+      }));
+      if (!error) ({ error } = await supabase.rpc('save_member_experience_level', {
+        p_member_id: memberId,
+        p_level: field('experience_level').value,
+      }));
       button.disabled = false;
       if (error) say(`Nuk u ruajt: ${error.message}`, 'error');
       else {

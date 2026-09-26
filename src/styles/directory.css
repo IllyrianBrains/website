@@ -92,9 +92,17 @@
 }
 
 /* Registration form (/anetaresohu/regjistrohu/) — reuses the profile editor styles above. */
+.register-kicker { margin: 0 0 12px !important; color: var(--accent-dark) !important; font-size: 12px !important; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+.register-steps { display: flex; align-items: center; justify-content: center; max-width: 600px; margin: 30px auto 0; color: var(--muted); font-size: 12px; font-weight: 700; }
+.register-steps span { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.register-steps b { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: var(--accent-dark); color: #fff; font-size: 11px; }
+.register-steps i { width: 48px; height: 1px; margin-inline: 10px; background: var(--line); }
+.register-section-number { margin-right: 8px; color: var(--accent-dark); font-size: 12px; letter-spacing: .08em; }
+.register-fieldset-intro { clear: both; margin: -5px 0 18px; color: var(--muted); font-size: 13px; font-weight: 400; line-height: 1.5; }
 .register-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
-.profile-editor .register-role { display: flex; align-items: flex-start; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
-.register-role:has(input:checked) { border-color: var(--accent-dark); background: rgba(116,71,97,.07); }
+.profile-editor .register-role { position: relative; display: flex; align-items: flex-start; gap: 10px; min-height: 98px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.profile-editor .register-role:hover { border-color: rgba(116,71,97,.45); transform: translateY(-1px); }
+.register-role:has(input:checked) { border-color: var(--accent-dark); background: rgba(116,71,97,.055); box-shadow: 0 0 0 2px rgba(116,71,97,.1); }
 .register-role input { margin-top: 3px; }
 .register-role span { display: grid; gap: 4px; color: var(--muted); font-size: 13px; font-weight: 400; line-height: 1.5; }
 .register-role strong { color: var(--ink); font-size: 15px; }
@@ -102,7 +110,11 @@
 .register-consent input { margin-top: 5px; }
 .register-honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 @media (max-width: 640px) {
+  .register-steps { align-items: flex-start; justify-content: space-between; }
+  .register-steps span { max-width: 72px; flex-direction: column; gap: 6px; text-align: center; white-space: normal; }
+  .register-steps i { flex: 1; margin: 14px 5px 0; }
   .register-roles { grid-template-columns: 1fr; }
+  .profile-editor .register-role { min-height: 0; }
 }
 
 /* Profile editor: strength meter, pending notice, sticky save bar. */

@@ -109,12 +109,14 @@ const searchIndex = [
       <option value="/anetaresohu/roli/">Roli në rrjet</option>
       <option value="/anetaresohu/perfaqesimi/">Përfaqësimi</option>
       <option value="/anetaresohu/profili/">Profili im</option>
+      <option value="/anetaresohu/admin/" data-admin-nav hidden>Paneli i bordit</option>
     </select>
   </label>
   <div class="member-subnav-tabs">
     <a href="/anetaresohu/rrjeti/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.6"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.6 7.3 10 10.3M17.4 7.3 14 10.3M6.6 16.7l3.4-3M17.4 16.7l-3.4-3"/></svg><span>Rrjeti im</span></a>
     <a href="/anetaresohu/roli/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="m9 12 2 2 4-4"/></svg><span>Roli në rrjet</span></a>
     <a href="/anetaresohu/perfaqesimi/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.4-3.8 2.2-5.7 5.5-5.7s5.1 1.9 5.5 5.7M15 7h6m-3-3v6M16 14h5m-5 4h5"/></svg><span>Përfaqësimi</span></a>
+    <a href="/anetaresohu/admin/" data-admin-nav hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10h6v10M14 20V4h6v16M2 20h20"/></svg><span>Paneli i bordit</span></a>
   </div>
   <div class="member-subnav-actions">
     <a class="member-subnav-profile" href="/anetaresohu/profili/" title="Profili im"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.5-4.2 3-6.3 7-6.3s6.5 2.1 7 6.3"/></svg><b>Profili im</b></a>
@@ -144,7 +146,7 @@ const searchIndex = [
   const subnav = document.querySelector<HTMLElement>('.member-subnav');
   try {
     const tokenKey = Object.keys(localStorage).find(key => /^sb-.+-auth-token$/.test(key));
-    if (subnav && tokenKey && /^\/anetaresohu\/(rrjeti|profili|roli|perfaqesimi|shoqatat|bizneset)\/?$/.test(location.pathname)) {
+    if (subnav && tokenKey && /^\/anetaresohu\/(rrjeti|profili|roli|perfaqesimi|shoqatat|bizneset|admin)\/?$/.test(location.pathname)) {
       subnav.hidden = false;
     }
   } catch {}

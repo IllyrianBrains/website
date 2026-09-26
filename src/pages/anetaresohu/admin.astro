@@ -1,0 +1,190 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/directory.css';
+import '../../styles/admin.css';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || '';
+const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '';
+---
+<BaseLayout title="Paneli i bordit · Illyrian Brains" description="Pasqyra administrative e anëtarëve të Illyrian Brains.">
+  <Header />
+  <main>
+    <section class="section admin-section">
+      <div class="container admin-dashboard" id="admin-dashboard" data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}>
+        <header class="admin-hero">
+          <div><p class="eyebrow">Vetëm për bordin</p><h1>Paneli i bordit</h1><p>Regjistrimet e reja, shpërndarja e komunitetit dhe profilet e anëtarëve në një vend.</p></div>
+          <p class="admin-updated" id="admin-updated"></p>
+        </header>
+
+        <p class="profile-editor-status" id="admin-status" role="status" aria-live="polite">Duke ngarkuar të dhënat…</p>
+
+        <section class="admin-denied profile-card" id="admin-denied" hidden>
+          <h2>Nuk ke akses në këtë faqe</h2>
+          <p>Ky panel është vetëm për anëtarët e bordit. Hyr me emailin e bordit ose kthehu te llogaria jote.</p>
+          <a class="partner-button" href="/anetaresohu/profili/">Hyr / Profili im <span aria-hidden="true">→</span></a>
+        </section>
+
+        <div id="admin-content" hidden>
+          <section class="admin-stats" aria-label="Përmbledhje">
+            <article><span>Gjithsej profile</span><strong id="stat-total">0</strong><small>Të gjitha regjistrimet</small></article>
+            <article class="is-pending"><span>Në pritje</span><strong id="stat-pending">0</strong><small>Për t’u shqyrtuar</small></article>
+            <article><span>Të reja këtë muaj</span><strong id="stat-new">0</strong><small>30 ditët e fundit</small></article>
+            <article><span>Qytete</span><strong id="stat-cities">0</strong><small>Me të paktën një profil</small></article>
+          </section>
+
+          <div class="admin-overview">
+            <section class="profile-card admin-panel">
+              <div class="admin-panel-head"><div><p class="eyebrow">Veprim i nevojshëm</p><h2>Regjistrimet e reja</h2></div><span class="admin-count" id="pending-count"></span></div>
+              <div class="admin-registration-list" id="pending-list"></div>
+            </section>
+            <section class="profile-card admin-panel">
+              <div class="admin-panel-head"><div><p class="eyebrow">Shpërndarja</p><h2>Njerëzit sipas qytetit</h2></div></div>
+              <div class="admin-city-list" id="city-list"></div>
+            </section>
+          </div>
+
+          <section class="profile-card admin-directory">
+            <div class="admin-directory-head">
+              <div><p class="eyebrow">Drejtoria e plotë</p><h2>Profilet</h2></div>
+              <div class="admin-filters">
+                <label class="admin-search"><span class="sr-only">Kërko profil</span><input id="member-search" type="search" placeholder="Kërko emër, email, qytet…" /></label>
+                <label><span class="sr-only">Filtro statusin</span><select id="member-status"><option value="">Të gjitha statuset</option><option value="pending">Në pritje</option><option value="ok">Aktive</option></select></label>
+                <label><span class="sr-only">Filtro qytetin</span><select id="member-city"><option value="">Të gjitha qytetet</option></select></label>
+              </div>
+            </div>
+            <p class="admin-result-count" id="member-result-count"></p>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Personi</th><th>Statusi</th><th>Qyteti</th><th>Regjistruar</th><th><span class="sr-only">Veprime</span></th></tr></thead>
+                <tbody id="member-rows"></tbody>
+              </table>
+            </div>
+            <p class="member-empty" id="member-empty" hidden>Nuk u gjet asnjë profil me këta filtra.</p>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  import { createClient } from '@supabase/supabase-js';
+  import { memberSession } from '../../scripts/member-session';
+
+  const root = document.querySelector<HTMLElement>('#admin-dashboard')!;
+  const statusLine = document.querySelector<HTMLElement>('#admin-status')!;
+  const content = document.querySelector<HTMLElement>('#admin-content')!;
+  const denied = document.querySelector<HTMLElement>('#admin-denied')!;
+  const say = (text: string, kind = '') => { statusLine.textContent = text; statusLine.dataset.kind = kind; };
+  const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character] || character));
+  const normalized = (value: unknown) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('sq');
+  const experienceLabels: Record<string, string> = { junior: 'Junior (0–2 vite)', mid: 'Mid level (3–5 vite)', senior: 'Senior (5–9 vite)', expert: 'Expert (10+ vite)' };
+  const date = (value: string) => new Intl.DateTimeFormat('sq-AL', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value));
+  const initials = (name: string) => name.split(/\s+/).filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase();
+  const list = (values: unknown) => Array.isArray(values) && values.length ? values.map(value => `<span>${escapeHtml(value)}</span>`).join('') : '<em>—</em>';
+
+  const url = root.dataset.supabaseUrl;
+  const key = root.dataset.supabaseKey;
+  if (!url || !key) {
+    say('Paneli nuk është konfiguruar: mungojnë të dhënat e lidhjes me Supabase.', 'error');
+  } else {
+    const supabase = createClient(url, key);
+    const { session, isAdmin } = await memberSession(supabase);
+    if (!session || !isAdmin) {
+      say('');
+      denied.hidden = false;
+    } else {
+      const { data, error } = await supabase
+        .from('members')
+        .select('*, member_experience(*), member_education(*)')
+        .order('created_at', { ascending: false });
+      if (error) {
+        say(`Të dhënat nuk u ngarkuan: ${error.message}`, 'error');
+      } else {
+        const members = data || [];
+        say('');
+        content.hidden = false;
+        document.querySelector('#admin-updated')!.textContent = `Përditësuar ${new Intl.DateTimeFormat('sq-AL', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date())}`;
+        const pending = members.filter((member: any) => member.status !== 'ok');
+        const cutoff = Date.now() - 30 * 86400000;
+        const recent = members.filter((member: any) => new Date(member.created_at).getTime() >= cutoff);
+        const cityCounts = new Map<string, number>();
+        members.forEach((member: any) => {
+          const city = member.city?.trim();
+          if (city) cityCounts.set(city, (cityCounts.get(city) || 0) + 1);
+        });
+        const cities = [...cityCounts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'sq'));
+
+        document.querySelector('#stat-total')!.textContent = String(members.length);
+        document.querySelector('#stat-pending')!.textContent = String(pending.length);
+        document.querySelector('#stat-new')!.textContent = String(recent.length);
+        document.querySelector('#stat-cities')!.textContent = String(cities.length);
+        document.querySelector('#pending-count')!.textContent = `${pending.length} në pritje`;
+
+        const pendingList = document.querySelector<HTMLElement>('#pending-list')!;
+        pendingList.innerHTML = pending.length ? pending.map((member: any) => `
+          <article class="admin-registration">
+            <div class="admin-avatar">${member.avatar ? `<img src="${escapeHtml(member.avatar)}" alt="">` : escapeHtml(initials(member.name))}</div>
+            <div><strong>${escapeHtml(member.name)}</strong><span>${escapeHtml(member.email || 'Pa email')}</span><small>${escapeHtml([member.city, member.country].filter(Boolean).join(', ') || 'Pa vendndodhje')} · ${date(member.created_at)}</small></div>
+            <a href="/anetaresohu/profili/?u=${encodeURIComponent(member.username)}">Shqyrto <span aria-hidden="true">→</span></a>
+          </article>`).join('') : '<p class="admin-empty-good">✓ Nuk ka regjistrime në pritje.</p>';
+
+        const cityList = document.querySelector<HTMLElement>('#city-list')!;
+        const max = cities[0]?.[1] || 1;
+        cityList.innerHTML = cities.length ? cities.slice(0, 12).map(([city, count]) => `
+          <button type="button" data-city="${escapeHtml(city)}"><span><strong>${escapeHtml(city)}</strong><small>${count} ${count === 1 ? 'person' : 'persona'}</small></span><i><b style="width:${Math.max(5, count / max * 100)}%"></b></i></button>`).join('') : '<p class="member-empty">Nuk ka ende qytete.</p>';
+
+        const citySelect = document.querySelector<HTMLSelectElement>('#member-city')!;
+        cities.sort((a, b) => a[0].localeCompare(b[0], 'sq')).forEach(([city]) => citySelect.append(new Option(city, city)));
+        const search = document.querySelector<HTMLInputElement>('#member-search')!;
+        const statusFilter = document.querySelector<HTMLSelectElement>('#member-status')!;
+        const rows = document.querySelector<HTMLElement>('#member-rows')!;
+        const empty = document.querySelector<HTMLElement>('#member-empty')!;
+        const resultCount = document.querySelector<HTMLElement>('#member-result-count')!;
+
+        const render = () => {
+          const query = normalized(search.value.trim());
+          const filtered = members.filter((member: any) =>
+            (!statusFilter.value || member.status === statusFilter.value) &&
+            (!citySelect.value || member.city === citySelect.value) &&
+            (!query || normalized([member.name, member.email, member.username, member.city, member.country, member.company, member.headline].join(' ')).includes(query))
+          );
+          resultCount.textContent = `${filtered.length} nga ${members.length} profile`;
+          empty.hidden = filtered.length > 0;
+          rows.innerHTML = filtered.map((member: any) => {
+            const detailId = `member-detail-${member.id}`;
+            return `<tr class="admin-member-row">
+              <td><div class="admin-person"><span class="admin-avatar">${member.avatar ? `<img src="${escapeHtml(member.avatar)}" alt="">` : escapeHtml(initials(member.name))}</span><span><strong>${escapeHtml(member.name)}</strong><small>${escapeHtml(member.email || '@' + member.username)}${member.headline ? ` · ${escapeHtml(member.headline)}` : ''}</small></span></div></td>
+              <td><span class="admin-status admin-status-${member.status === 'ok' ? 'ok' : 'pending'}">${member.status === 'ok' ? 'Aktiv' : 'Në pritje'}</span></td>
+              <td>${escapeHtml(member.city || '—')}</td><td>${date(member.created_at)}</td>
+              <td><button class="admin-view" type="button" aria-expanded="false" aria-controls="${detailId}">Detaje</button></td>
+            </tr>
+            <tr class="admin-detail-row" id="${detailId}" hidden><td colspan="5"><div class="admin-profile-detail">
+              <div><h3>Kontakti dhe profili</h3><dl><dt>Email</dt><dd>${escapeHtml(member.email || '—')}</dd><dt>Përdoruesi</dt><dd>@${escapeHtml(member.username)}</dd><dt>Kompania</dt><dd>${escapeHtml(member.company || '—')}</dd><dt>Vendndodhja</dt><dd>${escapeHtml([member.city, member.country].filter(Boolean).join(', ') || '—')}</dd><dt>Anëtarësimi</dt><dd>${escapeHtml(member.membership_type || '—')}</dd><dt>Eksperienca</dt><dd>${escapeHtml(experienceLabels[member.experience_level] || '—')}</dd></dl></div>
+              <div><h3>Ekspertiza</h3><div class="admin-tags">${list(member.fields_of_expertise)}${list(member.skills)}</div><h3>Gjuhët</h3><div class="admin-tags">${list(member.languages)}</div></div>
+              <div><h3>Rreth</h3><p>${escapeHtml(member.about || 'Pa përshkrim.')}</p><h3>Synimet</h3><p>${escapeHtml([member.aspiration_field, member.aspiration_subfield, member.aspirations_note].filter(Boolean).join(' · ') || '—')}</p></div>
+              <div class="admin-detail-actions"><a class="partner-button" href="/anetaresohu/profili/?u=${encodeURIComponent(member.username)}">Edito / aprovo <span aria-hidden="true">→</span></a>${member.linkedin_url ? `<a href="${escapeHtml(member.linkedin_url)}" target="_blank" rel="noreferrer">LinkedIn ↗</a>` : ''}</div>
+            </div></td></tr>`;
+          }).join('');
+          rows.querySelectorAll<HTMLButtonElement>('.admin-view').forEach(button => button.addEventListener('click', () => {
+            const detail = document.getElementById(button.getAttribute('aria-controls')!);
+            const open = detail?.hidden ?? true;
+            if (detail) detail.hidden = !open;
+            button.setAttribute('aria-expanded', String(open));
+            button.textContent = open ? 'Mbyll' : 'Detaje';
+          }));
+        };
+        [search, statusFilter, citySelect].forEach(control => control.addEventListener(control === search ? 'input' : 'change', render));
+        cityList.querySelectorAll<HTMLButtonElement>('[data-city]').forEach(button => button.addEventListener('click', () => {
+          citySelect.value = button.dataset.city || '';
+          render();
+          document.querySelector('.admin-directory')?.scrollIntoView({ behavior: 'smooth' });
+        }));
+        render();
+      }
+    }
+  }
+</script>
+

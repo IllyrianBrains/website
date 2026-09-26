@@ -20,7 +20,7 @@ const page = route => readFileSync(join(dist, route, 'index.html'), 'utf8');
 
 test('key pages are built', { skip }, () => {
   for (const route of ['', 'qytetet', 'anetaret', 'shoqatat', 'bizneset', 'eventet', 'misioni', 'ekipet', 'statuti',
-    'anetaresohu', 'anetaresohu/regjistrohu', 'anetaresohu/profili', 'anetaresohu/rrjeti', 'rrjeti/postimet', 'projektet/ide']) {
+    'anetaresohu', 'anetaresohu/regjistrohu', 'anetaresohu/profili', 'anetaresohu/rrjeti', 'anetaresohu/admin', 'rrjeti/postimet', 'projektet/ide']) {
     assert.ok(existsSync(join(dist, route, 'index.html')), `/${route}${route ? '/' : ''} is missing`);
   }
 });

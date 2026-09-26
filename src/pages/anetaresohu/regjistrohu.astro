@@ -25,8 +25,12 @@ const roles = [
     <section class="section tone-white profile-editor-section profile-edit-page">
       <div class="container profile-editor auth-shell" id="register" data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}>
         <header class="profile-editor-intro">
+          <p class="register-kicker">Bëhu pjesë e rrjetit</p>
           <h1>Regjistrohu</h1>
-          <p>Si pjesëmarrës ose mbështetës mjafton emri, emaili dhe qyteti. Si anëtar, plotëso edhe të dhënat e tua profesionale. Ekipi i IB e shqyrton kërkesën dhe të kontakton me email. Pasi të aprovohet, profili yt shfaqet te <a href="/anetaret/">Anëtarët</a>.</p>
+          <p>Zgjidh si dëshiron të përfshihesh dhe plotëso të dhënat e tua. Ekipi i IB e shqyrton kërkesën dhe të kontakton me email.</p>
+          <div class="register-steps" aria-label="Hapat e regjistrimit">
+            <span><b>1</b>Zgjidh rolin</span><i aria-hidden="true"></i><span><b>2</b>Plotëso të dhënat</span><i aria-hidden="true"></i><span><b>3</b>Dërgo kërkesën</span>
+          </div>
         </header>
 
         <p class="profile-editor-status" id="register-status" role="status" aria-live="polite"></p>
@@ -39,7 +43,8 @@ const roles = [
 
         <form id="register-form" novalidate>
           <fieldset>
-            <legend>Si dëshiron të përfshihesh? *</legend>
+            <legend><span class="register-section-number">01</span> Si dëshiron të përfshihesh? *</legend>
+            <p class="register-fieldset-intro">Zgjidh një rol. Mund ta ndryshosh më vonë nga profili yt.</p>
             <div class="register-roles">
               {roles.map(role => (
                 <label class="register-role">
@@ -51,7 +56,8 @@ const roles = [
           </fieldset>
 
           <fieldset class="profile-editor-grid">
-            <legend>Të dhënat e tua</legend>
+            <legend><span class="register-section-number">02</span> Të dhënat e tua</legend>
+            <p class="register-fieldset-intro profile-editor-wide" id="register-path-note">Zgjidh një rol më sipër për të parë të dhënat që nevojiten.</p>
             <label>Emri dhe mbiemri *<input name="name" required minlength="3" maxlength="120" autocomplete="name" /></label>
             <label>Email *<input name="email" type="email" required maxlength="200" autocomplete="email" /></label>
             <label class="profile-editor-wide" data-full>Profili LinkedIn *<input name="linkedin_url" required inputmode="url" placeholder="https://linkedin.com/in/emri-yt" /></label>
@@ -63,12 +69,12 @@ const roles = [
           </fieldset>
 
           <fieldset data-full>
-            <legend>Fushat e ekspertizës</legend>
+            <legend><span class="register-section-number">03</span> Fushat e ekspertizës</legend>
             <div class="profile-editor-chips" id="register-categories"><span class="profile-editor-hint">Duke ngarkuar…</span></div>
           </fieldset>
 
           <fieldset class="profile-editor-grid" data-full>
-            <legend>Pak më shumë për ty</legend>
+            <legend><span class="register-section-number">04</span> Pak më shumë për ty</legend>
             <div class="profile-editor-wide"><span class="profile-editor-label">Aftësitë</span><div class="profile-editor-tags" data-tags="skills"><input maxlength="80" placeholder="p.sh. analizë të dhënash — shtyp Enter" aria-label="Shto aftësi" /></div></div>
             <div class="profile-editor-wide"><span class="profile-editor-label">Gjuhët</span><div class="profile-editor-tags" data-tags="languages"><input maxlength="40" placeholder="p.sh. Shqip, Anglisht — shtyp Enter" aria-label="Shto gjuhë" /></div></div>
             <label class="profile-editor-wide">Rreth teje<textarea name="about" rows="4" maxlength="3000" placeholder="Disa fjali për rrugën tënde profesionale."></textarea></label>
@@ -117,8 +123,16 @@ const roles = [
   const selectedRole = () => (form.querySelector<HTMLInputElement>('input[name="applied_role"]:checked') || { value: '' }).value;
   const isLight = () => lightRoles.includes(selectedRole());
   const showFields = () => {
-    form.querySelectorAll<HTMLElement>('[data-full]').forEach(element => { element.hidden = isLight(); });
-    input('linkedin_url').required = !isLight();
+    const role = selectedRole();
+    const light = isLight();
+    form.querySelectorAll<HTMLElement>("[data-full]").forEach(element => { element.hidden = light; });
+    input("linkedin_url").required = Boolean(role) && !light;
+    const note = document.querySelector<HTMLElement>("#register-path-note");
+    if (note) note.textContent = !role
+      ? "Zgjidh një rol më sipër për të parë të dhënat që nevojiten."
+      : light
+        ? "Për këtë rol duhen vetëm të dhënat bazë — zgjat rreth 2 minuta."
+        : "Plotëso edhe profilin profesional që anëtarët e rrjetit të të njohin më mirë.";
   };
   form.addEventListener('change', event => { if ((event.target as HTMLInputElement).name === 'applied_role') showFields(); });
   showFields();

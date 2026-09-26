@@ -28,10 +28,8 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
         <header class="profile-editor-intro">
           <p class="eyebrow">Llogaria ime</p>
           <h1>Përfaqësimi</h1>
-          <p>Menaxho në një vend shoqatat, OJF-të dhe bizneset që përfaqëson. Mund të shtosh disa subjekte; secili lidhet me profilin tënd pas shqyrtimit nga ekipi.</p>
+          <p>Subjektet që përfaqëson dhe personat përgjegjës për to.</p>
         </header>
-        <aside class="profile-editor-notice representation-roadmap"><strong>Një hapësirë për përfaqësimin</strong><span>Kjo hapësirë do të zgjerohet me projekte të organizatave, thirrje për vullnetarë dhe përfitime ose kuponë për komunitetin.</span></aside>
-
         <p class="profile-editor-status" id="orgs-status" role="status" aria-live="polite"></p>
 
         <div class="profile-editor-card" id="signed-out" hidden>
@@ -40,8 +38,10 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
           <a class="partner-button" href="/anetaresohu/profili/">Hyr <span aria-hidden="true">→</span></a>
         </div>
 
-        <div class="orgs-layout" id="signed-in" hidden>
-          <form class="profile-editor-card orgs-form" id="org-form" novalidate>
+        <div id="signed-in" hidden>
+          <div class="orgs-toolbar"><div><strong>Subjektet e mia</strong><span>Shoqata, OJF dhe biznese</span></div><button class="partner-button" type="button" id="org-add">Shto subjekt <span aria-hidden="true">+</span></button></div>
+          <div class="orgs-layout">
+          <form class="profile-editor-card orgs-form" id="org-form" novalidate hidden>
             <h2 id="form-title">Shto një subjekt</h2>
             <p class="orgs-form-section">Të dhënat</p>
             <label>Lloji *<select name="kind" id="org-kind"><option value="ngo">Shoqatë / OJF / nismë</option><option value="business">Biznes / startup / profesion i pavarur</option></select></label>
@@ -89,6 +89,7 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
             </div>
             <div class="orgs-list" id="org-list"></div>
           </div>
+          </div>
         </div>
 
         <section class="profile-editor-card offers-workspace" id="offers-workspace" hidden>
@@ -121,6 +122,7 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
   const form = document.querySelector<HTMLFormElement>('#org-form')!;
   const filter = document.querySelector<HTMLSelectElement>('#status-filter')!;
   const submit = document.querySelector<HTMLButtonElement>('#org-submit')!;
+  const addButton = document.querySelector<HTMLButtonElement>('#org-add')!;
   const cancel = document.querySelector<HTMLButtonElement>('#edit-cancel')!;
   const logoPreview = document.querySelector<HTMLImageElement>('#logo-preview')!;
   const logoRemove = document.querySelector<HTMLButtonElement>('#logo-remove')!;
@@ -176,7 +178,7 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
 
   // ── Editing an existing one ──
   let editingId: number | null = null;
-  const resetForm = () => {
+  const resetForm = (hide = true) => {
     editingId = null;
     form.reset();
     logo = null;
@@ -185,8 +187,10 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
     submit.firstChild!.textContent = 'Dërgo për shqyrtim ';
     cancel.hidden = true;
     drawKind();
+    form.hidden = hide;
   };
-  cancel.addEventListener('click', resetForm);
+  cancel.addEventListener('click', () => resetForm());
+  addButton.addEventListener('click', () => { resetForm(false); form.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 
   const url = root.dataset.supabaseUrl, key = root.dataset.supabaseKey;
   if (!url || !key) say('Kjo faqe nuk është konfiguruar ende.', 'error');
@@ -199,7 +203,10 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
       return;
     }
     const { data: isAdmin } = await supabase.rpc('is_admin');
+    let assignableMembers: any[] = [];
     if (isAdmin) {
+      const { data } = await supabase.from('members').select('id,name,username,email,status').order('name');
+      assignableMembers = data || [];
       document.querySelector('#list-title')!.textContent = labels.all;
       document.querySelector<HTMLElement>('#status-filter-wrap')!.hidden = false;
     }
@@ -231,6 +238,7 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
 
     const edit = (item: any) => {
       editingId = item.id;
+      form.hidden = false;
       const checked = itemCategories(item);
       categoryBoxes.forEach(box => { box.checked = checked.includes(box.value); });
       kindField.value = item.kind;
@@ -292,13 +300,27 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
         const select = document.createElement('select');
         Object.entries(stateLabel).forEach(([value, label]) => select.append(new Option(label, value, false, value === item.status)));
         statusLabel.append(select);
-        const noteLabel = el('label', 'profile-editor-wide', 'Përgjigja për autorin (e sheh vetëm ai/ajo)');
+        const personLabel = el('label', '', 'Personi përgjegjës');
+        const person = document.createElement('select');
+        person.append(new Option('— Pa person —', ''));
+        assignableMembers.forEach(member => person.append(new Option(`${member.name} (@${member.username})${member.status === 'ok' ? '' : ' · në pritje'}`, String(member.id), false, Number(member.id) === Number(item.member_id))));
+        personLabel.append(person);
+        const noteLabel = el('label', 'profile-editor-wide', 'Shënim për personin');
         const note = document.createElement('textarea');
         note.rows = 2;
         note.maxLength = 2000;
         note.value = item.admin_note || '';
         noteLabel.append(note);
-        admin.append(statusLabel, noteLabel, button('Ruaj', () => run(supabase.rpc('update_organization_admin', { p_id: item.id, p_status: select.value, p_admin_note: note.value }), 'U ruajt.')));
+        const saveAdmin = async () => {
+          const save = admin.querySelector<HTMLButtonElement>('button')!;
+          save.disabled = true;
+          const { error: assignmentError } = await supabase.rpc('assign_organization_member', { p_id: item.id, p_member_id: person.value ? Number(person.value) : null });
+          const { error } = assignmentError ? { error: assignmentError } : await supabase.rpc('update_organization_admin', { p_id: item.id, p_status: select.value, p_admin_note: note.value });
+          save.disabled = false;
+          if (error) say(`Nuk u ruajt: ${error.message}`, 'error');
+          else { say('Përfaqësuesi dhe statusi u ruajtën.', 'ok'); load(); }
+        };
+        admin.append(statusLabel, personLabel, noteLabel, button('Ruaj ndryshimet', saveAdmin));
         article.append(admin);
       } else if (item.admin_note) {
         const reply = el('div', 'org-reply');
@@ -476,5 +498,29 @@ const labels = { category: categoryLabels, stage: businessStageLabels, add: 'Sht
   @media (max-width: 640px) { .representation-roadmap { display: grid; } }
   @media (max-width: 480px) {
     .org-card { padding: 16px 16px 14px; }
+  }
+
+  /* Simplified representation workspace: list first, form only on demand. */
+  .orgs-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 0 0 22px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); }
+  .orgs-toolbar > div { display: grid; gap: 3px; }
+  .orgs-toolbar strong { font-size: 16px; }
+  .orgs-toolbar span { color: var(--muted); font-size: 12px; }
+  .orgs-toolbar .partner-button { margin: 0; border: 0; cursor: pointer; }
+  .orgs-layout { grid-template-columns: minmax(0,1fr) minmax(340px,420px); gap: 24px; }
+  .orgs-list-wrap { order: 1; min-width: 0; }
+  .orgs-form { order: 2; top: 96px; padding: 22px; box-shadow: 0 8px 24px rgba(23,24,29,.06); }
+  .orgs-form[hidden] { display: none !important; }
+  .orgs-layout:has(.orgs-form[hidden]) { grid-template-columns: 1fr; }
+  .org-admin { grid-template-columns: minmax(0,1fr) minmax(0,1.4fr); padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--soft); }
+  .org-admin > button { padding: 9px 14px; border: 0; border-radius: 7px; color: #fff; background: var(--accent-dark); text-decoration: none; }
+  @media (max-width: 900px) {
+    .orgs-layout { grid-template-columns: 1fr; }
+    .orgs-form { order: 1; }
+    .orgs-list-wrap { order: 2; }
+  }
+  @media (max-width: 560px) {
+    .orgs-toolbar { align-items: stretch; flex-direction: column; }
+    .orgs-toolbar .partner-button { justify-content: center; }
+    .org-admin { grid-template-columns: 1fr; }
   }
 </style>

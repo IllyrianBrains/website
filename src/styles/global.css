@@ -721,3 +721,4 @@ stripe-buy-button { display: block; }
 @media (max-width: 820px) and (pointer: coarse) {
   input, select, textarea { font-size: 16px !important; }
 }
+.member-subnav [data-admin-nav][hidden] { display: none; }

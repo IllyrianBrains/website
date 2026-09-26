@@ -7,7 +7,7 @@
 // header in step: "Llogaria"/"Bashkohu" and the member sub navbar.
 import { isAuthApiError, type Session, type SupabaseClient } from '@supabase/supabase-js';
 
-export async function memberSession(supabase: SupabaseClient, showSubnav = true): Promise<{ session: Session | null; expired: boolean }> {
+export async function memberSession(supabase: SupabaseClient, showSubnav = true): Promise<{ session: Session | null; expired: boolean; isAdmin: boolean }> {
   let { data: { session } } = await supabase.auth.getSession();
   let expired = false;
   if (session) {
@@ -22,13 +22,17 @@ export async function memberSession(supabase: SupabaseClient, showSubnav = true)
   }
 
   const subnav = document.querySelector<HTMLElement>('.member-subnav');
-  if (subnav) {
-    subnav.hidden = !session || !showSubnav;
+  if (subnav) subnav.hidden = !session || !showSubnav;
+  let isAdmin = false;
+  if (session && showSubnav) {
+    const { data } = await supabase.rpc('is_admin');
+    isAdmin = data === true;
+    document.querySelectorAll<HTMLElement>('[data-admin-nav]').forEach(item => { item.hidden = !isAdmin; });
   }
   const joinCta = document.querySelector<HTMLAnchorElement>('.site-header .nav-cta:not(.nav-cta-secondary)');
   if (joinCta) {
     joinCta.href = session ? '/anetaresohu/rrjeti/' : '/anetaresohu/';
     joinCta.textContent = session ? 'Llogaria' : 'Bashkohu';
   }
-  return { session, expired };
+  return { session, expired, isAdmin };
 }

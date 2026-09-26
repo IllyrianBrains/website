@@ -43,14 +43,24 @@ const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPA
           <details class="profile-editor-card my-network-section my-subscriptions" id="subscriptions-panel">
             <summary class="my-subscriptions-head"><span><span class="eyebrow">Njoftime të personalizuara</span><strong>Abonimet e mia</strong><small>Menaxho qytetet dhe fushat profesionale për të marrë përditësime relevante nga rrjeti.</small></span><i aria-hidden="true"></i></summary>
             <div class="my-subscriptions-body">
-              <div class="my-subscriptions-controls">
-                <label><span>Qytet</span><span class="my-subscriptions-add"><select id="subscription-city"><option value="">Zgjidh një qytet</option></select><button type="button" data-add-kind="city">Shto</button></span></label>
-                <label><span>Fushë profesionale</span><span class="my-subscriptions-add"><select id="subscription-field"><option value="">Zgjidh një fushë</option></select><button type="button" data-add-kind="field">Shto</button></span></label>
-                <label><span>Subjekt i përfaqësuar</span><span class="my-subscriptions-add"><select id="subscription-organization"><option value="">Zgjidh një subjekt</option></select><button type="button" data-add-kind="organization">Shto</button></span></label>
+              <div class="my-subscriptions-manager">
+                <section class="my-subscriptions-picker" aria-labelledby="subscriptions-add-title">
+                  <div class="my-subscriptions-section-head"><span class="my-subscriptions-step">1</span><div><h3 id="subscriptions-add-title">Shto abonim</h3><p>Zgjidh çfarë dëshiron të ndjekësh.</p></div></div>
+                  <div class="my-subscriptions-controls">
+                    <label><span><i aria-hidden="true">⌖</i> Qytet</span><span class="my-subscriptions-add"><select id="subscription-city"><option value="">Zgjidh një qytet</option></select><button type="button" data-add-kind="city">Shto</button></span></label>
+                    <label><span><i aria-hidden="true">◇</i> Fushë profesionale</span><span class="my-subscriptions-add"><select id="subscription-field"><option value="">Zgjidh një fushë</option></select><button type="button" data-add-kind="field">Shto</button></span></label>
+                    <label><span><i aria-hidden="true">□</i> Subjekt i përfaqësuar</span><span class="my-subscriptions-add"><select id="subscription-organization"><option value="">Zgjidh një subjekt</option></select><button type="button" data-add-kind="organization">Shto</button></span></label>
+                  </div>
+                </section>
+                <section class="my-subscriptions-active" aria-labelledby="subscriptions-active-title">
+                  <div class="my-subscriptions-section-head"><span class="my-subscriptions-step">2</span><div><h3 id="subscriptions-active-title">Abonimet aktive <b id="subscription-total">0</b></h3><p>Kliko × për të ndaluar një abonim.</p></div></div>
+                  <div class="my-subscription-chips" id="subscription-chips"></div>
+                </section>
               </div>
-              <div class="my-subscription-chips" id="subscription-chips"></div>
-              <div class="my-subscription-feed-head"><h3>Përditësime nga abonimet</h3><div><button type="button" id="notifications-read" hidden>Shënoji si të lexuara</button><a href="/rrjeti/postimet/">Të gjitha postimet →</a></div></div>
-              <div class="my-subscription-feed" id="subscription-feed"><p class="network-people-empty">Shto një qytet ose fushë profesionale për të marrë përditësime këtu.</p></div>
+              <section class="my-subscription-updates" aria-labelledby="subscription-updates-title">
+                <div class="my-subscription-feed-head"><div><span class="my-subscriptions-step">3</span><h3 id="subscription-updates-title">Përditësime nga abonimet</h3></div><div><button type="button" id="notifications-read" hidden>Shënoji si të lexuara</button><a href="/rrjeti/postimet/">Të gjitha postimet →</a></div></div>
+                <div class="my-subscription-feed" id="subscription-feed"><p class="network-people-empty">Shto një qytet, fushë profesionale ose subjekt për të marrë përditësime këtu.</p></div>
+              </section>
             </div>
           </details>
 
@@ -169,16 +179,37 @@ const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPA
     };
     const renderSubscriptions = () => {
       const chips = document.querySelector<HTMLElement>('#subscription-chips')!;
+      document.querySelector('#subscription-total')!.textContent = String(followedTopics.length);
+      ([['city', citySelect], ['field', fieldSelect], ['organization', organizationSelect]] as const).forEach(([kind, select]) => {
+        [...select.options].forEach(option => { option.disabled = Boolean(option.value && followedTopics.some(topic => topic.kind === kind && topic.value === option.value)); });
+      });
       if (!followedTopics.length) {
-        const empty = document.createElement('p'); empty.className = 'network-people-empty'; empty.textContent = 'Nuk ke ende abonime aktive.'; chips.replaceChildren(empty);
-      } else chips.replaceChildren(...followedTopics.map(topic => {
-        const chip = document.createElement('button'); chip.type = 'button'; chip.className = `my-subscription-chip is-${topic.kind}`;
-        const topicLabel = topic.kind === 'organization' ? organizationNames.get(topic.value) || 'Subjekt' : topic.value;
-        chip.textContent = `${topic.kind === 'city' ? 'Qytet' : topic.kind === 'field' ? 'Fushë' : 'Subjekt'} · ${topicLabel} ×`;
-        chip.title = `Mos ndiq më ${topicLabel}`;
-        chip.addEventListener('click', async () => { chip.disabled = true; await setSubscription(topic.kind, topic.value, false); });
-        return chip;
-      }));
+        const empty = document.createElement('div'); empty.className = 'my-subscriptions-empty';
+        const mark = document.createElement('span'); mark.textContent = '+';
+        const copy = document.createElement('div'); const title = document.createElement('strong'); title.textContent = 'Ende pa abonime';
+        const hint = document.createElement('small'); hint.textContent = 'Zgjidh diçka nga lista në të majtë për të filluar.';
+        copy.append(title, hint); empty.append(mark, copy); chips.replaceChildren(empty);
+      } else {
+        const labels = { city: ['Qytete', '⌖'], field: ['Fusha profesionale', '◇'], organization: ['Subjekte', '□'] } as const;
+        const groups = (['city', 'field', 'organization'] as const).map(kind => {
+          const topics = followedTopics.filter(topic => topic.kind === kind);
+          if (!topics.length) return null;
+          const group = document.createElement('section'); group.className = `my-subscription-group is-${kind}`;
+          const heading = document.createElement('h4'); heading.textContent = `${labels[kind][1]} ${labels[kind][0]}`;
+          const items = document.createElement('div');
+          topics.forEach(topic => {
+            const topicLabel = topic.kind === 'organization' ? organizationNames.get(topic.value) || 'Subjekt' : topic.value;
+            const chip = document.createElement('button'); chip.type = 'button'; chip.className = `my-subscription-chip is-${topic.kind}`;
+            const name = document.createElement('span'); name.textContent = topicLabel;
+            const remove = document.createElement('b'); remove.textContent = '×'; remove.setAttribute('aria-hidden', 'true');
+            chip.append(name, remove); chip.title = `Mos ndiq më ${topicLabel}`; chip.setAttribute('aria-label', `Mos ndiq më ${topicLabel}`);
+            chip.addEventListener('click', async () => { chip.disabled = true; await setSubscription(topic.kind, topic.value, false); });
+            items.append(chip);
+          });
+          group.append(heading, items); return group;
+        }).filter(Boolean) as HTMLElement[];
+        chips.replaceChildren(...groups);
+      }
       const feed = document.querySelector<HTMLElement>('#subscription-feed')!;
       const postItems = (posts || []).map((post: MemberPost) => ({ post, member: byUsername.get(post.username) })).map(({ post, member }) => ({ date: post.created_at, post, topics: followedTopics.filter(topic => topic.kind !== 'organization' && topicMatches(member, topic)) })).filter(item => item.topics.length);
       const offerItems = (offers || []).map((offer: any) => ({ date: offer.created_at, offer, topics: followedTopics.filter(topic => topic.kind === 'organization' && topic.value === String(offer.organization_id)) })).filter((item: any) => item.topics.length);
@@ -627,5 +658,51 @@ const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPA
     .my-network-selected { grid-template-columns: 1fr; }
     .my-network-selected-actions { grid-column: 1; grid-row: auto; }
     #my-network-graph { height: 60vh; min-height: 360px; }
+  }
+
+  /* Subscriptions workspace: selection, active topics and updates are separate stages. */
+  .my-subscriptions-manager { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(300px,.95fr); gap: 0; margin: 22px 0 0; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+  .my-subscriptions-picker, .my-subscriptions-active { min-width: 0; padding: 22px; }
+  .my-subscriptions-active { border-left: 1px solid var(--line); background: #faf9f8; }
+  .my-subscriptions-section-head { display: flex; align-items: flex-start; gap: 11px; }
+  .my-subscriptions-section-head h3 { margin: 0; font-size: 17px; }
+  .my-subscriptions-section-head h3 b { display: inline-grid; min-width: 24px; height: 24px; margin-left: 5px; place-items: center; border-radius: 99px; color: #fff; background: var(--accent-dark); font-size: 11px; vertical-align: 2px; }
+  .my-subscriptions-section-head p { margin: 4px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .my-subscriptions-step { display: grid; width: 25px; height: 25px; flex: none; place-items: center; border: 1px solid rgba(116,71,97,.25); border-radius: 50%; color: var(--accent-dark); background: #fff; font-size: 11px; font-weight: 800; }
+  .my-subscriptions-controls { grid-template-columns: 1fr; gap: 11px; margin-top: 18px; }
+  .my-subscriptions-controls label { padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: #faf9f8; }
+  .my-subscriptions-controls label > span:first-child { color: var(--ink); font-size: 12px; }
+  .my-subscriptions-controls label > span:first-child i { display: inline; margin-right: 4px; color: var(--accent-dark); font-style: normal; font-size: 15px; }
+  .my-subscriptions-add select { height: 40px; background: #fff; }
+  .my-subscriptions-add select:focus { outline: 2px solid rgba(116,71,97,.2); border-color: var(--accent-dark); }
+  .my-subscriptions-add button { min-width: 58px; transition: opacity .15s ease, transform .15s ease; }
+  .my-subscriptions-add button:hover { transform: translateY(-1px); }
+  .my-subscriptions-add button:disabled { opacity: .55; cursor: wait; }
+  .my-subscription-chips { display: grid; gap: 17px; margin-top: 18px; }
+  .my-subscription-group h4 { margin: 0 0 8px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+  .my-subscription-group > div { display: flex; flex-wrap: wrap; gap: 7px; }
+  .my-subscription-chip { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 7px 8px 7px 11px; text-align: left; }
+  .my-subscription-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .my-subscription-chip b { display: grid; width: 18px; height: 18px; flex: none; place-items: center; border-radius: 50%; background: rgba(255,255,255,.75); font-size: 14px; line-height: 1; }
+  .my-subscription-chip:hover b { color: #fff; background: #8a2a2a; }
+  .my-subscription-chip:disabled { opacity: .5; }
+  .my-subscriptions-empty { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: center; padding: 18px; border: 1px dashed #d1c6cc; border-radius: 10px; color: var(--muted); background: #fff; }
+  .my-subscriptions-empty > span { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: var(--accent-dark); background: #f3eaf0; font-size: 20px; }
+  .my-subscriptions-empty strong, .my-subscriptions-empty small { display: block; }
+  .my-subscriptions-empty strong { color: var(--ink); font-size: 13px; }
+  .my-subscriptions-empty small { margin-top: 3px; font-size: 11px; line-height: 1.45; }
+  .my-subscription-updates { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+  .my-subscription-feed-head { margin-top: 0; padding-top: 0; border-top: 0; }
+  .my-subscription-feed-head > div:first-child { display: flex; align-items: center; gap: 10px; }
+  .my-subscription-feed-head h3 { font-size: 17px; }
+  @media (max-width: 760px) {
+    .my-subscriptions-manager { grid-template-columns: 1fr; }
+    .my-subscriptions-active { border-top: 1px solid var(--line); border-left: 0; }
+    .my-subscription-feed-head { align-items: flex-start; flex-direction: column; }
+  }
+  @media (max-width: 420px) {
+    .my-subscriptions-picker, .my-subscriptions-active { padding: 17px 14px; }
+    .my-subscriptions-add { display: grid; grid-template-columns: 1fr; }
+    .my-subscriptions-add button { min-height: 40px; }
   }
 </style>

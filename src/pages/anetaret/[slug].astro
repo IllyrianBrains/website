@@ -8,7 +8,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import '../../styles/directory.css';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { directoryMembers, type Member } from '../../data/members';
+import { directoryMembers, experienceLevelLabels, type Member } from '../../data/members';
 import { cities } from '../../data/cities';
 import { memberSlug, memberUrl, relatedMembers, initials } from '../../scripts/members';
 
@@ -50,6 +50,7 @@ const firstName = member.name.split(' ')[0];
             )}
             <p class="profile-meta">
               {member.membershipType && <><span class="member-pill member-pill-gold">{member.membershipType}</span> </>}
+              {member.experienceLevel && <><span class="member-pill member-pill-accent">{experienceLevelLabels[member.experienceLevel]}</span> </>}
               Anëtar që nga {member.since}
             </p>
             <p class="profile-meta member-follow-counts" id="follow-counts" hidden></p>
