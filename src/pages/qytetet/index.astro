@@ -1,11 +1,7 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
+import SiteLayout from '../../layouts/SiteLayout.astro';
 import RrjetiCities from '../../components/RrjetiCities.astro';
 ---
-<BaseLayout title="Qytetet · Illyrian Brains" description="Zbulo komunitetet lokale të rrjetit Illyrian Brains, qytet pas qyteti.">
-  <Header />
-  <main><RrjetiCities /></main>
-  <Footer />
-</BaseLayout>
+<SiteLayout title="Qytetet · Illyrian Brains" description="Zbulo komunitetet lokale të rrjetit Illyrian Brains, qytet pas qyteti.">
+  <RrjetiCities />
+</SiteLayout>

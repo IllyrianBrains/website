@@ -1,7 +1,5 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
 import { statutiIntro, statutiArticles } from '../data/statuti';
 import { organizeClauses, statutiSections } from '../utils/statuti';
 
@@ -11,9 +9,7 @@ const sections = statutiSections.map(section => ({
   articles: statutiArticles.filter(article => article.number >= section.from && article.number <= section.to),
 }));
 ---
-<BaseLayout title="Statuti · Illyrian Brains" description="Statuti i regjistruar i shoqatës Illyrian Brains Network.">
-  <Header />
-  <main class="statute-page">
+<SiteLayout title="Statuti · Illyrian Brains" description="Statuti i regjistruar i shoqatës Illyrian Brains Network." mainClass="statute-page">
     <section class="statute-hero">
       <div class="statute-document">
         <p class="eyebrow">Illyrian Brains Network</p>
@@ -53,9 +49,7 @@ const sections = statutiSections.map(section => ({
         ))}
       </div>
     </section>
-  </main>
-  <Footer />
-</BaseLayout>
+</SiteLayout>
 
 <style>
   .statute-page{color:var(--ink);background:var(--paper)}

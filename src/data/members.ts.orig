@@ -72,9 +72,6 @@ export interface Member {
   experience?: MemberExperience[];
   education?: MemberEducation[];
   aspirations?: MemberAspirations;
-  helpOffered?: string[];
-  lookingFor?: string[];
-  contactPreference?: 'introduction' | 'linkedin' | 'website' | 'none';
 }
 
 // The members sheet is typed by hand and doesn't always match the city names

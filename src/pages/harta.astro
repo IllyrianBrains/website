@@ -1,7 +1,8 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import LeafletMapAssets from '../components/LeafletMapAssets.astro';
+import PageHero from '../components/PageHero.astro';
+import StatGrid from '../components/StatGrid.astro';
 import { cities } from '../data/cities';
 import { cityRegions } from '../data/regions';
 import { directoryMembers as members } from '../data/members';
@@ -92,22 +93,18 @@ const mapCities = citiesWithRegion.map(city => ({
 const totalMappedMembers = members.length - unmatchedMembers;
 const totalCitiesWithPeople = mapCities.filter(city => city.memberCount > 0).length;
 ---
-<BaseLayout title="Harta · Illyrian Brains" description="Anëtarët, organizatat partnere dhe bizneset e rrjetit Illyrian Brains, qytet pas qyteti, në një hartë të vetme.">
-  <Header />
-  <main class="network-page">
-    <section class="section tone-dark page-hero page-hero--map"><div class="container city-page">
-      <p class="eyebrow">Illyrian Brains Network</p>
-      <h1>Harta e komunitetit.</h1>
+<SiteLayout title="Harta · Illyrian Brains" description="Anëtarët, organizatat partnere dhe bizneset e rrjetit Illyrian Brains, qytet pas qyteti, në një hartë të vetme." mainClass="network-page">
+    <PageHero eyebrow="Illyrian Brains Network" title="Harta e komunitetit." class="page-hero--map">
       <p class="about-body">Anëtarët, organizatat partnere dhe bizneset e rrjetit, të vendosura sipas qytetit ku janë. Zgjidh një qytet për të parë kush është aty.</p>
-    </div></section>
+    </PageHero>
 
     <section class="section tone-white"><div class="container">
-      <div class="member-stats">
-        <div><strong>{totalMappedMembers}</strong><span>Anëtarë të hartëzuar</span></div>
-        <div><strong>{businesses.length}</strong><span>Biznese</span></div>
-        <div><strong>{partners.length}</strong><span>OJF Partnere</span></div>
-        <div><strong>{totalCitiesWithPeople}</strong><span>Qytete me anëtarë</span></div>
-      </div>
+      <StatGrid label="Përmbledhja e hartës" stats={[
+        { value: totalMappedMembers, label: 'Anëtarë të hartëzuar' },
+        { value: businesses.length, label: 'Biznese' },
+        { value: partners.length, label: 'OJF Partnere' },
+        { value: totalCitiesWithPeople, label: 'Qytete me anëtarë' },
+      ]} />
     </div></section>
 
     <section class="section tone-grey"><div class="container">
@@ -133,18 +130,13 @@ const totalCitiesWithPeople = mapCities.filter(city => city.memberCount > 0).len
         <p class="map-footnote">Qyteti bazohet në atë të vetëdeklaruar në forum; {unmatchedMembers} anëtarë jetojnë në qytete pa kapitull të Illyrian Brains ende dhe nuk shfaqen në hartë.</p>
       )}
     </div></section>
-  </main>
-  <Footer />
-  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script is:inline>
-    const mapElement = document.querySelector('#community-map');
-    if (mapElement && window.L) {
-      const cityData = JSON.parse(mapElement.dataset.cities || '[]');
-      const map = L.map(mapElement, { scrollWheelZoom: true, doubleClickZoom: true, touchZoom: true, zoomControl: true }).setView([44, 8], 3);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
+  <Fragment slot="after-main">
+    <LeafletMapAssets />
+  <script>
+    import { createDirectoryMap } from '../scripts/directory-map';
+    const setup = createDirectoryMap('#community-map');
+    if (setup) {
+      const { L, map, data: cityData } = setup;
 
       const activeLayers = new Set(['city', 'member', 'business', 'ngo']);
       const layerButtons = Array.from(document.querySelectorAll('[data-map-layer]'));
@@ -209,7 +201,8 @@ const totalCitiesWithPeople = mapCities.filter(city => city.memberCount > 0).len
       if (fitMarkers.length) map.fitBounds(L.featureGroup(fitMarkers).getBounds(), { padding: [34, 34] });
     }
   </script>
-</BaseLayout>
+  </Fragment>
+</SiteLayout>
 <style>
   .map-footnote { max-width: 68ch; margin-top: 18px; color: var(--muted); font-size: 13px; line-height: 1.6; }
   .map-popup-orgs { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 0; padding: 8px 0 0; border-top: 1px solid var(--line); list-style: none; }

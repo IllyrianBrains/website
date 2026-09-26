@@ -1,0 +1,34 @@
+---
+interface Link { href: string; label: string }
+interface Props {
+  kind: 'business' | 'partner';
+  name: string;
+  description: string;
+  profileUrl: string;
+  city?: string;
+  country?: string;
+  logo?: string;
+  links?: Link[];
+  sponsor?: boolean;
+  data?: Record<string, string>;
+}
+
+const { kind, name, description, profileUrl, city, country, logo, links = [], sponsor = false, data = {} } = Astro.props;
+const dataAttributes = Object.fromEntries(Object.entries(data).map(([key, value]) => [`data-${key}`, value]));
+---
+<article class:list={['organization-directory-card', `${kind}-directory-card`]} {...dataAttributes}>
+  {(city || logo) && (
+    <div class:list={['organization-card-top', `${kind}-card-top`]}>
+      {city && <span class:list={['organization-city', `${kind}-city`]}>{city}{country ? `, ${country}` : ''}</span>}
+      {logo && <img class:list={['organization-logo', `${kind}-logo`]} src={logo} alt={`Logoja e ${name}`} loading="lazy" />}
+    </div>
+  )}
+  <h3><a href={profileUrl}>{name}</a></h3>
+  <p>{description}</p>
+  <slot />
+  {links.length > 0 && <div class:list={['organization-links', `${kind}-links`]}>
+    {links.map(link => <a href={link.href} target="_blank" rel="noreferrer">{link.label} <span aria-hidden="true">↗</span></a>)}
+  </div>}
+  <slot name="after-links" />
+  {sponsor && <span class="sponsor-star" role="img" aria-label="Sponsor" title="Sponsor">★</span>}
+</article>

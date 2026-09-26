@@ -1,0 +1,8 @@
+---
+interface Stat { value: string | number; label: string }
+interface Props { stats: Stat[]; label?: string }
+const { stats, label } = Astro.props;
+---
+<div class="member-stats" aria-label={label}>
+  {stats.map(stat => <div><strong>{stat.value}</strong><span>{stat.label}</span></div>)}
+</div>

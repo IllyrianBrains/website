@@ -1,11 +1,7 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
 import RrjetiPartners from '../components/RrjetiPartners.astro';
 ---
-<BaseLayout title="OJF Partnere · Illyrian Brains" description="Organizatat partnere që bashkëpunojnë me rrjetin Illyrian Brains.">
-  <Header />
-  <main><RrjetiPartners /></main>
-  <Footer />
-</BaseLayout>
+<SiteLayout title="OJF Partnere · Illyrian Brains" description="Organizatat partnere që bashkëpunojnë me rrjetin Illyrian Brains.">
+  <RrjetiPartners />
+</SiteLayout>

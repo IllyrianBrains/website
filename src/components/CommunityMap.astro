@@ -1,5 +1,6 @@
 ---
 import { cities } from '../data/cities';
+import LeafletMapAssets from './LeafletMapAssets.astro';
 import { cityRegions } from '../data/regions';
 import { directoryMembers as members } from '../data/members';
 import { businesses } from '../data/businesses';
@@ -114,16 +115,12 @@ const mapCities = citiesWithRegion.map(city => ({
       <a class="partner-button" href="/qytetet/">Shiko të gjithë qytetet <span aria-hidden="true">↗</span></a>
     </div>
   </div>
-  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script is:inline>
-    const mapElement = document.querySelector('#community-map');
-    if (mapElement && window.L) {
-      const cityData = JSON.parse(mapElement.dataset.cities || '[]');
-      const map = L.map(mapElement, { scrollWheelZoom: true, doubleClickZoom: true, touchZoom: true, zoomControl: true }).setView([44, 8], 3);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
+  <LeafletMapAssets />
+  <script>
+    import { createDirectoryMap } from '../scripts/directory-map';
+    const setup = createDirectoryMap('#community-map');
+    if (setup) {
+      const { L, map, data: cityData } = setup;
 
       const activeLayers = new Set(['city', 'member', 'business', 'ngo']);
       const layerButtons = Array.from(document.querySelectorAll('[data-map-layer]'));

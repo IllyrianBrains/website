@@ -127,3 +127,7 @@ export function postElement(post: MemberPost, onDelete?: () => void) {
   }
   return article;
 }
+
+export const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character] || character));
+
+export const safeHttpUrl = (value: string) => /^https?:\/\//i.test(value) ? encodeURI(value) : '#';

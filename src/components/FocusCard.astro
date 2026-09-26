@@ -1,0 +1,16 @@
+---
+interface Props {
+  title: string;
+  id?: string;
+  index?: string;
+  items?: string[];
+}
+
+const { title, id, index, items = [] } = Astro.props;
+---
+<article class="focus-card" id={id}>
+  {index && <span class="focus-card-id">{index}</span>}
+  <h3>{title}</h3>
+  {items.length > 0 && <ul>{items.map(item => <li>{item}</li>)}</ul>}
+  <slot />
+</article>

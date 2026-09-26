@@ -1,8 +1,6 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
 import '../styles/directory.css';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
 import { members, cityAliases } from '../data/members';
 import { teams } from '../data/teams';
 
@@ -15,9 +13,7 @@ const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || 
 const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '';
 const snapshot = members.filter(member => member.teams?.length || member.membershipType === 'Organizator');
 ---
-<BaseLayout title="Ekipet · Illyrian Brains" description="Njih Bordin, ekipet dhe organizatorët e qyteteve të Illyrian Brains.">
-  <Header />
-  <main class="about-page team-directory-page">
+<SiteLayout title="Ekipet · Illyrian Brains" description="Njih Bordin, ekipet dhe organizatorët e qyteteve të Illyrian Brains." mainClass="about-page team-directory-page">
     <section class="section tone-dark team-hero"><div class="container team-hero-layout">
       <div><p class="eyebrow">Njerëzit pas rrjetit</p><h1>Ekipet</h1><p class="about-body">Këtu gjenden anëtarët e Bordit, kontribuesit e çdo ekipi dhe organizatorët që kujdesen për qytetet e Illyrian Brains.</p></div>
       <div class="team-summary" id="team-summary" aria-label="Grupet e ekipeve"></div>
@@ -33,17 +29,16 @@ const snapshot = members.filter(member => member.teams?.length || member.members
       <p class="result-count" id="team-result-count"></p>
     </div></section>
     <div id="team-sections" data-teams={JSON.stringify(teams)} data-members={JSON.stringify(snapshot)} data-city-aliases={JSON.stringify(cityAliases)} data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}></div>
-  </main>
-  <Footer />
-  <div class="member-drawer-overlay" id="team-overlay"></div><aside class="member-drawer" id="team-drawer" aria-hidden="true"><div class="member-drawer-inner" id="team-drawer-content"></div></aside>
-</BaseLayout>
+  <Fragment slot="after-main"><div class="member-drawer-overlay" id="team-overlay"></div><aside class="member-drawer" id="team-drawer" aria-hidden="true"><div class="member-drawer-inner" id="team-drawer-content"></div></aside></Fragment>
+</SiteLayout>
 
 <script>
+  import { escapeHtml, initials, safeHttpUrl } from '../scripts/members';
   const sections=document.querySelector<HTMLElement>('#team-sections'),summary=document.querySelector<HTMLElement>('#team-summary'),search=document.querySelector<HTMLInputElement>('#team-search'),groupFilter=document.querySelector<HTMLSelectElement>('#team-group'),cityFilter=document.querySelector<HTMLSelectElement>('#team-city'),count=document.querySelector<HTMLElement>('#team-result-count'),overlay=document.querySelector<HTMLElement>('#team-overlay'),drawer=document.querySelector<HTMLElement>('#team-drawer'),content=document.querySelector<HTMLElement>('#team-drawer-content');
   if(sections){
   const ORGANIZERS='organizatore';
   let team:any[]=[],labels:Record<string,string>={};
-  const initials=(name:string)=>name.split(' ').map((part:string)=>part[0]).join('').slice(0,2).toUpperCase();const escapeHtml=(value:string)=>String(value).replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character]||character));const safeUrl=(value:string)=>/^https?:\/\//i.test(value)?encodeURI(value):'#';
+  const safeUrl = safeHttpUrl;
   const isLead=(member:any,key:string)=>Boolean(member.teams?.some((t:any)=>t.slug===key&&t.role==='Drejtues'));
   const teamLabel=(member:any,value:string)=>`${labels[value]||value}${isLead(member,value)?' (Drejtues)':''}`;
   const refreshFilter=(select:HTMLSelectElement|null,options:[string,string][])=>{if(!select)return;const current=select.value;select.replaceChildren(select.options[0],...options.map(([value,label])=>new Option(label,value)));select.value=options.some(([value])=>value===current)?current:''};
@@ -74,7 +69,7 @@ const snapshot = members.filter(member => member.teams?.length || member.members
   if(supabaseUrl&&supabaseKey){
     const aliases=JSON.parse(sections.dataset.cityAliases||'{}');
     const get=(path:string)=>fetch(`${supabaseUrl}/rest/v1/${path}`,{headers:{apikey:supabaseKey,...(supabaseKey.startsWith('eyJ')&&{Authorization:`Bearer ${supabaseKey}`})}}).then(response=>response.ok?response.json():Promise.reject(response.status));
-    Promise.all([get('teams?select=slug,name,description&order=sort_order,name'),get('public_member_profiles?select=profile&order=name')])
+    Promise.all([get('teams?select=slug,name,description&order=sort_order,name'),get('public_member_community?select=profile&order=name')])
       .then(([teams,rows]:[any[],any[]])=>build(teams,rows.map(row=>({...row.profile,city:(row.profile.city&&aliases[row.profile.city.toLowerCase()])||row.profile.city}))))
       .catch(error=>console.warn('Live team data unavailable, showing the build snapshot.',error));
   }

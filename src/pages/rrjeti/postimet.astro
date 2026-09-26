@@ -43,7 +43,7 @@ const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPA
       </div>
       <Fragment slot="results">
         <p class="result-count" id="notification-result-count"></p>
-        <div class="notification-grid" id="notification-grid">
+        <div class="notification-grid" id="notification-grid" data-supabase-url={supabaseUrl} data-supabase-key={supabaseKey}>
           {notifications.map(item => (
             <article class="notification-card" data-city={item.city?.slug || '__global'} data-categories={item.tags.map(tag => tag.toLocaleLowerCase('sq')).join('|')} data-status={item.resolved ? 'resolved' : 'active'} data-search={item.searchable}>
               <div class="notification-card-meta">{item.city ? <a class="notification-location" href={`/qytetet/${item.city.slug}/`}><span aria-hidden="true">⌖</span>{item.city.city}</a> : <span class="notification-location"><span aria-hidden="true">◎</span>Rrjeti global</span>}<span>{formatDate(item.date)}</span></div>
@@ -88,10 +88,28 @@ const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPA
 
 <script>
   const grid=document.querySelector<HTMLElement>('#notification-grid'),search=document.querySelector<HTMLInputElement>('#notification-search'),city=document.querySelector<HTMLSelectElement>('#notification-city'),category=document.querySelector<HTMLSelectElement>('#notification-category'),status=document.querySelector<HTMLSelectElement>('#notification-status'),count=document.querySelector<HTMLElement>('#notification-result-count'),empty=document.querySelector<HTMLElement>('#notification-empty'),more=document.querySelector<HTMLButtonElement>('#notification-more');
-  const cards=grid?[...grid.querySelectorAll<HTMLElement>('.notification-card')]:[];let expanded=false;
+  let cards=grid?[...grid.querySelectorAll<HTMLElement>('.notification-card')]:[];let expanded=false;
   const columnCount=()=>grid?Math.max(1,getComputedStyle(grid).gridTemplateColumns.split(' ').length):1;
   const renderNotifications=()=>{const query=(search?.value||'').trim().toLocaleLowerCase('sq');const matched=cards.filter(card=>(!query||(card.dataset.search||'').includes(query))&&(!city?.value||card.dataset.city===city.value)&&(!category?.value||(card.dataset.categories||'').split('|').includes(category.value))&&(!status?.value||card.dataset.status===status.value));const limit=columnCount()*3,shown=new Set(expanded?matched:matched.slice(0,limit));cards.forEach(card=>card.hidden=!shown.has(card));if(count)count.textContent=`${matched.length} ${matched.length===1?'njoftim u gjet':'njoftime u gjetën'}`;if(empty)empty.hidden=matched.length>0;if(more)more.hidden=expanded||matched.length<=limit};
   const reset=()=>{expanded=false;renderNotifications()};search?.addEventListener('input',reset);[city,category,status].forEach(control=>control?.addEventListener('change',reset));more?.addEventListener('click',()=>{expanded=true;renderNotifications()});window.addEventListener('resize',renderNotifications);renderNotifications();
+  const offerLabels: Record<string,string> = { job: "Vend pune", internship: "Praktikë", event: "Event", project: "Projekt", volunteer: "Vullnetarë", benefit: "Përfitim / kupon", collaboration: "Bashkëpunim" };
+  if (grid?.dataset.supabaseUrl && grid.dataset.supabaseKey) {
+    const api = grid.dataset.supabaseUrl, key = grid.dataset.supabaseKey;
+    fetch(api + "/rest/v1/public_organization_offers?select=*&order=created_at.desc", { headers: { apikey: key, ...(key.startsWith("eyJ") && { Authorization: "Bearer " + key }) } }).then(response => response.ok ? response.json() : Promise.reject(response.status)).then((offers: any[]) => {
+      offers.forEach(offer => {
+        if (document.getElementById("offer-" + offer.id)) return;
+        const label = offerLabels[offer.kind] || "Ofertë", article = document.createElement("article");
+        article.id = "offer-" + offer.id; article.className = "notification-card"; article.dataset.city = "__global"; article.dataset.categories = label.toLocaleLowerCase("sq"); article.dataset.status = "active"; article.dataset.search = (offer.title + " " + offer.description + " " + offer.organization_name + " " + label).toLocaleLowerCase("sq");
+        const meta = document.createElement("div"), place = document.createElement("span"), date = document.createElement("span"); meta.className = "notification-card-meta"; place.className = "notification-location"; place.textContent = "◎ Rrjeti global"; date.textContent = new Date(offer.created_at).toLocaleDateString("sq-AL"); meta.append(place, date);
+        const tags = document.createElement("div"), tag = document.createElement("span"), active = document.createElement("span"); tags.className = "notification-card-tags"; tag.textContent = label; active.className = "notification-status is-active"; active.textContent = "Aktive"; tags.append(tag, active);
+        const heading = document.createElement("h2"), title = document.createElement(offer.url ? "a" : "span"), description = document.createElement("p"); title.textContent = offer.title; if (offer.url) { title.setAttribute("href", offer.url); title.setAttribute("target", "_blank"); title.setAttribute("rel", "noreferrer"); } heading.append(title); description.textContent = offer.description;
+        const footer = document.createElement("footer"), organization = document.createElement("span"), link = document.createElement("a"); organization.className = "notification-author"; organization.textContent = offer.organization_name; link.href = offer.url || "/organizatat/"; if (offer.url) { link.target = "_blank"; link.rel = "noreferrer"; } link.textContent = offer.url ? "Hap ofertën →" : "Shiko organizatat →"; footer.append(organization, link); article.append(meta, tags, heading, description, footer); grid.append(article);
+        if (category && ![...category.options].some(option => option.value === article.dataset.categories)) category.add(new Option(label, article.dataset.categories));
+      });
+      cards = [...grid.querySelectorAll<HTMLElement>(".notification-card")]; renderNotifications();
+    }).catch(() => {});
+  }
+
   const createPanel=document.querySelector<HTMLDetailsElement>('#njoftim-i-ri');document.querySelector<HTMLAnchorElement>('[data-open-notification]')?.addEventListener('click',()=>{if(createPanel)createPanel.open=true});
 
   const createCard=document.querySelector<HTMLElement>('.notification-create-card'),form=document.querySelector<HTMLFormElement>('#notification-form'),prompt=document.querySelector<HTMLElement>('#notification-auth-prompt'),formStatus=document.querySelector<HTMLElement>('#notification-form-status');

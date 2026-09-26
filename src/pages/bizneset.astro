@@ -1,11 +1,7 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
 import RrjetiBusinesses from '../components/RrjetiBusinesses.astro';
 ---
-<BaseLayout title="Bizneset · Illyrian Brains" description="Bizneset e themeluara dhe drejtuara nga anëtarët e komunitetit Illyrian Brains.">
-  <Header />
-  <main><RrjetiBusinesses /></main>
-  <Footer />
-</BaseLayout>
+<SiteLayout title="Bizneset · Illyrian Brains" description="Bizneset e themeluara dhe drejtuara nga anëtarët e komunitetit Illyrian Brains.">
+  <RrjetiBusinesses />
+</SiteLayout>
