@@ -145,3 +145,35 @@ export function postElement(post: MemberPost, onDelete?: () => void) {
 export const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character] || character));
 
 export const safeHttpUrl = (value: string) => /^https?:\/\//i.test(value) ? encodeURI(value) : '#';
+
+const drawerLevelLabels: Record<string, string> = { junior: 'Junior (0–2 vite)', mid: 'Mid level (3–5 vite)', senior: 'Senior (5–9 vite)', expert: 'Expert (10+ vite)' };
+
+export function memberDrawerHtml(member: any) {
+  const fields = member.fieldsOfExpertise || [];
+  const years = (item: any) => { const end = item.current ? 'sot' : item.endYear; return item.startYear && end ? `${item.startYear} – ${end}` : String(item.startYear || end || ''); };
+  const listItem = (icon: string, heading: string, lines: string[], yearText = '', description = '') => `<li><span class="profile-list-icon" aria-hidden="true">${escapeHtml(icon)}</span><div><strong>${escapeHtml(heading)}</strong>${lines.filter(Boolean).map(line => `<span>${escapeHtml(line)}</span>`).join('')}${yearText ? `<span class="profile-years">${escapeHtml(yearText)}</span>` : ''}${description ? `<p>${escapeHtml(description)}</p>` : ''}</div></li>`;
+  const section = (title: string, body: string) => body ? `<section class="profile-section"><h3>${title}</h3>${body}</section>` : '';
+  const place = [member.city, member.country].filter(Boolean).join(', ');
+  const meta = [member.company, place].filter(Boolean).map(escapeHtml).join(' · ');
+  const network = (member.teams || []).map((team: any) => listItem((team.name || 'E')[0], team.slug === 'bordi' ? team.name : `Ekipi ${team.name}`, [team.role === 'Drejtues' ? 'Drejtues i ekipit' : 'Kontribues'])).join('') + (member.membershipType === 'Organizator' && member.city ? listItem(member.city[0], `Organizator në ${member.city}`, ['Organizon takimet e qytetit']) : '');
+  const experience = (member.experience || []).map((item: any) => listItem((item.organization || item.title || 'E')[0], item.title, [[item.organization, item.location].filter(Boolean).join(' · ')], years(item), item.description)).join('');
+  const education = (member.education || []).map((item: any) => listItem((item.school || 'A')[0], item.school, [[item.degree, item.field].filter(Boolean).join(' ')], years(item))).join('');
+  const skills = fields.map((value: string) => `<span class="member-pill member-pill-accent">${escapeHtml(value)}</span>`).join('') + (member.specialty || []).map((value: string) => `<span class="member-pill member-pill-specialty">${escapeHtml(value)}</span>`).join('');
+  const languages = (member.languages || []).map((value: string) => `<span class="member-pill member-pill-location">${escapeHtml(value)}</span>`).join('');
+  const aspirations = member.aspirations || {};
+  const aspired = [aspirations.field, aspirations.subfield].filter(Boolean).join(' · ');
+  const aspirationPills = [...(aspirations.mentoring || []).map((value: string) => `<span class="member-pill member-pill-accent">${escapeHtml(value)}</span>`), ...(aspirations.business || []).map((value: string) => `<span class="member-pill member-pill-gold">${escapeHtml(value)}</span>`)].join('');
+  const aspirationsHtml = (aspired ? `<p class="member-drawer-bio">Synon: <strong>${escapeHtml(aspired)}</strong></p>` : '') + (aspirationPills ? `<div class="member-tags">${aspirationPills}</div>` : '') + (aspirations.note ? `<p class="member-drawer-bio">${escapeHtml(aspirations.note)}</p>` : '');
+  const membership = member.membershipType ? `<span class="member-pill member-pill-gold">${escapeHtml(member.membershipType)}</span> ` : '';
+  const level = member.experienceLevel ? `<span class="member-pill member-pill-accent">${escapeHtml(drawerLevelLabels[member.experienceLevel] || member.experienceLevel)}</span> ` : '';
+  return `<button class="member-drawer-close" type="button" aria-label="Mbyll profilin">✕</button><div class="profile-cover"></div>`
+    + `<div class="profile-head">${member.avatar ? `<img class="member-drawer-avatar" src="${escapeHtml(member.avatar)}" alt="">` : `<span class="member-drawer-avatar member-avatar-fallback">${escapeHtml(initials(member.name))}</span>`}<h2>${escapeHtml(member.name)}</h2><p class="member-drawer-role">${escapeHtml(member.title || fields.join(' · ') || 'Ekspertiza TBD')}</p>${meta ? `<p class="profile-meta">${meta}</p>` : ''}<p class="profile-meta">${membership}${level}Anëtar që nga ${escapeHtml(String(member.since || '—'))}</p>`
+    + `<div class="member-drawer-actions"><a class="partner-button" href="${memberUrl(member.username)}">Profili i plotë <span>→</span></a>${member.linkedinUrl ? `<a class="partner-button" href="${safeHttpUrl(member.linkedinUrl)}" target="_blank" rel="noreferrer">LinkedIn <span>↗</span></a>` : ''}${member.website ? `<a class="partner-button" href="${safeHttpUrl(member.website)}" target="_blank" rel="noreferrer">Faqja personale <span>↗</span></a>` : ''}${member.profileUrl ? `<a class="partner-button" href="${safeHttpUrl(member.profileUrl)}" target="_blank" rel="noreferrer">Profili në forum <span>↗</span></a>` : ''}</div></div>`
+    + section('Në rrjet', network ? `<ul class="profile-list">${network}</ul><p class="profile-meta"><a href="/ekipet/">Shiko të gjitha ekipet →</a></p>` : '')
+    + section('Rreth', member.bio ? `<p class="member-drawer-bio">${escapeHtml(member.bio)}</p>` : '')
+    + section('Eksperienca', experience ? `<ul class="profile-list">${experience}</ul>` : '')
+    + section('Arsimimi', education ? `<ul class="profile-list">${education}</ul>` : '')
+    + section('Aspiratat e karrierës', aspirationsHtml)
+    + section('Ekspertiza dhe aftësitë', skills ? `<div class="member-tags">${skills}</div>` : '')
+    + section('Gjuhët', languages ? `<div class="member-tags">${languages}</div>` : '');
+}
