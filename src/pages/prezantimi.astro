@@ -1,0 +1,849 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LeafletMapAssets from '../components/LeafletMapAssets.astro';
+import { cities } from '../data/cities';
+import { cityRegions } from '../data/regions';
+import { directoryMembers } from '../data/members';
+import { teams } from '../data/teams';
+import 'reveal.js/dist/reveal.css';
+import '../styles/presentation.css';
+
+const regionBySlug = new Map(cityRegions.flatMap(region => region.citySlugs.map(slug => [slug, region])));
+const presentationCities = cities.map(city => ({ city: city.city, country: city.country, lat: city.lat, lng: city.lng, status: city.status, color: regionBySlug.get(city.slug)?.color ?? '#744761', scope: city.country === 'SHBA' ? 'usa' : city.lat >= 34 && city.lat <= 71 && city.lng >= -25 && city.lng <= 45 ? 'europe' : 'other' }));
+const membersWithAvatars = directoryMembers.filter(member => member.avatar);
+const presentationMemberCount = Math.min(32, membersWithAvatars.length);
+const presentationMembers = Array.from({ length: presentationMemberCount }, (_, index) => membersWithAvatars[Math.floor(index * (membersWithAvatars.length - 1) / Math.max(1, presentationMemberCount - 1))]);
+const cityMembers = Object.entries(directoryMembers.reduce<Record<string, typeof directoryMembers>>((groups, member) => {
+  if (!member.city) return groups;
+  (groups[member.city] ??= []).push(member);
+  return groups;
+}, {})).sort(([, a], [, b]) => b.length - a.length).slice(0, 12).map(([city, members]) => ({ city, members }));
+const teamProfiles = teams.map(team => ({
+  ...team,
+  members: directoryMembers.filter(member => member.teams?.some(item => item.slug === team.slug)),
+}));
+const boardMembers = directoryMembers.filter(member => member.teams?.some(team => team.slug === 'bordi'));
+---
+<BaseLayout title="Prezantimi · Illyrian Brains" description="Prezantimi i Illyrian Brains Network për organizatorët dhe pjesëmarrësit e rinj.">
+  <main class="presentation-page">
+    <div class="presentation-toolbar" aria-label="Kontrollet e prezantimit">
+      <a href="/" class="presentation-brand" aria-label="Kthehu në faqen kryesore"><img src="/assets/logo.png" alt="Illyrian Brains" /></a>
+      <span class="presentation-hint">← → për të lëvizur · O për pamjen e plotë</span>
+      <button class="presentation-fullscreen" type="button" data-fullscreen><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg><span>Ekran i plotë</span></button>
+    </div>
+    <div class="reveal"><div class="slides">
+      <section class="title-slide" data-background-color="#181a1d">
+        <div class="title-shell">
+          <div class="title-copy">
+            <p class="slide-kicker">Illyrian Brains Network</p>
+            <h1>Rrjeti shqiptar i<br /><em>profesionistëve.</em></h1>
+          </div>
+          <figure class="title-visual"><img src="/assets/inst_meetup.png" alt="Anëtarë të Illyrian Brains gjatë një takimi" /></figure>
+        </div>
+        <p class="slide-lead">Njihu, mëso dhe bashkëpuno me profesionistë shqiptarë kudo në botë.</p>
+        <aside class="notes">Mirë se erdhët. Ky prezantim është një hyrje e shkurtër në mënyrën si funksionon rrjeti dhe si mund të bëheni pjesë.</aside>
+      </section>
+      <section class="chapter-slide chapter-about" data-background-color="#30272e">
+        <p class="chapter-index">Kapitulli 01</p><h2>Çfarë është IB?</h2>
+        <div class="chapter-topics"><span>Si nisi</span><span>Pse ekziston</span><span>Si ndihmon</span><span>Si zhvillohet</span></div>
+        <aside class="notes">Në këtë kapitull tregojmë shkurt historinë e IB, arsyen pse ekziston dhe mënyrën si rrjeti po ndërtohet për të ardhmen.</aside>
+      </section>
+      <section class="metric-slide" data-background-color="#30272e">
+        <p class="slide-number">IB sot</p><h2>Një rrjet ndërkombëtar,<br />i ndërtuar qytet pas qyteti.</h2>
+        <div class="metric-grid"><article><strong>50+</strong><span>qytete me evente</span></article><article><strong>500+</strong><span>evente dhe Happy Hours</span></article><article><strong>5,000+</strong><span>pjesëmarrës</span></article><article><strong>100+</strong><span>grupe dhe komunitete tematike</span></article></div>
+        <div class="community-photo-strip" aria-label="Komunitete të Illyrian Brains në qytete të ndryshme"><figure><img src="/assets/cities/Berlin.jpg" alt="Komuniteti Illyrian Brains në Berlin" /><figcaption>Berlin</figcaption></figure><figure><img src="/assets/cities/London%20Maj25.jpeg" alt="Komuniteti Illyrian Brains në Londër" /><figcaption>Londër</figcaption></figure><figure><img src="/assets/cities/Milano.jpg" alt="Komuniteti Illyrian Brains në Milano" /><figcaption>Milano</figcaption></figure><figure><img src="/assets/cities/NY.jpg" alt="Komuniteti Illyrian Brains në New York" /><figcaption>New York</figcaption></figure></div>
+      </section>
+      <section class="history-slide" data-background-color="#202225">
+        <p class="slide-number">Historia jonë</p><h2>Nga një ide në 2020,<br />në një organizatë sot.</h2>
+        <div class="history-timeline">
+          <article><span>2020-2022</span><div><h3>Fillimi</h3><p>Profesionistët shqiptarë krijojnë një hapësirë për t’u njohur dhe për të shkëmbyer njohuri.</p></div></article>
+          <article><span>2023-2025</span><div><h3>Rritja</h3><p>Shtohen takimet, qytetet dhe projektet, dhe krijohet një identitet i përbashkët.</p></div></article>
+          <article><span>2026-nesër</span><div><h3>OJF e regjistruar</h3><p>Një organizatë shqiptare me rrjet ndërkombëtar profesionistësh.</p></div></article>
+        </div>
+      </section>
+      <section class="governance-slide" data-background-color="#26313d">
+        <p class="slide-number">Qeverisja</p><h2>Një rrjet, disa mënyra organizimi.</h2>
+        <div class="governance-layout">
+          <div class="governance-roles" aria-label="Rolet në rrjet">
+            <article><i class="secretariat"></i><div><h3>Sekretariati</h3><p>Koordinon dhe mbështet rrjetin.</p></div></article>
+            <article><i class="city"></i><div><h3>Qytetet</h3><p>Organizojnë komunitetin lokal në mënyrë autonome.</p></div></article>
+            <article><i class="chapter"></i><div><h3>OJF lokale</h3><p>Degë e formalizuar nga një komunitet qyteti.</p></div></article>
+            <article><i class="group"></i><div><h3>Grupet profesionale</h3><p>Lidhin ekspertë nga disa qytete.</p></div></article>
+            <article><i class="subgroup"></i><div><h3>Nëngrupet lokale</h3><p>Krijojnë aktivitete brenda një qyteti.</p></div></article>
+            <article><i class="project"></i><div><h3>Projektet</h3><p>Nisma të anëtarëve, paralel me qytetet dhe grupet.</p></div></article>
+          </div>
+          <div id="governance-graph" role="img" aria-label="Harta e lidhjeve mes sekretariatit, qyteteve, degëve formale, grupeve profesionale, nëngrupeve, projekteve dhe anëtarëve"></div>
+        </div>
+        <div class="governance-examples"><span>Modele të ngjashme:</span><a href="https://meta.wikimedia.org/wiki/Wikimedia_movement_affiliates">Wikimedia</a><a href="https://osmfoundation.org/wiki/Local_Chapters">OpenStreetMap</a><a href="https://creativecommons.org/about/global-affiliate-network/">Creative Commons</a></div>
+        <aside class="notes">IB OJF mban infrastrukturën dhe koordinimin, por nuk drejton çdo aktivitet. Prej saj dalin tri degë paralele: qytetet, grupet profesionale dhe projektet. New York, Milano dhe Berlin janë shembuj qytetesh; Milano tregon edhe mundësinë e formalizimit si OJF lokale. IB Tech dhe IB Health lidhin profesionistë nga qytete të ndryshme. Atlas dhe Mentoring janë projekte të anëtarëve.</aside>
+      </section>
+      <section class="value-slide" data-background-color="#26313d">
+        <div class="value-copy"><p class="slide-number">Si të ndihmon rrjeti</p><h2>Gjej lidhjen që të duhet.</h2><div class="value-key"><span><i class="start"></i>Ti</span><span><i class="target"></i>Personi që kërkon</span></div></div>
+        <div id="value-graph" role="img" aria-label="Një person që përmes shumë lidhjeve në rrjet gjen personin që i duhet"></div>
+      </section>
+      <section class="chapter-slide chapter-people" data-background-color="#26313d">
+        <p class="chapter-index">Kapitulli 02</p><h2>Qytetet dhe profesionistët</h2>
+        <div class="chapter-topics"><span>Anëtarët</span><span>Qytetet</span><span>Eventet</span><span>Ekipet</span></div>
+        <aside class="notes">Ky kapitull bashkon njerëzit dhe qytetet: anëtarët, ekipet, komunitetet lokale dhe mënyrën si takimet krijojnë lidhje.</aside>
+      </section>
+      <section class="city-members-slide" data-background-color="#263433">
+        <p class="slide-number">Ku jemi</p><h2>Qytete të ndryshme.</h2>
+        <div class="city-member-grid">{cityMembers.map(group => <article><div class="city-avatar-stack">{group.members.filter(member => member.avatar).slice(0, 3).map(member => <img src={member.avatar} alt="" />)}</div><div><h3>{group.city}</h3><p>{group.members.length} anëtarë në direktori</p></div></article>)}</div>
+      </section>
+      <section class="organizer-slide" data-background-color="#30272e">
+        <div class="organizer-copy"><p class="slide-number">Eventet</p><h2>Takimet e kthejnë rrjetin në komunitet.</h2><div class="organizer-actions"><span>Njohje të reja</span><span>Biseda me vlerë</span><span>Përvoja të përbashkëta</span><span>Lidhje që vazhdojnë</span></div></div>
+        <div class="organizer-photos" aria-label="Momente nga eventet e komunitetit"><figure><img src="/assets/cities/Berlin.jpg" alt="Pjesëmarrës të buzëqeshur në eventin e Berlinit" /><figcaption>Njerëz që njihen</figcaption></figure><figure><img src="/assets/cities/Milano.jpg" alt="Komuniteti në një event në Milano" /><figcaption>Momente që mbahen mend</figcaption></figure><figure><img src="/assets/cities/NY.jpg" alt="Pjesëmarrës në eventin e New York-ut" /><figcaption>Një ndjesi përkatësie</figcaption></figure></div>
+      </section>
+      <section class="map-slide" data-background-color="#1e2125">
+        <div class="map-slide-copy"><p class="slide-number">Qytetet në hartë</p><h2>Një rrjet pa kufij.</h2><p>Gjej komunitetin më pranë teje.</p><div class="map-scope-controls" aria-label="Zgjidh rajonin"><button type="button" class="is-active" data-map-scope="europe" aria-pressed="true">Evropë</button><button type="button" data-map-scope="usa" aria-pressed="false">SHBA</button></div><div class="map-legend-compact"><span><i class="active"></i>Aktiv</span><span><i></i>Në zhvillim</span></div></div>
+        <div id="presentation-map" data-cities={JSON.stringify(presentationCities)} aria-label="Harta e qyteteve të Illyrian Brains"></div>
+      </section>
+      <section class="city-profile-slide" data-background-color="#26313d">
+        <p class="slide-number">Qytetet</p>
+        <h2>Si funksionon 1 qytet</h2>
+        <div class="city-simple-steps">
+          <article><b>1</b><div><h3>Ekipi organizator</h3><p>Koordinon qytetin dhe takimet.</p><span>Happy Hours periodike</span></div></article>
+          <article><b>2</b><div><h3>Grupet</h3><p>Krijojnë aktivitete rreth interesave.</p><span>Libër · Volley · Hiking · Profesione</span></div></article>
+          <article><b>3</b><div><h3>Pjesëmarrësit</h3><p>Marrin pjesë dhe sjellin ide.</p><span>Pjesëmarrës → Kontribues → Organizator</span></div></article>
+        </div>
+      </section>
+      <section class="members-motion-slide" data-background-color="#181a1d">
+        <div class="members-motion-heading"><div><p class="slide-number">Anëtarët</p><h2>Anëtarë në lëvizje.</h2></div><p class="members-motion-intro">Profesionistë që njihen, ndihmojnë dhe krijojnë së bashku.</p></div>
+        <div class="member-marquees" aria-label="Anëtarë të Illyrian Brains">
+          {[0, 1, 2, 3].map(rowIndex => { const row = presentationMembers.slice(rowIndex * 8, rowIndex * 8 + 8); return <div class:list={["member-marquee", { reverse: rowIndex % 2 === 1 }]}><div class="member-marquee-track">{[...row, ...row].map((member, index) => <article aria-hidden={index >= row.length ? 'true' : undefined}><img src={member.avatar} alt="" /><div><strong>{member.name}</strong><span>{member.city || member.fieldsOfExpertise?.[0] || 'Illyrian Brains'}</span></div></article>)}</div></div> })}
+        </div>
+      </section>
+      <section class="graph-slide" data-background-color="#181a1d">
+        <div class="graph-copy"><p class="slide-number">Si lidhemi</p><h2>Një person.<br />Disa komunitete.</h2><p>Qyteti, profesioni, interesat dhe projektet lidhen në një rrjet.</p></div>
+        <div id="presentation-graph" role="img" aria-label="Një person që është pjesë e disa komuniteteve të lidhura brenda rrjetit"></div>
+      </section>
+      <section class="chapter-slide chapter-projects" data-background-color="#2a3036">
+        <p class="chapter-index">Kapitulli 05</p><h2>Nga ide në projekte</h2>
+        <div class="chapter-topics"><span>Ide</span><span>Ekip</span><span>Mbështetje</span><span>Projekt</span></div>
+        <aside class="notes">Në fund tregojmë se rrjeti nuk ndalet te takimet. Anëtarët mund të bashkohen dhe të ndërtojnë projekte që përdoren nga komuniteti.</aside>
+      </section>
+      <section class="make-project-slide" data-background-color="#2a3036">
+        <p class="slide-number">Nga ideja te projekti</p><h2>Ke një ide?<br />Ktheje në projekt me rrjetin.</h2>
+        <ol class="project-steps"><li><b>01</b><div><h3>Ndaj idenë</h3><p>Trego problemin që dëshiron të zgjidhësh.</p></div></li><li><b>02</b><div><h3>Krijo ekipin</h3><p>Gjej njerëz me aftësi të ndryshme që duan të ndihmojnë.</p></div></li><li><b>03</b><div><h3>Gjej mbështetje</h3><p>Kërko burime ose financim nga rrjeti dhe partnerët.</p></div></li><li><b>04</b><div><h3>Fillo</h3><p>Provo një version të vogël, mëso dhe përmirësoje.</p></div></li></ol>
+      </section>
+      <section class="project-slide project-atlas project-slide-strong" data-background-color="#202225">
+        <div class="project-copy"><p class="slide-number">Projekt i rrjetit</p><h2><strong>Atlas:</strong> Mbërrit më i përgatitur në një vend të ri.</h2><div class="project-details"><span>Hapa praktikë</span><span>Përvojë nga diaspora</span><span>Integrim më i lehtë</span></div><a href="https://atlas.illyrianbrains.org/">atlas.illyrianbrains.org</a></div>
+        <div class="project-gallery gallery-four" aria-label="Pamje nga platforma Atlas"><img src="/assets/presentation/atlas-1.png?v=3" alt="Faqja kryesore e Atlas" /><img src="/assets/presentation/atlas-2.png?v=3" alt="Informacion praktik në Atlas" /><img src="/assets/presentation/atlas-3.png?v=3" alt="Përmbajtje për vendet në Atlas" /><img src="/assets/presentation/atlas-4.png?v=3" alt="Udhëzime të tjera nga platforma Atlas" /></div>
+      </section>
+      <section class="project-slide project-mentoring project-slide-strong" data-background-color="#30272e">
+        <div class="project-copy"><p class="slide-number">Projekt i rrjetit</p><h2><strong>Mentoring:</strong> Merr drejtim nga dikush që e njeh rrugën.</h2><div class="project-details"><span>Qëllim i qartë</span><span>Mentor i përshtatshëm</span><span>Hapi i radhës</span></div><a href="https://mentoring.illyrianbrains.org/">mentoring.illyrianbrains.org</a></div>
+        <div class="project-gallery gallery-four" aria-label="Pamje nga platforma e mentorimit"><img src="/assets/presentation/mentoring-1.png?v=3" alt="Faqja kryesore e platformës së mentorimit" /><img src="/assets/presentation/mentoring-2.png?v=3" alt="Fushat e mentorimit" /><img src="/assets/presentation/mentoring-3.png?v=3" alt="Profile mentorësh në platformë" /><img src="/assets/presentation/mentoring-4.png?v=3" alt="Përmbajtje tjetër nga platforma e mentorimit" /></div>
+      </section>
+      <section class="project-slide project-heritage project-slide-strong" data-background-color="#26313d">
+        <div class="project-copy"><p class="slide-number">Projekt i rrjetit</p><h2><strong>Heritage:</strong> Njih trashëgiminë dhe gjej si ta mbrosh.</h2><div class="project-details"><span>Informacion i qartë</span><span>Organizata aktive</span><span>Mënyra për të vepruar</span></div><a href="https://heritage.illyrianbrains.org/">heritage.illyrianbrains.org</a></div>
+        <div class="project-gallery gallery-four" aria-label="Pamje nga platforma e trashëgimisë"><img src="/assets/presentation/heritage-1.png?v=3" alt="Harta e trashëgimisë natyrore" /><img src="/assets/presentation/heritage-2.png?v=3" alt="Dosje nga platforma e trashëgimisë" /><img src="/assets/presentation/heritage-3.png?v=3" alt="Dokumentim në platformën e trashëgimisë" /><img src="/assets/presentation/heritage-4.png?v=3" alt="Përmbajtje tjetër nga platforma e trashëgimisë" /></div>
+      </section>
+      <section class="project-slide project-locals project-slide-strong" data-background-color="#263433">
+        <div class="project-copy"><p class="slide-number">Projekt i rrjetit</p><h2><strong>Locals:</strong> Përjeto vendin përmes njerëzve që e njohin.</h2><div class="project-details"><span>Zgjedhje lokale</span><span>Udhëtim me kuptim</span><span>Njohuri nga komuniteti</span></div><a href="https://locals.illyrianbrains.org/">locals.illyrianbrains.org</a></div>
+        <div class="project-gallery gallery-four" aria-label="Pamje nga platforma Locals"><img src="/assets/presentation/locals-1.png?v=3" alt="Katalogu i qyteteve në Locals" /><img src="/assets/presentation/locals-2.png?v=3" alt="Profili i një qyteti në Locals" /><img src="/assets/presentation/locals-3.png?v=3" alt="Ide udhëtimi nga vendasit" /><img src="/assets/presentation/locals-4.png?v=3" alt="Përmbajtje lokale për udhëtarët" /></div>
+      </section>
+      <section class="closing-slide" data-background-color="#181a1d">
+        <h2>Eja në një event.<br /><em>Takohu me rrjetin.</em></h2>
+        <div class="closing-actions"><a href="/eventet/">illyrianbrains.org/eventet</a><span>@illyrianbrains</span></div><p class="slide-caption">Faleminderit.</p>
+      </section>
+      <section class="chapter-slide appendix-title" data-background-color="#2a3036">
+        <h2>Appendix</h2>
+        <p>Informacion mbështetës për pyetje pas prezantimit.</p>
+        <div class="chapter-topics"><span>Prioritetet</span><span>Bordi</span><span>Transparenca</span><span>Misioni</span><span>Burimet</span></div>
+      </section>
+      <section class="board-slide" data-background-color="#202225">
+        <p class="slide-number">Shtojcë · Katër prioritete</p><h2>Katër prioritete.</h2>
+        <div class="transparency-grid">
+          <article><b>01</b><h3>Qytetet</h3><p>Forcojmë komunitetet lokale dhe eventet periodike.</p></article>
+          <article><b>02</b><h3>Anëtarët</h3><p>Rrallëzojmë barrën e prezentimit dhe rrisim lidhjet e vërteta.</p></article>
+          <article><b>03</b><h3>Projektet</h3><p>Mundësojmë ide që transformohen në iniciativa të përdorshme.</p></article>
+          <article><b>04</b><h3>Ndërgjegjësimi</h3><p>Përforcojmë kulturën e ndihmës, transparencës dhe besimit.</p></article>
+        </div>
+      </section>
+      <section class="board-slide" data-background-color="#202225">
+        <p class="slide-number">Shtojcë · Bordi</p><h2>Përgjegjësia për drejtimin e organizatës.</h2>
+        {boardMembers.length > 0 ? <div class="board-grid">{boardMembers.map(member => {
+          const boardRole = member.teams?.find(team => team.slug === 'bordi')?.role;
+          return <article>{member.avatar ? <img src={member.avatar} alt="" /> : <span class="board-avatar">{member.name.split(/\s+/).map(part => part[0]).slice(0, 2).join('')}</span>}<div><h3>{member.name}</h3><p>{boardRole || 'Anëtar i Bordit'}</p><small>{member.title || member.city || 'Illyrian Brains'}</small></div></article>;
+        })}</div> : <p class="appendix-empty">Përbërja e Bordit publikohet dhe përditësohet te drejtoria e ekipeve.</p>}
+        <a class="appendix-link" href="/ekipet/#bordi">Shiko Bordin e përditësuar</a>
+        <aside class="notes">Bordi mban përgjegjësinë për drejtimin dhe vendimmarrjen e organizatës. Lista merret nga drejtoria publike e ekipeve.</aside>
+      </section>
+
+      <section class="teams-slide" data-background-color="#202225">
+        <p class="slide-number">Ekipet</p><h2>Kush e mban rrjetin në lëvizje?</h2>
+        <div class="team-card-grid">{teamProfiles.map((team, index) => <article><span>0{index + 1}</span><h3>{team.name}</h3><p>{team.description}</p><small>{team.members.length} kontribues</small></article>)}</div>
+        <aside class="notes">Rrjeti nuk drejtohet nga një person i vetëm. Anëtarët marrin role në ekipe sipas interesit dhe aftësive të tyre.</aside>
+      </section>
+      <section class="transparency-slide" data-background-color="#202225">
+        <p class="slide-number">Shtojcë</p><h2>Transparenca</h2>
+        <div class="transparency-grid">
+          <article><b>01</b><h3>Deri tani</h3><p>Kontribuesit kanë mbuluar vetë kostot.</p></article>
+          <article><b>02</b><h3>Financimi</h3><p>Nuk ka financim të përgjithshëm të rrjetit.</p></article>
+          <article><b>03</b><h3>Evente të veçanta</h3><p>Mund të kenë financim vetëm për aktivitetin përkatës.</p></article>
+          <article><b>04</b><h3>Llogaridhënia</h3><p>Çdo financim dhe shpenzim raportohet sipas aktivitetit.</p></article>
+        </div>
+        <div class="transparency-links"><a href="/dhuro/#transparenca">Transparenca financiare</a><a href="https://forum.illyrianbrains.org/tag/raport-vjetor">Raportet vjetore</a><a href="/statuti/">Statuti</a></div>
+        <aside class="notes">Deri tani rrjeti nuk ka pasur financim të përgjithshëm. Kontribuesit kanë mbuluar vetë kostot. Kur një event i veçantë merr mbështetje, fondet përdoren dhe raportohen vetëm për atë aktivitet.</aside>
+      </section>
+      <section class="appendix-mission-slide" data-background-color="#263433">
+        <p class="slide-number">Shtojcë · Misioni</p><h2>Të bashkojmë profesionistët shqiptarë kudo që jetojnë.</h2>
+        <div class="appendix-mission-grid"><article><h3>Çfarë bëjmë</h3><p>Krijojmë komunitete, lidhje dhe projekte.</p></article><article><h3>Si punojmë</h3><p>Me respekt, bashkëpunim dhe autonomi lokale.</p></article><article><h3>Çfarë nuk jemi</h3><p>Nuk jemi organizatë politike, fetare apo fitimprurëse.</p></article></div>
+        <a class="appendix-link" href="/misioni/">Lexo misionin dhe strategjinë</a>
+        <aside class="notes">Kjo është forma e shkurtër për prezantim. Teksti i plotë i misionit, strategjitë dhe mënyra e vendimmarrjes gjenden në faqen e misionit.</aside>
+      </section>
+      <section class="appendix-notes-slide" data-background-color="#2a3036">
+        <p class="slide-number">Shtojcë · Shënime</p><h2>Si lexohen shifrat.</h2>
+        <div class="appendix-notes-grid"><article><h3>Qytete me evente</h3><p>Shto kriterin dhe periudhën që mbulon kjo shifër.</p></article><article><h3>Pjesëmarrës</h3><p>Sqaroni nëse numërohen persona unikë apo pjesëmarrje.</p></article><article><h3>Komunitete</h3><p>Përcakto çfarë përfshihet: qytete, grupe apo nisma.</p></article><article><h3>Burimi</h3><p>Shto raportin, regjistrin dhe datën e përditësimit.</p></article></div>
+        <p class="appendix-note-callout">Përditëso shifrat dhe datën e referencës para çdo prezantimi publik.</p>
+        <aside class="notes">Shtoni këtu shpjegime për metodologjinë, periudhën e matjes dhe çdo ndryshim nga raporti i fundit.</aside>
+      </section>
+    </div></div>
+  </main>
+  <LeafletMapAssets />
+  <script>
+    import Reveal from 'reveal.js';
+    import RevealNotes from 'reveal.js/plugin/notes/notes.esm.js';
+    import cytoscape from 'cytoscape';
+
+    const revealElement = document.querySelector<HTMLElement>('.reveal');
+    if (!revealElement) throw new Error('Presentation element not found');
+    const mobilePresentation = window.matchMedia('(max-width: 760px)');
+    const deck = new Reveal(revealElement, { hash: true, controls: true, controlsTutorial: false, progress: true, slideNumber: 'c/t', center: false, transition: 'fade', backgroundTransition: 'fade', touch: true, width: mobilePresentation.matches ? 390 : 1440, height: mobilePresentation.matches ? 844 : 900, margin: 0, minScale: 0.2, maxScale: 1.6, plugins: [RevealNotes] });
+    await deck.initialize();
+    const mapElement = document.querySelector<HTMLElement>('#presentation-map');
+    const L = (window as any).L;
+    let map: any;
+    if (mapElement && L) {
+      map = L.map(mapElement, { zoomControl: false, scrollWheelZoom: false, attributionControl: true }).setView([44, 8], 3);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '&copy; OpenStreetMap' }).addTo(map);
+      const cityData = JSON.parse(mapElement.dataset.cities || '[]');
+      const markers = cityData.map((city: any) => ({ city, marker: L.circleMarker([city.lat, city.lng], { radius: city.status === 'active' ? 7 : 5, color: '#fff', weight: 1.5, fillColor: city.status === 'active' ? city.color : '#8b8d93', fillOpacity: city.status === 'active' ? .9 : .5 }).bindTooltip(`<strong>${city.city}</strong><br>${city.country}`, { direction: 'top' }) }));
+      const showScope = (scope: string) => {
+        const visible = markers.filter(({ city }: any) => city.scope === scope);
+        markers.forEach(({ marker }: any) => { if (map.hasLayer(marker)) map.removeLayer(marker); });
+        visible.forEach(({ marker }: any) => marker.addTo(map));
+        if (visible.length) map.fitBounds(L.featureGroup(visible.map(({ marker }: any) => marker)).getBounds(), { padding: [35, 35], maxZoom: 5 });
+        document.querySelectorAll<HTMLButtonElement>('[data-map-scope]').forEach(button => { const active = button.dataset.mapScope === scope; button.classList.toggle('is-active', active); button.setAttribute('aria-pressed', String(active)); });
+      };
+      document.querySelectorAll<HTMLButtonElement>('[data-map-scope]').forEach(button => button.addEventListener('click', event => { event.stopPropagation(); showScope(button.dataset.mapScope || 'europe'); }));
+      showScope('europe');
+    }
+    const valueElement = document.querySelector<HTMLElement>('#value-graph');
+    const valueGraph = valueElement ? cytoscape({
+      container: valueElement,
+      elements: [
+        { data: { id: 'you', label: 'TI', kind: 'you' }, position: { x: 125, y: 305 } },
+        { data: { id: 'target', label: 'PERSONI\nQË KËRKON', kind: 'target' }, position: { x: 595, y: 155 } },
+        ...[[245,105],[365,80],[490,70],[650,285],[550,390],[425,485],[280,465],[115,475],[80,150],[250,250],[380,210],[500,275],[350,350],[220,375],[680,90],[690,445],[420,40],[45,350]].map(([x,y], i) => ({ data: { id: `person-${i}`, kind: 'person' }, position: { x, y } })),
+        ...[['you','person-8'],['you','person-9'],['you','person-13'],['person-8','person-0'],['person-0','person-1'],['person-0','person-9'],['person-9','person-10'],['person-9','person-12'],['person-13','person-12'],['person-13','person-6'],['person-6','person-5'],['person-10','person-2'],['person-10','person-11'],['person-12','person-11'],['person-12','person-5'],['person-2','target'],['person-11','person-3'],['person-11','person-4'],['person-4','person-15'],['person-3','person-14'],['person-1','person-16'],['person-6','person-7'],['person-7','person-17']].map(([source,target], i) => ({ data: { id: `value-edge-${i}`, source, target }, classes: [['you','person-9'],['person-9','person-10'],['person-10','person-2'],['person-2','target']].some(([a,b]) => a === source && b === target) ? 'value-path' : '' })),
+      ],
+      style: [
+        { selector: 'node', style: { width: 29, height: 29, 'background-color': '#aaa9ae', 'border-width': 1, 'border-color': '#fff' } },
+        { selector: 'node[kind="you"]', style: { label: 'data(label)', width: 92, height: 92, color: '#fff', 'font-family': 'Inter', 'font-size': 17, 'font-weight': 800, 'text-valign': 'center', 'text-halign': 'center', 'background-color': '#5b4553', 'border-width': 5, 'border-color': '#b9a4b0' } },
+        { selector: 'node[kind="target"]', style: { label: 'data(label)', shape: 'round-rectangle', width: 142, height: 82, color: '#fff', 'font-family': 'Inter', 'font-size': 11, 'font-weight': 800, 'text-wrap': 'wrap', 'text-max-width': 110, 'text-valign': 'center', 'text-halign': 'center', 'background-color': '#665735', 'border-width': 4, 'border-color': '#b5a47b' } },
+        { selector: 'edge', style: { width: 1.3, 'line-color': '#aaa9ae', opacity: .52, 'curve-style': 'bezier' } },
+        { selector: 'edge.value-path', style: { width: 4, 'line-color': '#806574', opacity: 1 } },
+      ],
+      layout: { name: 'preset', fit: true, padding: 30 },
+      userZoomingEnabled: false, userPanningEnabled: false, boxSelectionEnabled: false,
+    }) : undefined;
+
+    const governanceElement =
+  document.querySelector<HTMLElement>('#governance-graph');
+
+const governanceGraph = governanceElement
+  ? cytoscape({
+      container: governanceElement,
+
+      elements: [
+        // ============================================================
+        // LEVEL 1 — NETWORK
+        // ============================================================
+
+        {
+          data: {
+            id: 'network',
+            label: 'ILLYRIAN\nBRAINS',
+            kind: 'network',
+          },
+          position: { x: 410, y: 65 },
+        },
+
+        // Secretariat is support / coordination, not the network itself
+        {
+          data: {
+            id: 'secretariat',
+            label: 'IB OJF\nSEKRETARIATI',
+            kind: 'secretariat',
+          },
+          position: { x: 720, y: 65 },
+        },
+
+        // ============================================================
+        // LEVEL 2 — WAYS THE NETWORK ORGANISES
+        // ============================================================
+
+        {
+          data: {
+            id: 'cities',
+            label: 'QYTETET',
+            kind: 'city-hub',
+          },
+          position: { x: 170, y: 210 },
+        },
+
+        {
+          data: {
+            id: 'groups',
+            label: 'GRUPET\nPROFESIONALE',
+            kind: 'group-hub',
+          },
+          position: { x: 410, y: 210 },
+        },
+
+        {
+          data: {
+            id: 'projects',
+            label: 'PROJEKTET',
+            kind: 'project-hub',
+          },
+          position: { x: 650, y: 210 },
+        },
+
+        // ============================================================
+        // LEVEL 3 — CITIES
+        // ============================================================
+
+        {
+          data: {
+            id: 'new-york',
+            label: 'New York',
+            kind: 'city',
+          },
+          position: { x: 105, y: 340 },
+        },
+
+        {
+          data: {
+            id: 'milano',
+            label: 'Milano',
+            kind: 'city',
+          },
+          classes: 'formal',
+          position: { x: 235, y: 340 },
+        },
+
+        {
+          data: {
+            id: 'berlin',
+            label: 'Berlin',
+            kind: 'city',
+          },
+          position: { x: 105, y: 410 },
+        },
+
+        {
+          data: {
+            id: 'tirana',
+            label: 'Tirana',
+            kind: 'city',
+          },
+          position: { x: 235, y: 410 },
+        },
+
+        // ============================================================
+        // LEVEL 3 — PROFESSIONAL GROUPS
+        // ============================================================
+
+        {
+          data: {
+            id: 'tech',
+            label: 'IB Tech',
+            kind: 'group',
+          },
+          position: { x: 410, y: 340 },
+        },
+
+        {
+          data: {
+            id: 'business',
+            label: 'IB Business',
+            kind: 'group',
+          },
+          position: { x: 410, y: 410 },
+        },
+
+        // ============================================================
+        // LEVEL 3 — PROJECTS
+        // ============================================================
+
+        {
+          data: {
+            id: 'atlas',
+            label: 'Atlas',
+            kind: 'project',
+          },
+          position: { x: 585, y: 340 },
+        },
+
+        {
+          data: {
+            id: 'mentoring',
+            label: 'Mentoring',
+            kind: 'project',
+          },
+          position: { x: 715, y: 340 },
+        },
+
+        {
+          data: {
+            id: 'heritage',
+            label: 'Heritage',
+            kind: 'project',
+          },
+          position: { x: 585, y: 410 },
+        },
+
+        {
+          data: {
+            id: 'locals',
+            label: 'Locals',
+            kind: 'project',
+          },
+          position: { x: 715, y: 410 },
+        },
+
+        // ============================================================
+        // LEVEL 4 — ACTIVITIES / SUBGROUPS
+        // ============================================================
+
+        {
+          data: {
+            id: 'book-club',
+            label: 'Book Club',
+            kind: 'activity',
+            parentKind: 'city',
+          },
+          position: { x: 105, y: 505 },
+        },
+
+        {
+          data: {
+            id: 'webinar',
+            label: 'Webinar',
+            kind: 'activity',
+            parentKind: 'group',
+          },
+          position: { x: 410, y: 505 },
+        },
+
+        // ============================================================
+        // CONNECTIONS
+        // ============================================================
+
+        ...[
+          // Network → dimensions
+          ['network', 'cities', 'network-link'],
+          ['network', 'groups', 'network-link'],
+          ['network', 'projects', 'network-link'],
+
+          // Secretariat supports the whole network
+          ['secretariat', 'network', 'support-link'],
+
+          // Cities
+          ['cities', 'new-york', 'city-link'],
+          ['cities', 'milano', 'city-link'],
+          ['cities', 'berlin', 'city-link'],
+          ['cities', 'tirana', 'city-link'],
+
+          // Professional groups
+          ['groups', 'tech', 'professional-link'],
+          ['groups', 'business', 'professional-link'],
+
+          // Projects
+          ['projects', 'atlas', 'project-link'],
+          ['projects', 'mentoring', 'project-link'],
+          ['projects', 'heritage', 'project-link'],
+          ['projects', 'locals', 'project-link'],
+
+          // Level 4
+          ['berlin', 'book-club', 'city-detail-link'],
+          ['business', 'webinar', 'group-detail-link'],
+
+          // Cross-network relationships
+          ['berlin', 'atlas', 'cross-link'],
+          ['tech', 'atlas', 'cross-link'],
+          ['business', 'mentoring', 'cross-link'],
+          ['milano', 'mentoring', 'cross-link'],
+        ].map(([source, target, classes], index) => ({
+          data: {
+            id: `governance-edge-${index}`,
+            source,
+            target,
+          },
+          classes,
+        })),
+      ],
+
+      style: [
+        // ============================================================
+        // BASE
+        // ============================================================
+
+        {
+          selector: 'node',
+          style: {
+            label: 'data(label)',
+            shape: 'round-rectangle',
+
+            width: 105,
+            height: 46,
+
+            color: '#fff',
+
+            'font-family': 'Inter',
+            'font-size': 10,
+            'font-weight': 700,
+
+            'text-wrap': 'wrap',
+            'text-max-width': 92,
+            'text-valign': 'center',
+            'text-halign': 'center',
+
+            'background-color': '#4c5560',
+
+            'border-width': 1.5,
+            'border-color': '#87919b',
+          },
+        },
+
+        // ============================================================
+        // LEVEL 1
+        // ============================================================
+
+        {
+          selector: 'node[kind="network"]',
+          style: {
+            width: 155,
+            height: 78,
+
+            'font-size': 14,
+            'font-weight': 800,
+
+            'background-color': '#5b4553',
+
+            'border-width': 5,
+            'border-color': '#b9a4b0',
+          },
+        },
+
+        {
+          selector: 'node[kind="secretariat"]',
+          style: {
+            width: 125,
+            height: 58,
+
+            'font-size': 10,
+
+            'background-color': '#744761',
+
+            'border-width': 2,
+            'border-color': '#c9aebd',
+          },
+        },
+
+        // ============================================================
+        // CITIES — BLUE
+        // ============================================================
+
+        {
+          selector: 'node[kind="city-hub"]',
+          style: {
+            width: 140,
+            height: 62,
+
+            'font-size': 12,
+            'font-weight': 800,
+
+            'background-color': '#355368',
+
+            'border-width': 4,
+            'border-color': '#9bb9cc',
+          },
+        },
+
+        {
+          selector: 'node[kind="city"]',
+          style: {
+            'background-color': '#355368',
+            'border-color': '#7896aa',
+          },
+        },
+
+        {
+          selector: 'node.formal',
+          style: {
+            'border-width': 4,
+            'border-color': '#b6d3d4',
+          },
+        },
+
+        // ============================================================
+        // PROFESSIONAL GROUPS — PURPLE
+        // ============================================================
+
+        {
+          selector: 'node[kind="group-hub"]',
+          style: {
+            width: 140,
+            height: 62,
+
+            'font-size': 11,
+            'font-weight': 800,
+
+            'background-color': '#5b526e',
+
+            'border-width': 4,
+            'border-color': '#aa9fbd',
+          },
+        },
+
+        {
+          selector: 'node[kind="group"]',
+          style: {
+            'background-color': '#5b526e',
+            'border-color': '#9589aa',
+          },
+        },
+
+        // ============================================================
+        // PROJECTS — GOLD
+        // ============================================================
+
+        {
+          selector: 'node[kind="project-hub"]',
+          style: {
+            width: 140,
+            height: 62,
+
+            'font-size': 12,
+            'font-weight': 800,
+
+            'background-color': '#665735',
+
+            'border-width': 4,
+            'border-color': '#b5a47b',
+          },
+        },
+
+        {
+          selector: 'node[kind="project"]',
+          style: {
+            'background-color': '#665735',
+            'border-color': '#a89567',
+          },
+        },
+
+        // ============================================================
+        // LEVEL 4 — ACTIVITIES
+        // Keep parent's color family
+        // ============================================================
+
+        {
+          selector: 'node[kind="activity"][parentKind="city"]',
+          style: {
+            width: 80,
+            height: 34,
+
+            'font-size': 9,
+
+            'background-color': '#355368',
+
+            'border-width': 1.5,
+            'border-style': 'dashed',
+            'border-color': '#9bb9cc',
+          },
+        },
+
+        {
+          selector: 'node[kind="activity"][parentKind="group"]',
+          style: {
+            width: 80,
+            height: 34,
+
+            'font-size': 9,
+
+            'background-color': '#5b526e',
+
+            'border-width': 1.5,
+            'border-style': 'dashed',
+            'border-color': '#aa9fbd',
+          },
+        },
+
+        // ============================================================
+        // EDGES
+        // ============================================================
+
+        {
+          selector: 'edge',
+          style: {
+            width: 1.5,
+
+            'line-color': '#777b82',
+            opacity: 0.65,
+
+            'curve-style': 'straight',
+
+            'target-arrow-shape': 'none',
+          },
+        },
+
+        // Network → three dimensions
+        {
+          selector: 'edge.network-link',
+          style: {
+            width: 3,
+            'line-color': '#8f7885',
+            opacity: 0.9,
+
+            'curve-style': 'bezier',
+          },
+        },
+
+        // Blue
+        {
+          selector: 'edge.city-link',
+          style: {
+            width: 2,
+            'line-color': '#7898ad',
+            opacity: 0.85,
+          },
+        },
+
+        // Purple
+        {
+          selector: 'edge.professional-link',
+          style: {
+            width: 2,
+            'line-color': '#9589aa',
+            opacity: 0.85,
+          },
+        },
+
+        // Gold
+        {
+          selector: 'edge.project-link',
+          style: {
+            width: 2,
+            'line-color': '#a89567',
+            opacity: 0.85,
+          },
+        },
+
+        // Level 4 keeps parent color
+        {
+          selector: 'edge.city-detail-link',
+          style: {
+            width: 1.2,
+            'line-color': '#7898ad',
+            'line-style': 'dashed',
+            opacity: 0.6,
+          },
+        },
+
+        {
+          selector: 'edge.group-detail-link',
+          style: {
+            width: 1.2,
+            'line-color': '#9589aa',
+            'line-style': 'dashed',
+            opacity: 0.6,
+          },
+        },
+
+        // Secretariat relationship
+        {
+          selector: 'edge.support-link',
+          style: {
+            width: 1.5,
+
+            'line-color': '#c9aebd',
+            'line-style': 'dashed',
+
+            opacity: 0.65,
+
+            'curve-style': 'bezier',
+          },
+        },
+
+        // Relationships between branches
+        {
+          selector: 'edge.cross-link',
+          style: {
+            width: 1,
+
+            'line-color': '#aaa9ae',
+            'line-style': 'dashed',
+
+            opacity: 0.22,
+
+            'curve-style': 'bezier',
+          },
+        },
+      ],
+
+      layout: {
+        name: 'preset',
+        fit: true,
+        padding: 35,
+      },
+
+      userZoomingEnabled: false,
+      userPanningEnabled: false,
+      boxSelectionEnabled: false,
+    })
+  : undefined;
+
+    const graphElement = document.querySelector<HTMLElement>('#presentation-graph');
+    const graph = graphElement ? cytoscape({
+      container: graphElement,
+      elements: [
+        { data: { id: 'you', label: 'TI', kind: 'core' }, position: { x: 390, y: 315 } },
+        { data: { id: 'city', label: 'QYTETI\nBerlin', kind: 'component' }, position: { x: 190, y: 180 } },
+        { data: { id: 'profession', label: 'PROFESIONI\nTeknologji', kind: 'component' }, position: { x: 590, y: 180 } },
+        { data: { id: 'interest', label: 'INTERESI\nGrupi i librit', kind: 'component' }, position: { x: 190, y: 455 } },
+        { data: { id: 'project', label: 'PROJEKTI\nMentoring', kind: 'component' }, position: { x: 590, y: 455 } },
+        { data: { id: 'p1', label: 'Elira', kind: 'person' }, position: { x: 55, y: 95 } },
+        { data: { id: 'p2', label: 'Arben', kind: 'person' }, position: { x: 55, y: 245 } },
+        { data: { id: 'p3', label: 'Mira', kind: 'person' }, position: { x: 725, y: 95 } },
+        { data: { id: 'p4', label: 'Liridon', kind: 'person' }, position: { x: 725, y: 245 } },
+        { data: { id: 'p5', label: 'Ana', kind: 'person' }, position: { x: 55, y: 390 } },
+        { data: { id: 'p6', label: 'Besnik', kind: 'person' }, position: { x: 55, y: 535 } },
+        { data: { id: 'p7', label: 'Dea', kind: 'person' }, position: { x: 725, y: 390 } },
+        { data: { id: 'p8', label: 'Gent', kind: 'person' }, position: { x: 725, y: 535 } },
+        ...[['you','city'],['you','profession'],['you','interest'],['you','project'],['city','p1'],['city','p2'],['profession','p3'],['profession','p4'],['interest','p5'],['interest','p6'],['project','p7'],['project','p8'],['p1','interest'],['p4','project'],['p6','city'],['p7','profession']].map(([source, target], i) => ({ data: { id: `career-edge-${i}`, source, target }, classes: source === 'you' ? 'direct' : '' })),
+      ],
+      style: [
+        { selector: 'node', style: { label: 'data(label)', shape: 'round-rectangle', width: 106, height: 48, color: '#fff', 'font-family': 'Inter', 'font-size': 11, 'font-weight': 700, 'text-wrap': 'wrap', 'text-max-width': 96, 'text-valign': 'center', 'text-halign': 'center', 'background-color': '#4f5058', 'border-width': 1.5, 'border-color': '#8b8d93' } },
+        { selector: 'node[kind="core"]', style: { shape: 'ellipse', width: 105, height: 105, 'font-size': 18, 'background-color': '#5b4553', color: '#fff', 'border-width': 5, 'border-color': '#b9a4b0' } },
+        { selector: 'node[kind="component"]', style: { width: 138, height: 70, 'background-color': '#34424e', 'border-width': 3, 'border-color': '#71808b', 'font-size': 11 } },
+        { selector: 'node[kind="person"]', style: { shape: 'ellipse', width: 58, height: 58, 'background-color': '#44343e', 'border-color': '#806276', 'font-size': 9 } },
+        { selector: 'edge', style: { width: 1.5, 'line-color': '#706873', opacity: .68, 'curve-style': 'bezier' } },
+        { selector: 'edge.direct', style: { width: 4, 'line-color': '#b88da6', opacity: 1 } },
+      ],
+      layout: { name: 'preset', fit: true, padding: 35 },
+      userZoomingEnabled: false, userPanningEnabled: false, boxSelectionEnabled: false,
+    }) : undefined;
+    deck.on('slidechanged', event => {
+      if (event.currentSlide?.querySelector('#value-graph')) setTimeout(() => { valueGraph?.resize(); valueGraph?.fit(undefined, 25); }, 100);
+      if (event.currentSlide?.querySelector('#governance-graph')) setTimeout(() => { governanceGraph?.resize(); governanceGraph?.fit(undefined, 25); }, 100);
+      if (event.currentSlide?.querySelector('#presentation-map')) setTimeout(() => map?.invalidateSize(), 100);
+      if (event.currentSlide?.querySelector('#presentation-graph')) setTimeout(() => { graph?.resize(); graph?.fit(undefined, 35); }, 100);
+    });
+    const fullscreenButton = document.querySelector<HTMLButtonElement>('[data-fullscreen]');
+    fullscreenButton?.addEventListener('click', async () => { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); });
+    document.addEventListener('fullscreenchange', () => { const label = fullscreenButton?.querySelector('span'); if (label) label.textContent = document.fullscreenElement ? 'Dil nga ekrani i plotë' : 'Ekran i plotë'; });
+  </script>
+</BaseLayout>

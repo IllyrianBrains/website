@@ -3,6 +3,7 @@ import '../styles/global.css';
 import '../styles/accents.css';
 import '../styles/about.css';
 import '../styles/readability.css';
+import 'leaflet/dist/leaflet.css';
 const { title = 'Illyrian Brains Network', description = 'Rrjeti i Illyrian Brains që bashkon profesionistët shqiptarë kudo ndodhen — me evente miqësore dhe diskutime të frytshme.' } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
@@ -17,7 +18,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <title>{title}</title>
 
     <meta property="og:type" content="website" />
