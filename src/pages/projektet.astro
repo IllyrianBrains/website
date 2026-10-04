@@ -3,28 +3,29 @@ import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHero from '../components/PageHero.astro';
 
 const projects = [
-  { title: 'Atlas', color: '#2f6f9f', icon: '🌍', notes: ['Një udhëzues për çdo shtet, me të njëjtën strukturë.', 'Mbulon dokumentet, imigrimin, integrimin dhe rrjetëzimin.', 'Përmban edhe lojëra për të mësuar rreth secilit shtet.', 'Shkruhet dhe përditësohet nga anëtarë që kanë jetuar atje.'], text: 'Udhëzues praktikë shtet pas shteti për diasporën: dokumentet, imigrimi, integrimi dhe rrjetëzimi.', url: 'https://atlas.illyrianbrains.org/', label: 'Hap Atlas ↗' },
-  { title: 'Heritage', color: '#b5502f', icon: '🏛️', notes: ['Ndjek gjendjen e zonave natyrore dhe kuadrin ligjor që i mbron.', 'Shpjegon ndërhyrjet e planifikuara dhe organizatat partnere.', 'Faqe për njerëz që nuk janë aktivistë, si ajo për Vjosën.', 'Ka pjesë për kulturën, aktivizmin dhe raportimin e problemeve.'], text: 'Trashëgimia natyrore dhe kulturore: gjendja e zonave natyrore, kuadri ligjor, ndërhyrjet e planifikuara dhe organizatat partnere.', url: 'https://heritage.illyrianbrains.org/', label: 'Hap Heritage ↗' },
-  { title: 'Mentoring', color: '#3a7d5c', icon: '🤝', notes: ['Gjen mentor sipas fushës, qytetit dhe përvojës.', 'Ndihmon të përcaktosh një qëllim para takimit të parë.', 'Ka modele praktike për takime më të qarta.', 'Mund të futesh si mentor ose si i mentoruar.'], text: 'Programi i mentorimit: gjej mentorin e duhur sipas fushës, qytetit dhe përvojës, dhe kthe përvojën e rrjetit në hapa konkretë.', url: 'https://mentoring.illyrianbrains.org/', label: 'Hap Mentoring ↗' },
-  { title: 'Locals', color: '#c08a1e', icon: '🧭', notes: ['Guida të udhëtimit të ngadaltë për qytete në Shqipëri dhe Kosovë.', 'Katalog që filtrohet sipas llojit të udhëtimit, sezonit dhe kohëzgjatjes.', 'Hartë për të krahasuar zonat, plus vende të fshehta të zgjedhura me dorë.', 'Mund të kontribuosh me hartim në OpenStreetMap, Wikipedia dhe Wikidata.'], text: 'Zbulo Shqipërinë dhe Kosovën përmes vendeve të fshehta, bujtinave, zejtarëve dhe përvojave që mbështesin ekonominë vendase.', url: 'https://locals.illyrianbrains.org/', label: 'Hap Locals ↗' },
-  { title: 'Playground', color: '#744761', icon: '🎮', notes: ['Lojëra të shkurtra si Memory Match dhe Speed Sort.', 'Kuize për tema si integrimi dhe AI për inxhinierë.', 'Ushtrime për t’u njohur me anëtarë të tjerë dhe për të stërvitur prezantimin.', 'Nuk të duhet llogari, hapet direkt.'], text: 'Lojëra, kuize dhe ushtrime të vogla për komunitetin: nga njohja mes anëtarëve te ushtrimet e prezantimit.', url: '/projektet/playground/', label: 'Hap Playground' },
+  { title: 'Atlas', color: '#2f6f9f', icon: '🌍', pitch: 'Udhëzues praktikë, shtet pas shteti, për shqiptarët që jetojnë ose po mendojnë të shkojnë jashtë.', cards: [{ title: 'Dokumentet', text: 'Hapat praktikë për dokumentet dhe imigrimin.' }, { title: 'Jeta e përditshme', text: 'Informacion për integrimin dhe jetën në një shtet të ri.' }, { title: 'Rrjeti', text: 'Përvoja dhe lidhje nga anëtarë që kanë jetuar atje.' }], url: 'https://atlas.illyrianbrains.org/', label: 'Hap Atlas' },
+  { title: 'Heritage', color: '#a7472a', icon: '🏛️', pitch: 'Informacion i qartë mbi trashëgiminë natyrore dhe kulturore të Shqipërisë dhe Kosovës.', cards: [{ title: 'Natyra', text: 'Gjendja e zonave natyrore dhe çfarë po mbrohet.' }, { title: 'Ligji', text: 'Kuadri ligjor dhe ndërhyrjet e planifikuara.' }, { title: 'Veprimi', text: 'Organizatat partnere, aktivizmi dhe raportimi.' }], url: 'https://heritage.illyrianbrains.org/', label: 'Hap Heritage' },
+  { title: 'Mentoring', color: '#2f7352', icon: '🤝', pitch: 'Programi që lidh përvojën e anëtarëve me njerëzit që duan të bëjnë hapin e radhës.', cards: [{ title: 'Gjej mentor', text: 'Kërko sipas fushës, qytetit dhe përvojës.' }, { title: 'Vendos qëllimin', text: 'Përcakto çfarë dëshiron të arrish para takimit.' }, { title: 'Ndaj përvojën', text: 'Merr pjesë si mentor ose si i mentoruar.' }], url: 'https://mentoring.illyrianbrains.org/', label: 'Hap Mentoring' },
+  { title: 'Locals', color: '#a66d00', icon: '🧭', pitch: 'Udhëzues udhëtimi të ngadaltë për të zbuluar Shqipërinë dhe Kosovën përmes njerëzve vendas.', cards: [{ title: 'Guida lokale', text: 'Qytete, vende të fshehta, bujtina dhe zejtarë.' }, { title: 'Planifikimi', text: 'Zgjidh sipas sezonit, kohëzgjatjes dhe llojit të udhëtimit.' }, { title: 'Kontributet', text: 'Shto njohuritë e tua në hartë dhe në burime të hapura.' }], url: 'https://locals.illyrianbrains.org/', label: 'Hap Locals' },
+  { title: 'Playground', color: '#744761', icon: '🎮', pitch: 'Lojëra dhe ushtrime të shkurtra për njohje, mësim dhe prezantim brenda komunitetit.', cards: [{ title: 'Lojëra', text: 'Memory Match, Speed Sort dhe aktivitete të shpejta.' }, { title: 'Kuize', text: 'Tema si integrimi dhe AI për inxhinierë.' }, { title: 'Prezantimi', text: 'Ushtrime për t’u njohur dhe për të provuar një pitch.' }], url: '/projektet/playground/', label: 'Hap Playground' },
 ];
 ---
-<SiteLayout title="Laboratori · Illyrian Brains" description="Projektet e Illyrian Brains: çfarë bën secili dhe ku mund t’i gjesh." mainClass="about-page">
-  <PageHero title="Laboratori" eyebrow="Projektet e rrjetit">
-    <p class="about-body">Disa nisma të vogla të rrjetit, secila me faqen e vet. Këtu ka një shënim të shkurtër për secilën.</p>
+<SiteLayout title="Projektet e rrjetit · Illyrian Brains" description="Njihu me projektet e Illyrian Brains dhe me informacionin që ofron secili." mainClass="about-page projects-overview-page">
+  <PageHero title="Projektet" eyebrow="Illyrian Brains">
+    <p class="about-body">Pesë nisma të rrjetit, ndërtuar mbi njohuritë dhe përvojën e anëtarëve. Kjo faqe të jep një pamje të shpejtë të asaj që mund të gjesh në secilën.</p>
   </PageHero>
 
-  {projects.map((p, i) => (
-    <section class:list={['section', 'lab-section', i % 2 === 0 ? 'tone-white' : 'tone-grey']} id={p.title.toLowerCase()} style={`--lab: ${p.color}`} data-num={String(i + 1).padStart(2, '0')}>
-      <div class="container city-page lab-row">
-        <div class="lab-intro">
-          <span class="lab-icon" aria-hidden="true">{p.icon}</span>
-          <h2>{p.title}</h2>
-          <p>{p.text}</p>
-          <a class="lab-link" href={p.url} {...(p.url.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})}>{p.label}</a>
+  {projects.map((project, index) => (
+    <section class:list={['section', 'project-block', index % 2 === 0 ? 'tone-white' : 'tone-grey']} id={project.title.toLowerCase()} style={`--project: ${project.color}`} aria-labelledby={`${project.title.toLowerCase()}-title`}>
+      <div class="container city-page">
+        <div class="project-block-head">
+          <span class="project-block-icon" aria-hidden="true">{project.icon}</span>
+          <div><p class="eyebrow">Projekti {index + 1}</p><h2 id={`${project.title.toLowerCase()}-title`}>{project.title}</h2><p>{project.pitch}</p></div>
+          <a class="project-block-link" href={project.url} {...(project.url.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})}>{project.label}</a>
         </div>
-        <ul class="lab-notes">{p.notes.map((n) => <li>{n}</li>)}</ul>
+        <div class="project-info-grid">
+          {project.cards.map((card) => <article><h3>{card.title}</h3><p>{card.text}</p></article>)}
+        </div>
       </div>
     </section>
   ))}
