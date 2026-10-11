@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
   import { memberSession } from './member-session';
+  import { createProfileEntries, educationFields, experienceFields, openProfileEntry, profileEntryProblem, readProfileEntries } from './profile-entries';
   import { tagInput, loadTagSuggestions } from './tag-input';
 
   const root = document.querySelector<HTMLElement>('#profile-editor')!;
@@ -30,90 +31,25 @@ import { createClient } from '@supabase/supabase-js';
     languages: tagInput(form.querySelector<HTMLElement>('[data-tags="languages"]')!, changed),
   };
 
-  // ── Experience / education rows ──
-  // Each row shows a LinkedIn-style summary; the pencil opens its fields below.
-  // Inputs are created empty and filled through .value, and the summary through
-  // .textContent, so no member text is ever parsed as HTML.
-  const rowSummary = '<div class="profile-entry"><span class="profile-list-icon" data-summary="icon"></span><div class="profile-entry-text"><strong data-summary="title"></strong><span data-summary="sub"></span><small data-summary="meta"></small></div><div class="profile-editor-row-controls"><button type="button" data-move="-1" aria-label="Lëviz lart" title="Lëviz lart">↑</button><button type="button" data-move="1" aria-label="Lëviz poshtë" title="Lëviz poshtë">↓</button><button type="button" data-edit aria-label="Edito" title="Edito">✎</button><button type="button" data-remove aria-label="Hiq" title="Hiq">✕</button></div></div>';
-  const rowDone = '<div class="profile-editor-wide profile-entry-done"><button class="profile-editor-text-button" type="button" data-edit>Mbyll</button></div>';
-  const experienceFields = `<label>Pozicioni *<input data-key="title" maxlength="160" /></label><label>Organizata<input data-key="organization" maxlength="160" /></label><label>Vendndodhja<input data-key="location" maxlength="120" /></label><div class="profile-editor-years"><label>Nga viti<input data-key="start_year" type="number" min="1950" max="2100" /></label><label>Deri në vitin<input data-key="end_year" type="number" min="1950" max="2100" /></label><label class="profile-editor-check"><input data-key="is_current" type="checkbox" /> Punoj ende këtu</label></div><label class="profile-editor-wide">Përshkrimi<textarea data-key="description" rows="3" maxlength="2000"></textarea></label>`;
-  const educationFields = `<label>Shkolla / universiteti *<input data-key="school" maxlength="160" /></label><label>Diploma<input data-key="degree" maxlength="80" placeholder="p.sh. MSc" /></label><label>Fusha e studimit<input data-key="field" maxlength="160" /></label><div class="profile-editor-years"><label>Nga viti<input data-key="start_year" type="number" min="1950" max="2100" /></label><label>Deri në vitin<input data-key="end_year" type="number" min="1950" max="2100" /></label></div>`;
-
-  const addRow = (container: HTMLElement, fieldsHtml: string, values: Record<string, any> = {}) => {
-    const row = document.createElement('div');
-    row.className = 'profile-editor-row';
-    row.innerHTML = `${rowSummary}<div class="profile-entry-form profile-editor-grid">${fieldsHtml}${rowDone}</div>`;
-    row.querySelectorAll<HTMLInputElement>('[data-key]').forEach(input => {
-      const value = values[input.dataset.key!];
-      if (input.type === 'checkbox') input.checked = Boolean(value);
-      else input.value = value ?? '';
-    });
-    const current = row.querySelector<HTMLInputElement>('[data-key="is_current"]');
-    const end = row.querySelector<HTMLInputElement>('[data-key="end_year"]');
-    const syncEnd = () => { if (current && end) { end.disabled = current.checked; if (current.checked) end.value = ''; } };
-    current?.addEventListener('change', syncEnd);
-    syncEnd();
-    summarize(row);
-    row.addEventListener('input', () => summarize(row));
-    row.addEventListener('change', () => summarize(row));
-    row.querySelectorAll('[data-edit]').forEach(button => button.addEventListener('click', () => openRow(row, !row.classList.contains('is-editing'))));
-    row.querySelector('[data-remove]')!.addEventListener('click', () => { row.remove(); changed(); });
-    row.querySelectorAll<HTMLElement>('[data-move]').forEach(button => button.addEventListener('click', () => {
-      if (button.dataset.move === '-1' && row.previousElementSibling) container.insertBefore(row, row.previousElementSibling);
-      if (button.dataset.move === '1' && row.nextElementSibling) container.insertBefore(row.nextElementSibling, row);
-      changed();
-    }));
-    container.append(row);
-    return row;
-  };
-  const openRow = (row: Element, open = true) => {
-    row.classList.toggle('is-editing', open);
-    row.querySelector('.profile-entry [data-edit]')!.setAttribute('aria-expanded', String(open));
-  };
-  function summarize(row: Element) {
-    const value = (key: string) => row.querySelector<HTMLInputElement>(`[data-key="${key}"]`)?.value.trim() || '';
-    const isEducation = Boolean(row.querySelector('[data-key="school"]'));
-    const current = row.querySelector<HTMLInputElement>('[data-key="is_current"]')?.checked;
-    const title = value(isEducation ? 'school' : 'title');
-    const sub = (isEducation ? [value('degree'), value('field')] : [value('organization')]).filter(Boolean).join(', ');
-    const years = [value('start_year'), current ? 'Tani' : value('end_year')].filter(Boolean).join(' – ');
-    const text = (part: string, content: string) => { row.querySelector(`[data-summary="${part}"]`)!.textContent = content; };
-    text('title', title || (isEducation ? 'Arsimim i ri' : 'Pozicion i ri'));
-    text('sub', sub);
-    text('meta', [years, value('location')].filter(Boolean).join(' · '));
-    text('icon', ((isEducation ? value('school') : value('organization')) || title || '•')[0].toUpperCase());
-  }
-  const readRows = (container: HTMLElement) => [...container.children].map(row => Object.fromEntries(
-    [...row.querySelectorAll<HTMLInputElement>('[data-key]')].map(input => [
-      input.dataset.key!,
-      input.type === 'checkbox' ? input.checked : input.type === 'number' ? (input.value ? Number(input.value) : null) : input.value.trim(),
-    ]),
-  ));
   const experienceRows = document.querySelector<HTMLElement>('#experience-rows')!;
   const educationRows = document.querySelector<HTMLElement>('#education-rows')!;
-  const addBlankRow = (container: HTMLElement, fieldsHtml: string) => {
-    const row = addRow(container, fieldsHtml);
-    openRow(row);
-    row.querySelector<HTMLInputElement>('[data-key]')!.focus();
-    changed();
-  };
-  document.querySelector('#add-experience')!.addEventListener('click', () => addBlankRow(experienceRows, experienceFields));
-  document.querySelector('#add-education')!.addEventListener('click', () => addBlankRow(educationRows, educationFields));
+  const entries = createProfileEntries(changed);
+  document.querySelector('#add-experience')!.addEventListener('click', () => entries.addBlank(experienceRows, experienceFields));
+  document.querySelector('#add-education')!.addEventListener('click', () => entries.addBlank(educationRows, educationFields));
 
-  // Catches what the database would silently drop or accept wrongly: rows
-  // without a title/school, and years in the wrong order.
-  const thisYear = new Date().getFullYear();
-  const rowProblem = (container: HTMLElement, label: string, requiredKey: string, requiredLabel: string): [HTMLInputElement, string] | null => {
-    for (const row of container.children) {
-      const input = (key: string) => row.querySelector<HTMLInputElement>(`[data-key="${key}"]`)!;
-      const filled = [...row.querySelectorAll<HTMLInputElement>('[data-key]')].some(el => (el.type === 'checkbox' ? el.checked : el.value.trim()));
-      if (filled && !input(requiredKey).value.trim()) return [input(requiredKey), `${label}: plotëso “${requiredLabel}” ose hiqe rreshtin.`];
-      const start = Number(input('start_year').value) || 0, end = Number(input('end_year').value) || 0;
-      if (start && (start < 1950 || start > thisYear)) return [input('start_year'), `${label}: viti i fillimit duhet të jetë ndërmjet 1950 dhe ${thisYear}.`];
-      if (start && end && end < start) return [input('end_year'), `${label}: viti i mbarimit është para vitit të fillimit.`];
-    }
-    return null;
-  };
+  // ── LinkedIn PDF import ──
+  // An n8n workflow (outside this repo) turns the uploaded PDF into this JSON
+  // shape and nothing else — no Supabase credentials involved on its side.
+  function applyLinkedinImport(json: any) {
+    if (json.headline && !field('headline').value.trim()) field('headline').value = json.headline;
+    if (json.company && !field('company').value.trim()) field('company').value = json.company;
+    if (json.about && !field('about').value.trim()) field('about').value = json.about;
+    const current = tags.skills.peek();
+    const next = (json.skills || []).filter((skill: string) => !current.some((existing: string) => existing.toLowerCase() === skill.toLowerCase()));
+    if (next.length) tags.skills.set([...current, ...next]);
+    (json.experience || []).forEach((row: any) => entries.add(experienceRows, experienceFields, row));
+    (json.education || []).forEach((row: any) => entries.add(educationRows, educationFields, row));
+  }
 
   // ── Profile strength ──
   const strengthChecks: [string, string, () => boolean][] = [
@@ -203,6 +139,8 @@ import { createClient } from '@supabase/supabase-js';
   };
 
   const url = root.dataset.supabaseUrl, key = root.dataset.supabaseKey;
+  const linkedinWebhookUrl = root.dataset.linkedinImportWebhookUrl || '';
+  document.querySelector<HTMLElement>('#section-linkedin-import')!.hidden = !linkedinWebhookUrl;
   if (!url || !key) say('Editimi i profileve nuk është konfiguruar ende.', 'error');
   else start(createClient(url, key));
 
@@ -285,7 +223,14 @@ import { createClient } from '@supabase/supabase-js';
 
     const load = async (id: number) => {
       say('Duke ngarkuar…');
-      const { data: member, error } = await supabase.from('members').select('*, member_experience(*), member_education(*)').eq('id', id).single();
+      const { data: member, error } = await supabase.from('members').select(`
+        id, username, name, email, status, headline, company, experience_level,
+        city, country, about, website, linkedin_url, fields_of_expertise, skills,
+        languages, avatar, aspiration_field, aspiration_subfield, aspirations_note,
+        mentoring_interests, business_interests, return_plan, return_countries,
+        member_experience(id, title, organization, location, start_year, end_year, is_current, description, sort_order),
+        member_education(id, school, degree, field, start_year, end_year, sort_order)
+      `).eq('id', id).single();
       if (error || !member) return say(`Profili nuk u ngarkua: ${error?.message}`, 'error');
       memberId = id;
       ['name', 'headline', 'company', 'experience_level', 'city', 'country', 'about', 'website', 'linkedin_url'].forEach(name => { field(name).value = member[name] || ''; });
@@ -312,8 +257,8 @@ import { createClient } from '@supabase/supabase-js';
       document.querySelector<HTMLElement>('#pending-notice')!.hidden = member.status === 'ok';
       experienceRows.replaceChildren();
       educationRows.replaceChildren();
-      [...member.member_experience].sort((a: any, b: any) => a.sort_order - b.sort_order).forEach((row: any) => addRow(experienceRows, experienceFields, row));
-      [...member.member_education].sort((a: any, b: any) => a.sort_order - b.sort_order).forEach((row: any) => addRow(educationRows, educationFields, row));
+      [...member.member_experience].sort((a: any, b: any) => a.sort_order - b.sort_order).forEach((row: any) => entries.add(experienceRows, experienceFields, row));
+      [...member.member_education].sort((a: any, b: any) => a.sort_order - b.sort_order).forEach((row: any) => entries.add(educationRows, educationFields, row));
       avatar = member.avatar;
       drawPhoto();
       drawIntro();
@@ -350,6 +295,27 @@ import { createClient } from '@supabase/supabase-js';
     });
     document.querySelector('#photo-remove')!.addEventListener('click', () => { avatar = null; drawPhoto(); changed(); });
 
+    document.querySelector<HTMLInputElement>('#linkedin-pdf-input')!.addEventListener('change', async event => {
+      const input = event.target as HTMLInputElement;
+      const file = input.files?.[0];
+      input.value = '';
+      if (!file) return;
+      if (file.type !== 'application/pdf') return say('Zgjidh një skedar PDF.', 'error');
+      if (file.size > 10 * 1024 * 1024) return say('PDF-ja është shumë e madhe (maksimumi 10MB).', 'error');
+      try {
+        say('Duke lexuar PDF-në e LinkedIn…');
+        const body = new FormData();
+        body.append('file', file);
+        const response = await fetch(linkedinWebhookUrl, { method: 'POST', body });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        applyLinkedinImport(await response.json());
+        changed();
+        say('Të dhënat u importuan nga LinkedIn — kontrolloji dhe kliko “Ruaj ndryshimet”.', 'ok');
+      } catch (error: any) {
+        say(`Importimi nga LinkedIn dështoi: ${error.message}`, 'error');
+      }
+    });
+
     document.querySelector<HTMLButtonElement>('#export-data')!.addEventListener('click', async () => {
       const { data, error } = await supabase.rpc('my_data_export');
       if (error || !data) return say(`Të dhënat nuk u shkarkuan: ${error?.message || 'nuk u gjetën'}`, 'error');
@@ -369,7 +335,7 @@ import { createClient } from '@supabase/supabase-js';
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
-      const problem = rowProblem(experienceRows, 'Eksperienca', 'title', 'Pozicioni') || rowProblem(educationRows, 'Arsimimi', 'school', 'Shkolla / universiteti');
+      const problem = profileEntryProblem(experienceRows, 'Eksperienca', 'title', 'Pozicioni') || profileEntryProblem(educationRows, 'Arsimimi', 'school', 'Shkolla / universiteti');
       if (!field('name').value.trim()) {
         say('Emri nuk mund të jetë bosh.', 'error');
         field('name').closest('details')!.open = true;
@@ -378,7 +344,7 @@ import { createClient } from '@supabase/supabase-js';
       }
       if (problem) {
         problem[0].closest('details')!.open = true;
-        openRow(problem[0].closest('.profile-editor-row')!);
+        openProfileEntry(problem[0].closest('.profile-editor-row')!);
         say(problem[1], 'error');
         problem[0].focus();
         return;
@@ -399,8 +365,8 @@ import { createClient } from '@supabase/supabase-js';
       const { error: profileError } = await supabase.rpc('save_member_profile', {
         p_member_id: memberId,
         p_profile: profile,
-        p_experience: readRows(experienceRows),
-        p_education: readRows(educationRows),
+        p_experience: readProfileEntries(experienceRows),
+        p_education: readProfileEntries(educationRows),
       });
       let error = profileError;
       if (!error) ({ error } = await supabase.rpc('save_member_aspirations', {

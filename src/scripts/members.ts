@@ -1,4 +1,4 @@
-// Shared by the member profile pages (/anetaret/<slug>/) at build time and by
+// Shared by the member profile pages (/<slug>/) at build time and by
 // /anetaret/ and /rrjeti/postimet/ in the browser, so links and
 // suggestions match everywhere. No data imports here — the browser bundles it.
 
@@ -8,7 +8,15 @@ export const memberSlug = (username: string) => username
   .normalize('NFD').replace(/[̀-ͯ]/g, '')
   .toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '');
 
-export const memberUrl = (username: string) => `/anetaret/${memberSlug(username)}/`;
+// Profile pages live at the site root (/<slug>/), so a too-short slug risks
+// colliding with one of the site's other top-level routes (/rrjeti/, /ekipet/, …).
+// Only slugs longer than five characters get a page; shorter ones fall back
+// to the directory search.
+export const hasMemberPage = (username: string) => memberSlug(username).length > 5;
+
+export const memberUrl = (username: string) => hasMemberPage(username)
+  ? `/${memberSlug(username)}/`
+  : `/anetaret/?search=${encodeURIComponent(username)}`;
 
 interface Suggestable {
   username: string;

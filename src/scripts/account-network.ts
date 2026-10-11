@@ -1,8 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
   import cytoscape from 'cytoscape';
+  import { avatarElement, fillList, followButton as createFollowButton, networkGraphStyles, personRow, preview } from './account-network-view';
   import { memberSession } from './member-session';
   import { initials, memberUrl, postElement, relatedMembers, type MemberPost } from './members';
-  const preview = (value: string, limit = 220) => { const text = (value || "").replaceAll(String.fromCharCode(10), " ").replaceAll(String.fromCharCode(9), " ").split(" ").filter(Boolean).join(" ").trim(); return text.length <= limit ? text : text.slice(0, limit - 1).trimEnd() + "…"; };
+  import { addSelectOptions, topicMatches, type Subscription } from './account-subscriptions';
 
   const root = document.querySelector<HTMLElement>('#network')!;
   const statusLine = document.querySelector<HTMLElement>('#network-status')!;
@@ -22,11 +23,11 @@ import { createClient } from '@supabase/supabase-js';
       supabase.from('public_member_profiles').select('profile').order('name'),
       supabase.rpc('my_subscriptions'),
       supabase.from('categories').select('name').order('sort_order').order('name'),
-      supabase.from('public_member_posts').select('*').order('created_at', { ascending: false }).limit(100),
-      supabase.from('public_ideas').select('*').order('created_at', { ascending: false }).limit(100),
+      supabase.from('public_member_posts').select('id,body,created_at,username,name,headline,avatar,tags').order('created_at', { ascending: false }).limit(100),
+      supabase.from('public_ideas').select('id,slug,title,description,tags,name,created_at,author_username').order('created_at', { ascending: false }).limit(100),
       supabase.rpc('my_subscription_read_state'),
       supabase.from('public_organizations').select('id,name').order('name'),
-      supabase.from('public_organization_offers').select('*').order('created_at', { ascending: false }).limit(100),
+      supabase.from('public_organization_offers').select('id,organization_id,title,description,expires_at,created_at,organization_name').order('created_at', { ascending: false }).limit(100),
       supabase.rpc('my_blocked_usernames'),
     ]);
     if (error) return say(`Rrjeti nuk u ngarkua: ${error.message}`, 'error');
@@ -55,29 +56,15 @@ import { createClient } from '@supabase/supabase-js';
     document.querySelector('#stat-fields')!.textContent = String(others.filter(member => sharedFields(member).length).length);
     document.querySelector<HTMLElement>('#incomplete-note')!.hidden = Boolean(me.city && myFields.length);
 
-    // --- Subscribed cities and fields -----------------------------------------
-    type Subscription = { kind: 'city' | 'field' | 'organization'; value: string };
     let followedTopics: Subscription[] = Array.isArray(subscriptions) ? subscriptions : [];
     let lastNotificationRead = notificationReadAt ? new Date(notificationReadAt).getTime() : Date.now();
     const citySelect = document.querySelector<HTMLSelectElement>('#subscription-city')!;
     const fieldSelect = document.querySelector<HTMLSelectElement>('#subscription-field')!;
     const organizationSelect = document.querySelector<HTMLSelectElement>('#subscription-organization')!;
     const organizationNames = new Map((organizations || []).map((item: any) => [String(item.id), item.name]));
-    const addOptions = (select: HTMLSelectElement, values: string[]) => values.forEach(value => select.add(new Option(value, value)));
-    addOptions(citySelect, JSON.parse(root.dataset.cities || '[]'));
-    addOptions(fieldSelect, (categories || []).map((item: any) => item.name));
+    addSelectOptions(citySelect, JSON.parse(root.dataset.cities || '[]'));
+    addSelectOptions(fieldSelect, (categories || []).map((item: any) => item.name));
     (organizations || []).forEach((item: any) => organizationSelect.add(new Option(item.name, String(item.id))));
-    const canonicalTopic = (value?: string) => {
-      const normalized = lower(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-      if (['tech', 'technology', 'teknologji', 'teknologjia', 'it', 'informatike'].includes(normalized)) return 'teknologji';
-      return normalized;
-    };
-    const topicMatches = (member: any, topic: Subscription, tags: string[] = []) => {
-      const wanted = canonicalTopic(topic.value);
-      if (tags.some(tag => canonicalTopic(tag) === wanted)) return true;
-      return topic.kind === 'city' ? canonicalTopic(member?.city) === wanted
-        : (member?.fieldsOfExpertise || []).some((field: string) => canonicalTopic(field) === wanted);
-    };
     const setSubscription = async (kind: Subscription['kind'], value: string, on: boolean) => {
       if (!value) return;
       const { error } = await supabase.rpc('set_subscription', { p_kind: kind, p_value: value, p_on: on });
@@ -189,7 +176,6 @@ import { createClient } from '@supabase/supabase-js';
     const reasonOf = new Map(related.map(({ member, reason }) => [member.username, reason]));
     const topScore = related[0]?.score || 1;
 
-    // --- Follow ---------------------------------------------------------------
     const setFollow = async (username: string, on: boolean) => {
       const { error } = await supabase.rpc('set_follow', { p_username: username, p_follow: on });
       if (error) { say(`Nuk u krye: ${error.message}`, 'error'); return false; }
@@ -200,61 +186,23 @@ import { createClient } from '@supabase/supabase-js';
       if (selected === username) showSelected(username);
       return true;
     };
-    const followButton = (member: any) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'profile-editor-text-button';
-      const label = () => { button.textContent = following.includes(member.username) ? 'Po e ndjek ✓' : 'Ndiq +'; };
-      label();
-      button.addEventListener('click', async () => {
-        button.disabled = true;
-        await setFollow(member.username, !following.includes(member.username));
-        button.disabled = false;
-        label();
-      });
-      return button;
-    };
+    const followButton = (member: any) => createFollowButton(
+      member,
+      () => following.includes(member.username),
+      on => setFollow(member.username, on),
+    );
 
-    // --- Side lists -----------------------------------------------------------
-    const avatarEl = (member: any) => {
-      const avatar = document.createElement(member.avatar ? 'img' : 'span') as HTMLImageElement;
-      avatar.className = `member-avatar${member.avatar ? '' : ' member-avatar-fallback'}`;
-      if (member.avatar) { avatar.src = member.avatar; avatar.alt = ''; avatar.loading = 'lazy'; }
-      else avatar.textContent = initials(member.name);
-      return avatar;
-    };
-    const personRow = (member: any, note = '', withFollow = true) => {
-      const item = document.createElement('li');
-      const link = document.createElement('a');
-      link.href = memberUrl(member.username);
-      const text = document.createElement('span');
-      const name = document.createElement('strong');
-      name.textContent = member.name;
-      const small = document.createElement('small');
-      small.textContent = note || member.title || (member.fieldsOfExpertise || []).join(' · ');
-      text.append(name, small);
-      link.append(avatarEl(member), text);
-      item.append(link);
-      if (withFollow) item.append(followButton(member));
-      return item;
-    };
-    const fillList = (id: string, items: HTMLElement[], empty: string) => {
-      const list = document.querySelector<HTMLElement>(`#${id}`)!;
-      if (items.length) list.replaceChildren(...items);
-      else { const note = document.createElement('li'); note.className = 'network-people-empty'; note.textContent = empty; list.replaceChildren(note); }
-    };
     const renderPeople = () => {
       const known = (usernames: string[]) => usernames.map(username => byUsername.get(username)).filter(Boolean);
       document.querySelector('#following-title')!.textContent = `Ndjek (${following.length})`;
       document.querySelector('#stat-following')!.textContent = String(following.length);
-      fillList('following', known(following).map(member => personRow(member)), 'Ende nuk ndjek askënd.');
+      fillList('following', known(following).map(member => personRow(member, followButton(member))), 'Ende nuk ndjek askënd.');
       document.querySelector('#followers-title')!.textContent = `Të ndjekin (${followers.length})`;
       document.querySelector('#stat-followers')!.textContent = String(followers.length);
-      fillList('followers', known(followers).map(member => personRow(member, '', !following.includes(member.username))), 'Ende askush.');
+      fillList('followers', known(followers).map(member => personRow(member, following.includes(member.username) ? undefined : followButton(member))), 'Ende askush.');
     };
     renderPeople();
 
-    // --- Groups (for the graph) ------------------------------------------------
     // Everyone who shares my city and/or a field, grouped by exactly what we share
     // ("Berlin · Shëndeti", "Berlin", "Shëndeti"), plus the people I follow or who
     // follow me without sharing anything. Strongest groups (most shared) first.
@@ -278,7 +226,6 @@ import { createClient } from '@supabase/supabase-js';
     });
     const groups = [...groupMap.values()].sort((a, b) => (a.key === 'direct' ? 1 : 0) - (b.key === 'direct' ? 1 : 0) || b.hubs.length - a.hubs.length || b.members.length - a.members.length);
 
-    // --- Recommended connections ----------------------------------------------
     // Keep existing follows in their own list; this area is for discovery.
     const PAGE = 18;
     let shown = PAGE;
@@ -308,7 +255,7 @@ import { createClient } from '@supabase/supabase-js';
         const small = document.createElement('small');
         small.textContent = [member.title, member.city].filter(Boolean).join(' · ');
         text.append(name, small);
-        head.append(avatarEl(member), text);
+        head.append(avatarElement(member), text);
         const shared = document.createElement('p');
         shared.className = 'my-network-match-shared';
         reason.split(' · ').forEach(item => {
@@ -332,7 +279,6 @@ import { createClient } from '@supabase/supabase-js';
     };
     renderRecommended();
 
-    // --- Graph ----------------------------------------------------------------
     // Me in the middle, my city and fields on a ring around me, and each group as a
     // box of people out beyond the city/fields it shares (a box between two hubs
     // shares both). Big groups show their best matches plus everyone I follow.
@@ -379,20 +325,7 @@ import { createClient } from '@supabase/supabase-js';
     const cy = cytoscape({
       container: document.querySelector<HTMLElement>('#my-network-graph'),
       elements,
-      style: [
-        { selector: 'node', style: { label: 'data(label)', 'font-family': 'Inter, sans-serif', 'font-size': 8, 'text-wrap': 'wrap', 'text-max-width': '80px', 'text-valign': 'bottom', 'text-margin-y': 6, color: '#505158', 'min-zoomed-font-size': 6, 'background-color': '#d9c9d2', 'border-width': 1.5, 'border-color': '#b58ca1', width: 14, height: 14 } },
-        { selector: 'node.is-following', style: { 'background-color': '#744761', 'border-color': '#5d374d', width: 17, height: 17, color: '#5d374d', 'font-weight': 700 } },
-        { selector: 'node[type="me"]', style: { 'background-color': '#2d2630', 'border-width': 4, 'border-color': '#e1bdcf', width: 46, height: 46, 'font-size': 13, 'font-weight': 800, color: '#17181d', 'text-margin-y': 8 } },
-        { selector: 'node[type="city"]', style: { 'background-color': '#293f52', 'border-width': 0, shape: 'diamond', width: 38, height: 38, 'font-size': 11, 'font-weight': 700, color: '#293f52' } },
-        { selector: 'node[type="field"]', style: { 'background-color': '#b58ca1', 'border-width': 0, shape: 'round-rectangle', width: 44, height: 26, 'font-size': 11, 'font-weight': 700, color: '#744761' } },
-        { selector: 'edge', style: { width: .9, 'line-color': '#c8bdc3', 'curve-style': 'bezier', opacity: .6 } },
-        { selector: 'edge[source="me"]', style: { width: 2.2, 'line-color': '#b58ca1', opacity: .9 } },
-        { selector: 'edge.direct', style: { 'line-style': 'dashed', 'line-color': '#744761', opacity: .55 } },
-        { selector: 'node[type="group"]', style: { shape: 'round-rectangle', 'background-color': '#f3edf0', 'background-opacity': .75, 'border-width': 1, 'border-style': 'dashed', 'border-color': '#c9aebc', padding: '16px', 'text-valign': 'top', 'text-halign': 'center', 'text-margin-y': -6, 'font-size': 11, 'font-weight': 700, color: '#744761', 'text-max-width': '220px' } },
-        { selector: 'edge[target^="city:"], edge[target^="field:"]', style: { width: 1.6, 'line-color': '#c9aebc', opacity: .8 } },
-        { selector: '.faded', style: { opacity: .12 } },
-        { selector: 'node.focused', style: { 'border-width': 4, 'border-color': '#e1bdcf', 'z-index': 10 } },
-      ],
+      style: networkGraphStyles,
       // Positions worked out above: me, the ring of hubs, the groups beyond them.
       layout: { name: 'preset', positions: (node: any) => positions.get(node.id()), padding: 30 } as any,
       minZoom: .3, maxZoom: 3, wheelSensitivity: .25, boxSelectionEnabled: false,
@@ -416,7 +349,7 @@ import { createClient } from '@supabase/supabase-js';
       const small = document.createElement('small');
       small.textContent = [member.title, member.city].filter(Boolean).join(' · ');
       text.append(name, small);
-      head.append(avatarEl(member), text);
+      head.append(avatarElement(member), text);
       const why = document.createElement('p');
       const tags = [reasonOf.get(username), following.includes(username) ? 'E ndjek' : '', followers.includes(username) ? 'Të ndjek' : ''].filter(Boolean);
       why.textContent = tags.length ? tags.join(' · ') : '';

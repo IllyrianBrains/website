@@ -6,9 +6,10 @@ import AccountPage from '../../components/AccountPage.astro';
 import { cities } from '../../data/cities';
 const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || '';
 const supabaseKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '';
+const linkedinImportWebhookUrl = import.meta.env.LINKEDIN_IMPORT_WEBHOOK_URL || process.env.LINKEDIN_IMPORT_WEBHOOK_URL || '';
 const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.localeCompare(b, 'sq'));
 ---
-<AccountPage title="Profili yt · Illyrian Brains" description="Përditëso profilin tënd në drejtorinë e anëtarëve të Illyrian Brains Network." heading="Hyr" intro={'Hyr në llogarinë tënde për të përditësuar profilin në <a href="/anetaret/">drejtorinë e anëtarëve</a>.'} sectionClass="profile-edit-page" containerId="profile-editor" containerAttrs={{ 'data-site': Astro.site?.origin, 'data-supabase-url': supabaseUrl, 'data-supabase-key': supabaseKey }} introId="signin-intro" introHidden={true} statusId="editor-status">
+<AccountPage title="Profili yt · Illyrian Brains" description="Përditëso profilin tënd në drejtorinë e anëtarëve të Illyrian Brains Network." heading="Hyr" intro={'Hyr në llogarinë tënde për të përditësuar profilin në <a href="/anetaret/">drejtorinë e anëtarëve</a>.'} sectionClass="profile-edit-page" containerId="profile-editor" containerAttrs={{ 'data-site': Astro.site?.origin, 'data-supabase-url': supabaseUrl, 'data-supabase-key': supabaseKey, 'data-linkedin-import-webhook-url': linkedinImportWebhookUrl }} introId="signin-intro" introHidden={true} statusId="editor-status">
 
         <form class="profile-editor-card auth-card" id="login-form" hidden>
           <h2>Hyr me email</h2>
@@ -47,6 +48,15 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
                 <p class="profile-intro-meta" id="preview-meta"></p>
               </div>
               <p class="profile-editor-hint">Fotoja pritet automatikisht në katror. Një foto portreti ku duket fytyra funksionon më mirë.</p>
+            </section>
+
+            <section class="profile-card" id="section-linkedin-import">
+              <div class="profile-card-head"><h2>Importo nga LinkedIn</h2></div>
+              <div class="profile-card-body">
+                <p class="profile-editor-hint">Ngarko një PDF të profilit tënd në LinkedIn (More → Save to PDF) dhe plotësojmë titullin, eksperiencën, arsimimin dhe aftësitë — kontrollo dhe ruaj.</p>
+                <label class="profile-editor-text-button" for="linkedin-pdf-input">Zgjidh PDF</label>
+                <input type="file" accept="application/pdf" id="linkedin-pdf-input" hidden />
+              </div>
             </section>
 
             <details class="profile-group" id="group-descriptive" open>

@@ -3,17 +3,21 @@
 // drawer, LinkedIn-style: follow button + counts and recent posts (both live
 // from Supabase, see supabase/007-social.sql), and "people also in this city
 // or field" on the side. Built from members.json, so a member approved after
-// the last deploy gets a page at the next one.
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import '../../styles/directory.css';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import { directoryMembers, experienceLevelLabels, type Member } from '../../data/members';
-import { cities } from '../../data/cities';
-import { memberSlug, memberUrl, relatedMembers, initials } from '../../scripts/members';
+// the last deploy gets a page at the next one. Lives at /<slug>/ (not
+// /anetaret/<slug>/) to keep the link short — only for members whose slug is
+// long enough (see hasMemberPage in scripts/members.ts) to keep collisions
+// with the site's other top-level routes unlikely.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/directory.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { directoryMembers, experienceLevelLabels, type Member } from '../data/members';
+import { cities } from '../data/cities';
+import { memberSlug, memberUrl, relatedMembers, initials, hasMemberPage } from '../scripts/members';
 
 export function getStaticPaths() {
-  return directoryMembers.map(member => ({ params: { slug: memberSlug(member.username) }, props: { member } }));
+  return directoryMembers.filter(member => hasMemberPage(member.username))
+    .map(member => ({ params: { slug: memberSlug(member.username) }, props: { member } }));
 }
 
 const { member } = Astro.props as { member: Member };
@@ -161,7 +165,7 @@ const firstName = member.name.split(' ')[0];
   <Footer />
 </BaseLayout>
 <script>
-  import { postElement, type MemberPost } from '../../scripts/members';
+  import { postElement, type MemberPost } from '../scripts/members';
 
   const root = document.querySelector<HTMLElement>('#member-profile')!;
   const username = root.dataset.username!;

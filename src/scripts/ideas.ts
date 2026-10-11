@@ -15,11 +15,44 @@ export interface Idea {
   resolved?: boolean;
   source?: string;
   date?: string;
+  content_type?: IdeaContentType;
+  summary?: string | null;
+  location?: string | null;
+  audience?: string | null;
+  expires_at?: string | null;
   // From supabase/008-feed.sql: only when the author showed their name and is an approved member.
   author_username?: string | null;
   author_avatar?: string | null;
   author_headline?: string | null;
 }
+
+export type IdeaContentType = 'guide' | 'story' | 'opportunity' | 'event' | 'request' | 'notice';
+
+export const ideaTypeLabels: Record<IdeaContentType, string> = {
+  guide: 'Udhëzues',
+  story: 'Histori',
+  opportunity: 'Mundësi',
+  event: 'Event',
+  request: 'Kërkesë',
+  notice: 'Njoftim',
+};
+
+// Older forum imports predate structured post types. Keep them useful without
+// rewriting the archive; new submissions store an explicit content_type.
+export function ideaContentType(idea: Idea): IdeaContentType {
+  if (idea.content_type && idea.content_type in ideaTypeLabels) return idea.content_type;
+  const haystack = `${idea.title} ${(idea.tags || []).join(' ')}`.toLocaleLowerCase('sq');
+  if (/event|konferenc|takim|workshop|happyhour|webinar|ftes/.test(haystack)) return 'event';
+  if (/pun[eë]|burs[eë]|praktik|pozicion|vacancy|job|aplikim/.test(haystack)) return 'opportunity';
+  if (/sugjerim|k[eë]rkes|k[eë]rkoj|ndihm/.test(haystack)) return 'request';
+  if (/udh[eë]z|si t[eë]|material|burim|fjalor|çfar[eë]|cfar[eë]/.test(haystack)) return 'guide';
+  if (/histori|p[eë]rvoj|rrug[eë]t e suksesit/.test(haystack)) return 'story';
+  return 'notice';
+}
+
+export const ideaSummary = (idea: Idea, length = 190) => idea.summary?.trim() || excerpt(plainText(idea.description), length);
+
+export const ideaReadingMinutes = (idea: Idea) => Math.max(1, Math.ceil(plainText(idea.description).split(/\s+/).filter(Boolean).length / 200));
 
 // A public_ideas row as the pages use it (the build sync does the same).
 export const ideaFromRow = ({ contact_email, created_at, ...idea }: any): Idea => ({ ...idea, email: contact_email || '', date: created_at });

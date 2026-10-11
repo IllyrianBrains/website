@@ -3,19 +3,35 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { memberSlug, memberUrl, initials, relatedMembers } from '../src/scripts/members.ts';
-import { renderMarkdown, plainText, excerpt, ideaMailto, ideaRowHtml, ORG_EMAIL } from '../src/scripts/ideas.ts';
+import { renderMarkdown, plainText, excerpt, ideaContentType, ideaReadingMinutes, ideaSummary, ideaMailto, ideaRowHtml, ORG_EMAIL } from '../src/scripts/ideas.ts';
 import { parseCsv, csvRows } from '../src/data/csv.ts';
+import { topicMatches } from '../src/scripts/account-subscriptions.ts';
+import { preview } from '../src/scripts/account-network-view.ts';
 
 test('memberSlug makes URL-safe slugs from usernames with spaces and diacritics', () => {
   assert.equal(memberSlug('Gess Bendaj'), 'gess-bendaj');
   assert.equal(memberSlug('Ëndri Çela'), 'endri-cela');
   assert.equal(memberSlug('  john.doe_1 '), 'john.doe_1');
-  assert.equal(memberUrl('Gess Bendaj'), '/anetaret/gess-bendaj/');
+  assert.equal(memberUrl('Gess Bendaj'), '/gess-bendaj/');
+  assert.equal(memberUrl('Ed'), '/anetaret/?search=Ed');
 });
 
 test('initials takes the first letters of up to two words', () => {
   assert.equal(initials('Ana Maria Hoxha'), 'AM');
   assert.equal(initials('ana'), 'A');
+});
+
+test('subscription matching normalizes topics and keeps organizations separate', () => {
+  const member = { city: 'Tiranë', fieldsOfExpertise: ['Teknologjia', 'Financë'] };
+  assert.equal(topicMatches(member, { kind: 'city', value: 'Tirane' }), true);
+  assert.equal(topicMatches(member, { kind: 'field', value: 'Tech' }), true);
+  assert.equal(topicMatches(member, { kind: 'field', value: 'Evente' }, ['evente']), true);
+  assert.equal(topicMatches(member, { kind: 'organization', value: '1' }), false);
+});
+
+test('network previews collapse whitespace and preserve their length limit', () => {
+  assert.equal(preview('  Një\n\npostim\t i shkurtër  '), 'Një postim i shkurtër');
+  assert.equal(preview('abcdefgh', 6), 'abcde…');
 });
 
 test('relatedMembers prioritizes complementary goals over location and similarity', () => {
@@ -79,6 +95,14 @@ test('plainText and excerpt shorten Markdown for list rows', () => {
   const short = excerpt(long, 50);
   assert.ok(short.length <= 51 && short.endsWith('…'));
   assert.equal(excerpt('short'), 'short');
+});
+
+test('post metadata prefers structured values and classifies legacy posts', () => {
+  const base = { slug: 'a', title: 'Takim i komunitetit në Berlin', description: 'Një event për të gjithë.' };
+  assert.equal(ideaContentType(base), 'event');
+  assert.equal(ideaContentType({ ...base, content_type: 'guide' }), 'guide');
+  assert.equal(ideaSummary({ ...base, summary: 'Përmbledhje e shkruar nga autori.' }), 'Përmbledhje e shkruar nga autori.');
+  assert.equal(ideaReadingMinutes({ ...base, description: 'fjalë '.repeat(201) }), 2);
 });
 
 test('ideaMailto replies to the author, or to the org inbox without an email', () => {

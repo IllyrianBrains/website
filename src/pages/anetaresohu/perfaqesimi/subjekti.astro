@@ -123,7 +123,7 @@ const cityNames = [...new Set(cities.map(city => city.city))].sort((a, b) => a.l
     deleteButton.textContent = isAdmin ? 'Fshi subjektin' : 'Tërhiq subjektin';
     if (!session) location.href = '/anetaresohu/profili/';
     else {
-      const requests: any[] = [supabase.from('organizations').select('*').eq('id', id).single()];
+      const requests: any[] = [supabase.from('organizations').select('id,kind,name,category,other_categories,stage,city,country,description,website,linkedin,instagram,logo,status,admin_note,member_id').eq('id', id).single()];
       if (isAdmin) requests.push(supabase.from('members').select('id,name,username,status').order('name'));
       if (isAdmin) requests.push(supabase.from('organization_representatives').select('member_id').eq('organization_id', id));
       const [organizationResult, membersResult, representativesResult] = await Promise.all(requests);

@@ -24,6 +24,12 @@
 // .env only, never CI or the repo). Keep the PDFs and photos in
 // scripts/linkedin/, which is gitignored — they're personal data. Run with:
 //   node --env-file=.env scripts/import-linkedin-pdf.mjs <username> [profile.pdf] [--photo <file>] [--write]
+//
+// --json <profile.pdf>: parse-only, prints just { name, experience, education }
+// as one line of JSON and nothing else — no username, no Supabase env vars
+// needed. For calling this script from another process (e.g. the n8n workflow
+// behind the "Importo nga LinkedIn" button on /anetaresohu/profili/), not for
+// interactive use.
 
 import { execFile } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
@@ -170,8 +176,34 @@ async function supabase(path, { method = 'GET', body } = {}) {
   return response.status === 204 || response.status === 201 ? null : response.json();
 }
 
+// Parses a PDF into { name, experience, education } — shared by the dry-run/
+// --write CLI flow below and --json mode (for calling this script from
+// another process, e.g. an n8n workflow that only wants the parsed JSON).
+async function parsePdf(pdfPath) {
+  const blocks = await readBlocks(pdfPath);
+  const heading = (name) => blocks.findIndex((lines) => lines.length === 1 && lines[0] === name);
+  const experienceAt = heading('Experience'), educationAt = heading('Education');
+  if (experienceAt === -1 && educationAt === -1) throw new Error('No "Experience" or "Education" heading found — is this a LinkedIn profile PDF exported in English?');
+  const sectionEnd = (start) => [experienceAt, educationAt, blocks.length].filter((i) => i > start).sort((a, b) => a - b)[0];
+  return {
+    name: blocks[0]?.[0] || null,
+    experience: experienceAt === -1 ? [] : parseExperience(blocks.slice(experienceAt + 1, sectionEnd(experienceAt))),
+    education: educationAt === -1 ? [] : parseEducation(blocks.slice(educationAt + 1, sectionEnd(educationAt))),
+  };
+}
+
 async function main() {
   const args = process.argv.slice(2);
+
+  // --json: parse-only, prints bare JSON and nothing else (no username/Supabase
+  // needed) — for calling this script from another process.
+  if (args.includes('--json')) {
+    const pdfPath = args.find((arg) => !arg.startsWith('--'));
+    if (!pdfPath) throw new Error('Usage: node scripts/import-linkedin-pdf.mjs --json <profile.pdf>');
+    console.log(JSON.stringify(await parsePdf(pdfPath)));
+    return;
+  }
+
   const write = args.includes('--write');
   const photoAt = args.indexOf('--photo');
   const photoPath = photoAt === -1 ? null : args[photoAt + 1];
@@ -180,14 +212,7 @@ async function main() {
 
   let experience = null, education = null, pdfName = null;
   if (pdfPath) {
-    const blocks = await readBlocks(pdfPath);
-    const heading = (name) => blocks.findIndex((lines) => lines.length === 1 && lines[0] === name);
-    const experienceAt = heading('Experience'), educationAt = heading('Education');
-    if (experienceAt === -1 && educationAt === -1) throw new Error('No "Experience" or "Education" heading found — is this a LinkedIn profile PDF exported in English?');
-    const sectionEnd = (start) => [experienceAt, educationAt, blocks.length].filter((i) => i > start).sort((a, b) => a - b)[0];
-    experience = experienceAt === -1 ? [] : parseExperience(blocks.slice(experienceAt + 1, sectionEnd(experienceAt)));
-    education = educationAt === -1 ? [] : parseEducation(blocks.slice(educationAt + 1, sectionEnd(educationAt)));
-    pdfName = blocks[0]?.[0];
+    ({ name: pdfName, experience, education } = await parsePdf(pdfPath));
     console.log(JSON.stringify({ name: pdfName, experience, education }, null, 2));
   }
 

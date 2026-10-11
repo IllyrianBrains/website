@@ -75,9 +75,12 @@ test('no page renders "undefined" or "[object Object]" into links or text', { sk
   assert.deepEqual(bad.map(file => relative(dist, file)), []);
 });
 
-test('notification creation is available on the Njoftimet page', { skip }, () => {
+test('structured post discovery and creation are available on the Postimet page', { skip }, () => {
   const html = page('rrjeti/postimet');
   assert.match(html, /id="notification-form"/, 'notification form is missing');
   assert.match(html, /href="#njoftim-i-ri"/, 'create-notification action is missing');
+  assert.match(html, /id="notification-type"/, 'post type filter is missing');
+  assert.match(html, /name="content_type"[^>]*required/, 'content type is required for new posts');
+  assert.match(html, /name="summary"[^>]*required/, 'summary is required for new posts');
   assert.match(html, /name="city"[^>]*required/, 'city is required for new notifications');
 });
