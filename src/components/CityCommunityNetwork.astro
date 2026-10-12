@@ -22,16 +22,6 @@
   <div id="city-community-network" role="img" aria-label="Skemë interaktive ku Qyteti lidhet me Rrjetin IB; brenda rrjetit, ekipet lidhin qytetet e tjera, grupet profesionale, projektet dhe infrastrukturën e përbashkët"></div>
   <p class="city-network-note" id="city-network-note" aria-live="polite">Zgjidh një pjesë për të lexuar rolin e saj.</p>
 
-  <div class="city-network-fallback">
-    <article><strong>Ekipi organizator</strong><span>koordinon qytetin, eventet dhe komunikimin.</span></article>
-    <article><strong>Komuniteti kryesor</strong><span>është hapësira e përbashkët për të gjithë pjesëmarrësit.</span></article>
-    <article><strong>Grupet tematike</strong><span>mund të jenë disa dhe zhvillojnë aktivitete rreth interesave të ndryshme.</span></article>
-    <article><strong>Ekipet e rrjetit</strong><span>bashkërendojnë dhe lidhin strukturat e ndryshme brenda Rrjetit IB.</span></article>
-    <article><strong>Qytete të tjera</strong><span>shkëmbejnë përvojë, vizita dhe aktivitete me komunitetin lokal.</span></article>
-    <article><strong>Grupe profesionale</strong><span>bashkojnë anëtarë nga qytete të ndryshme rreth një fushe.</span></article>
-    <article><strong>Projekte</strong><span>u japin anëtarëve mundësi të bashkëpunojnë në nisma konkrete.</span></article>
-    <article><strong>Infrastruktura</strong><span>ofron mjetet, platformat dhe burimet e përbashkëta që mbështesin qytetet.</span></article>
-  </div>
 </section>
 
 <script>
@@ -71,16 +61,16 @@
       elements,
       layout: { name: 'preset', fit: true, padding: 58 },
       style: [
-        { selector: 'node', style: { label: 'data(label)', 'font-family': 'Inter, sans-serif', 'font-size': 13, 'font-weight': 650, 'text-wrap': 'wrap', 'text-max-width': 100, color: '#f8f6f1', 'text-valign': 'center', 'text-halign': 'center', width: 104, height: 76, shape: 'round-rectangle', 'background-color': '#58665f', 'border-width': 2, 'border-color': '#ffffff3d' } },
-        { selector: 'node[type="container"]', style: { 'text-valign': 'top', 'text-halign': 'left', 'text-margin-x': 18, 'text-margin-y': 18, 'font-size': 20, 'background-color': '#a9c9b41f', 'background-opacity': .35, color: '#dcebe1', 'border-width': 2, 'border-color': '#a9c9b4', padding: 46, shape: 'round-rectangle' } },
-        { selector: 'node[type="support"]', style: { 'background-color': '#355246' } },
+        { selector: 'node', style: { label: 'data(label)', 'font-family': 'Inter, sans-serif', 'font-size': 13, 'font-weight': 650, 'text-wrap': 'wrap', 'text-max-width': 100, color: '#fff', 'text-valign': 'center', 'text-halign': 'center', width: 104, height: 76, shape: 'round-rectangle', 'background-color': '#4b4d55', 'border-width': 2, 'border-color': '#ffffff3d' } },
+        { selector: 'node[type="container"]', style: { 'text-valign': 'top', 'text-halign': 'left', 'text-margin-x': 18, 'text-margin-y': 18, 'font-size': 20, 'background-color': '#ffffff12', 'background-opacity': .35, color: '#fff', 'border-width': 2, 'border-color': '#8d8e95', padding: 46, shape: 'round-rectangle' } },
+        { selector: 'node[type="support"]', style: { 'background-color': '#4b4d55' } },
         { selector: 'node[type="participation"]', style: { 'background-color': '#76566a' } },
-        { selector: 'node[type="group"]', style: { width: 116, height: 58, 'background-color': '#40576a', 'font-size': 11 } },
-        { selector: 'node[type="network-container"]', style: { 'text-valign': 'top', 'text-halign': 'left', 'text-margin-x': 18, 'text-margin-y': 18, 'font-size': 20, 'background-color': '#95754d1f', 'background-opacity': .35, color: '#f0dfc9', 'border-width': 2, 'border-color': '#95754d', padding: 46, shape: 'round-rectangle' } },
-        { selector: 'node[type="ecosystem"]', style: { width: 126, height: 64, 'background-color': '#795f3f', 'font-size': 11 } },
-        { selector: 'node[type="network-team"]', style: { width: 128, height: 72, 'background-color': '#b18755', 'border-color': '#f0dfc9' } },
-        { selector: 'edge', style: { width: 2, 'line-color': '#aeb7b1', opacity: .52, 'curve-style': 'bezier' } },
-        { selector: 'edge[id="city-network"]', style: { width: 4, 'line-color': '#d7c6ad', opacity: .9, 'line-style': 'dashed' } },
+        { selector: 'node[type="group"]', style: { width: 116, height: 58, 'background-color': '#5f616a', 'font-size': 11 } },
+        { selector: 'node[type="network-container"]', style: { 'text-valign': 'top', 'text-halign': 'left', 'text-margin-x': 18, 'text-margin-y': 18, 'font-size': 20, 'background-color': '#7447611f', 'background-opacity': .35, color: '#fff', 'border-width': 2, 'border-color': '#9a718a', padding: 46, shape: 'round-rectangle' } },
+        { selector: 'node[type="ecosystem"]', style: { width: 126, height: 64, 'background-color': '#51454c', 'font-size': 11 } },
+        { selector: 'node[type="network-team"]', style: { width: 128, height: 72, 'background-color': '#744761', 'border-color': '#b999aa' } },
+        { selector: 'edge', style: { width: 2, 'line-color': '#b8b8bd', opacity: .52, 'curve-style': 'bezier' } },
+        { selector: 'edge[id="city-network"]', style: { width: 4, 'line-color': '#9a718a', opacity: .9, 'line-style': 'dashed' } },
         { selector: '.faded', style: { opacity: .12 } },
         { selector: '.focused', style: { 'border-width': 5, 'border-color': '#fff', 'z-index': 10 } },
       ],
@@ -113,4 +103,5 @@
 
 <style>
   .city-network{padding:12px 0 0;color:#fff}.city-network-heading{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.65fr);gap:70px;align-items:end}.city-network-heading h2{max-width:720px;margin:0;font-size:clamp(34px,4.5vw,52px);font-weight:400;line-height:1.08;letter-spacing:-.04em}.city-network-heading>p{margin:0;color:#ffffffa3;font-size:16px;line-height:1.7}.city-network-toolbar{display:flex;justify-content:space-between;gap:24px;align-items:center;margin:42px 0 14px}.city-network-legend{display:flex;flex-wrap:wrap;gap:18px}.city-network-legend span{display:flex;align-items:center;gap:8px;color:#ffffffa3;font-size:12px}.city-network-legend i{display:block;width:12px;height:12px;border-radius:50%;background:#a9c9b4}.city-network-legend .support{background:#527a69}.city-network-legend .participation{background:#9a718a}.city-network-legend .connection{border-radius:2px;background:#66849b}.city-network-legend .network{border:2px solid #95754d;border-radius:2px;background:transparent}.city-network-legend .network-team{background:#b18755}.city-network-legend .ecosystem{border-radius:2px;background:#95754d}.city-network-toolbar button{padding:9px 13px;border:1px solid #ffffff36;color:#fff;background:transparent;font:600 12px var(--font-body);cursor:pointer}.city-network-toolbar button:hover,.city-network-toolbar button:focus-visible{border-color:#fff;background:#ffffff12}#city-community-network{height:min(68vh,600px);min-height:480px;touch-action:none;border:1px solid #ffffff20;background:#292e34}.city-network-note{min-height:23px;margin:14px 0 0;color:#c8d5cd;font-size:14px}.city-network-fallback{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:42px;background:#ffffff20}.city-network-fallback article{display:grid;gap:10px;padding:22px;background:#292e34}.city-network-fallback strong{font-size:15px}.city-network-fallback span{color:#ffffff91;font-size:14px;line-height:1.6}@media(max-width:800px){.city-network-heading{grid-template-columns:1fr;gap:24px}.city-network-toolbar{align-items:flex-start;flex-direction:column;margin-top:34px}#city-community-network{height:62vh;min-height:440px}.city-network-fallback{grid-template-columns:1fr 1fr}}@media(max-width:520px){.city-network-fallback{grid-template-columns:1fr}#city-community-network{min-height:410px}}
+  .city-network-legend i{background:#8d8e95}.city-network-legend .support{background:#4b4d55}.city-network-legend .participation{background:#744761}.city-network-legend .connection{background:#5f616a}.city-network-legend .network{border-color:#9a718a}.city-network-legend .network-team{background:#744761}.city-network-legend .ecosystem{background:#51454c}.city-network-note{color:#ffffffa3}
 </style>

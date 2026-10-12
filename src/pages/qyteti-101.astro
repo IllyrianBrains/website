@@ -4,48 +4,29 @@ import JoinCTA from '../components/JoinCTA.astro';
 import CityCommunityNetwork from '../components/CityCommunityNetwork.astro';
 
 const responsibilities = [
-  { number: '01', title: 'Koordinimi', summary: 'Mban ekipin të lidhur dhe kujdeset për vazhdimësinë.', details: ['Vendos ritmin dhe prioritetet bashkë me ekipin.', 'Mban lidhjen me rrjetin IB.', 'Siguron një dorëzim të qartë kur ekipi ndryshon.'] },
-  { number: '02', title: 'Aktivitetet', summary: 'E kthen takimin e radhës në një plan të realizueshëm.', details: ['Koordinon datën, vendin dhe njoftimin.', 'Siguron mikpritjen gjatë aktivitetit.', 'Fton anëtarët të organizojnë idetë që propozojnë.'] },
-  { number: '03', title: 'Komuniteti', summary: 'E ndihmon çdo person të gjejë vendin e vet.', details: ['Mirëpret pjesëmarrësit e rinj.', 'Mban komunikimin të qartë dhe të dobishëm.', 'Lidh njerëzit me grupet dhe temat që u interesojnë.'] },
+  { number: '01', title: 'Koordinimi', summary: 'Mban ekipin të lidhur dhe kujdeset që qyteti të mos ndalet.', details: ['Vendos ritmin dhe prioritetet bashkë me koordinatorin tjetër, në linjë me qëllimin profesional të rrjetit.', 'Mban lidhjen me rrjetin IB dhe me qytetet e tjera, për të sjellë mundësi (evente, bashkëpunime, burime) te anëtarët.', 'Ndjek nevojat profesionale të komunitetit, për t’i orientuar aktivitetet drejt tyre.', 'Siguron një dorëzim të qartë — kontakte, kalendar, histori — kur dikush largohet nga roli.'] },
+  { number: '02', title: 'Rrjetëzimi', summary: 'Përdor platformën e anëtarëve për të lidhur njerëzit me projektet dhe profesionistët e duhur, sipas asaj që kërkojnë.', details: ['Shfleton profilet dhe aspiratat e anëtarëve në platformë për të kuptuar çfarë kërkojnë — një projekt, një mentor, një lidhje profesionale.', 'Përdor rekomandimet e "Rrjeti im" dhe listën e anëtarëve për të gjetur përputhjet më të mira dhe për t’i prezantuar me njëri-tjetrin.', 'I lidh me projektet e tjera të rrjetit (Atlas, Mentoring, Heritage, Global) kur interesi përputhet.', 'Ndjek nëse lidhja ka funksionuar dhe krijon lidhje të reja kur nevojitet.'] },
+  { number: '03', title: 'Komunikimi', summary: 'Mban qytetin të dukshëm në rrjetet sociale dhe kanalet e komunitetit.', details: ['Përgatit dhe publikon përmbajtje për rrjetet sociale rreth aktiviteteve dhe komunitetit.', 'Mban një ton profesional, në linjë me identitetin e Illyrian Brains.', 'Nxit dukshmërinë e anëtarëve dhe arritjeve të tyre profesionale.', 'Bashkërendon me ekipin qendror të IB për kanalet dhe materialet e përbashkëta.'] },
 ];
 
-const eventSteps = [
-  { number: '1', title: 'Zgjidhni', text: 'Datën, vendin dhe një format të thjeshtë.' },
-  { number: '2', title: 'Ftoni', text: 'Njoftoni komunitetin dhe mirëpritni njerëzit e rinj.' },
-  { number: '3', title: 'Takohuni', text: 'Krijoni hapësirë për njohje, biseda dhe ide.' },
-  { number: '4', title: 'Vazhdoni', text: 'Ndani falënderimin dhe datën e takimit tjetër.' },
+const activityRoles = [
+  { number: '01', title: 'Përgjegjësja e aktivitetit', summary: 'Drejton aktivitetin nga njoftimi deri në mbyllje.', details: ['Njofton aktivitetin në kanalet e komunitetit dhe ndjek konfirmimet.', 'Hap dhe mbyll aktivitetin, duke mbajtur kohën dhe ritmin e axhendës.', 'Kalon fjalën mes pjesëve të takimit dhe përgjigjet pyetjeve të pjesëmarrësve.', 'Përgatit një temë ose fokus profesional për takimin (karrierë, industri, aftësi), kur ka mundësi.'] },
+  { number: '02', title: 'Mikpritësi', summary: 'Krijon kushtet për njohje dhe lidhje profesionale mes pjesëmarrësve.', details: ['Përshëndet njerëzit që vijnë.', 'Prezanton pjesëmarrësit e rinj me pjesën tjetër të grupit, duke përmendur fushën e tyre profesionale.', 'Kujdeset që askush të mos mbetet vetëm, duke nxitur biseda dhe lidhje të reja.', 'Fton pjesëmarrësit të ndajnë shkurtimisht me çfarë merren, për të lehtësuar njohjet.'] },
+  { number: '03', title: 'Përgjegjësja e vendit dhe logjistikës', summary: 'Siguron që hapësira dhe gjërat e nevojshme janë gati.', details: ['Rezervon ose organizon një vend të përshtatshëm për një takim profesional.', 'Kujdeset për ulëset, pajisjet dhe çdo material të nevojshëm (p.sh. ekran për prezantime).', 'Zgjidh çështjet logjistike që dalin në çast.', 'Mendon për detaje që lehtësojnë bisedat profesionale, si një hapësirë e qetë për biseda individuale.'] },
 ];
 
-const advancedAreas = [
-  {
-    title: 'Zhvillimi i komunitetit',
-    purpose: 'Krijon më shumë mënyra për t’u përfshirë.',
-    responsibilities: [
-      { title: 'Programi', text: 'Planifikon kalendarin, formatet dhe temat sipas interesit të komunitetit.' },
-      { title: 'Grupet tematike', text: 'Mbështet drejtuesit e grupeve dhe i lidh aktivitetet e tyre me qytetin.' },
-    ],
-  },
-  {
-    title: 'Lidhjet e qytetit',
-    purpose: 'E bën komunitetin më të dukshëm dhe më të lidhur.',
-    responsibilities: [
-      { title: 'Partneritetet', text: 'Ndërton marrëdhënie me hapësira, organizata dhe komunitete të tjera.' },
-      { title: 'Komunikimi', text: 'Kujdeset për njoftimet, përmbledhjet dhe praninë publike të qytetit.' },
-    ],
-  },
-  {
-    title: 'Vazhdimësia',
-    purpose: 'Siguron që puna të mos varet nga disa persona.',
-    responsibilities: [
-      { title: 'Burimet', text: 'Mban të qarta shpenzimet, mjetet, kontaktet dhe nevojat praktike.' },
-      { title: 'Zhvillimi i ekipit', text: 'Mirëpret organizatorë të rinj, ndan dijen dhe përgatit dorëzimin.' },
-    ],
-  },
+const advancedQuestions = [
+  { question: 'Si e zgjerojmë komunitetin pa humbur lidhjen mes anëtarëve?', answer: 'Mbajeni komunitetin kryesor si pikën e përbashkët, mirëpritni rregullisht pjesëmarrësit e rinj dhe krijoni role të vogla ku njerëzit mund të kontribuojnë pa marrë përsipër shumë punë.' },
+  { question: 'Kur ka kuptim të krijojmë një grup të ri?', answer: 'Kur ka interes të përsëritur, një qëllim të qartë dhe të paktën një anëtar që dëshiron të kujdeset për vazhdimësinë e grupit.' },
+  { question: 'Si funksionojnë disa grupe brenda të njëjtit qytet?', answer: 'Çdo grup mund të ketë ritmin dhe organizatorët e vet, por të gjithë ndajnë kalendarin, njoftimet kryesore dhe lidhjen me komunitetin e qytetit.' },
+  { question: 'Si i bëjmë eventet të qëndrueshme?', answer: 'Përdorni formate që mund të përsëriten, planifikoni paraprakisht, ndani një listë të thjeshtë detyrash dhe ndryshoni personin përgjegjës nga një event te tjetri.' },
+  { question: 'Si e zgjerojmë ekipin organizator?', answer: 'Ftoni fillimisht njerëzit të marrin përsipër një aktivitet ose detyrë konkrete. Me kohë, ata mund të marrin një përgjegjësi të vazhdueshme dhe të ndajnë dijen me organizatorët e rinj.' },
+  { question: 'Si gjejmë hapësira dhe burime për aktivitetet?', answer: 'Krijoni marrëdhënie me hapësira lokale dhe partnerë që ndajnë vlerat e komunitetit. Mbani marrëveshjet, shpenzimet dhe kontributet të qarta për të gjithë ekipin.' },
 ];
 
 const faqs = [
   { question: 'A është kjo strukturë e detyrueshme?', answer: 'Jo. Është një model i rekomanduar që çdo qytet mund ta përshtatë sipas madhësisë, ritmit dhe nevojave të komunitetit.' },
-  { question: 'Sa persona duhen për ekipin lokal?', answer: 'Synoni një ekip prej të paktën katër personash. Një qytet mund të nisë me një ekip më të vogël, por katër ose më shumë organizatorë e bëjnë më të lehtë ndarjen e përgjegjësive dhe vazhdimësinë.' },
+  { question: 'Sa persona duhen për ekipin lokal?', answer: 'Minimumi tre koordinatorë, që ndajnë vazhdimësinë e qytetit, komunitetin dhe komunikimin. Më shumë veta e lehtësojnë ndarjen e punës, por tre mjaftojnë për të filluar — rolet e çdo aktiviteti konkret ndahen veçmas, mes kujtdo që merr pjesë.' },
   { question: 'Sa shpesh duhet të organizohet një takim?', answer: 'Një takim në muaj është një ritëm i dobishëm, por jo një detyrim. Zgjidhni një ritëm që mund ta mbani me vazhdimësi.' },
   { question: 'Kush mund të propozojë një aktivitet?', answer: 'Çdo pjesëmarrës. Ekipi lokal ndihmon me koordinimin, ndërsa personi që sjell idenë mund të krijojë një grup të vogël për ta realizuar.' },
   { question: 'Kur duhet krijuar një grup tematik?', answer: 'Kur ka interes të vazhdueshëm dhe të paktën një person që dëshiron të kujdeset për grupin. Grupi tematik e plotëson takimin e qytetit, nuk e zëvendëson.' },
@@ -68,7 +49,7 @@ const faqs = [
         <header class="guide-heading"><h2 id="overview-title">Tre pjesë që duhen organizuar në çdo qytet.</h2></header>
         <p class="guide-copy">Këto krijojnë strukturën bazë. Secila ka një qëllim të ndryshëm dhe së bashku e bëjnë qytetin të hapur, aktiv dhe të qëndrueshëm.</p>
         <div class="guide-foundations">
-          <article><span>01</span><h3>Ekipi organizator</h3><p>Të paktën katër persona që ndajnë koordinimin, eventet, komunikimin dhe vazhdimësinë e qytetit.</p></article>
+          <article><span>01</span><h3>Ekipi organizator</h3><p>Minimumi tre koordinatorë kujdesen për vazhdimësinë, komunitetin dhe komunikimin e qytetit; çdo aktivitet ndahet më tej në tre role të përkohshme.</p></article>
           <article><span>02</span><h3>Komuniteti kryesor</h3><p>Hapësira e përbashkët për të gjithë pjesëmarrësit, me komunikim të qartë dhe evente të hapura periodike.</p></article>
           <article><span>03</span><h3>Grupet tematike</h3><p>Grupe që krijohen rreth interesave konkrete dhe drejtohen nga anëtarë që duan të marrin përgjegjësi.</p></article>
         </div>
@@ -81,19 +62,16 @@ const faqs = [
 
     <section class="guide-section guide-team" aria-labelledby="team-title">
       <div class="guide-container">
-        <header class="guide-heading"><h2 id="team-title">Tri përgjegjësi</h2></header>
-        <p class="guide-copy">Një ekip organizator funksionon më mirë me të paktën katër persona. Kështu përgjegjësitë ndahen, secili mund të fokusohet në rolin e vet dhe qyteti nuk varet nga një person i vetëm.</p>
+        <header class="guide-heading"><h2 id="team-title">Ekipi i qytetit</h2></header>
+        <p class="guide-copy">Çdo qytet ka minimumi tre koordinatorë që kujdesen për vazhdimësinë, komunitetin dhe komunikimin. Çdo aktivitet konkret ndahet më tej në tre role të përkohshme, që mund t’i marrë përsipër kushdo.</p>
+        <h3 class="guide-subhead">Minimumi tre koordinatorë</h3>
         <div class="guide-roles">
           {responsibilities.map(role => <details><summary><span>{role.number}</span><div><h3>{role.title}</h3><p>{role.summary}</p></div><i aria-hidden="true"></i></summary><ul>{role.details.map(detail => <li>{detail}</li>)}</ul></details>)}
         </div>
-      </div>
-    </section>
-
-    <section class="guide-section guide-muted" aria-labelledby="rhythm-title">
-      <div class="guide-container">
-        <header class="guide-heading"><h2 id="rhythm-title">Një takim që njerëzit mund ta njohin.</h2></header>
-        <p class="guide-copy">Një takim social çdo muaj është një synim i mirë. Rëndësi ka vazhdimësia, jo madhësia apo kompleksiteti.</p>
-        <ol class="guide-steps">{eventSteps.map(step => <li><b>{step.number}</b><div><h3>{step.title}</h3><p>{step.text}</p></div></li>)}</ol>
+        <h3 class="guide-subhead">Tre role, për çdo aktivitet</h3>
+        <div class="guide-roles">
+          {activityRoles.map(role => <details><summary><span>{role.number}</span><div><h3>{role.title}</h3><p>{role.summary}</p></div><i aria-hidden="true"></i></summary><ul>{role.details.map(detail => <li>{detail}</li>)}</ul></details>)}
+        </div>
       </div>
     </section>
 
@@ -102,9 +80,18 @@ const faqs = [
         <header class="guide-heading"><h2 id="events-title">Tre formate për komunitetin e qytetit.</h2></header>
         <p class="guide-copy">Qyteti mund t’i alternojë këto formate gjatë vitit, sipas energjisë së ekipit dhe interesit të komunitetit.</p>
         <div class="guide-options">
-          <article><strong>Happy Hour</strong><span>Takim i hapur dhe informal për njohje, biseda dhe lidhje të reja.</span></article>
-          <article><strong>Happy Hour me të ftuar</strong><span>Takim social me një bisedë të shkurtër dhe diskutim me një të ftuar.</span></article>
-          <article><strong>Udhëtim në një qytet tjetër</strong><span>Vizitë te një komunitet tjetër IB për t’u njohur dhe organizuar diçka së bashku.</span></article>
+          <article>
+            <img src="/assets/inst_happyhour.png" alt="Anëtarë të komunitetit gjatë një Happy Hour" loading="lazy" />
+            <div><strong>Happy Hour</strong><span>Takim i hapur dhe informal për njohje, biseda dhe lidhje të reja.</span></div>
+          </article>
+          <article>
+            <img src="/assets/inst_global_serious.png" alt="Komuniteti gjatë një aktiviteti me të ftuar" loading="lazy" />
+            <div><strong>Happy Hour me të ftuar</strong><span>Takim social me një bisedë të shkurtër dhe diskutim me një të ftuar.</span></div>
+          </article>
+          <article>
+            <img src="/assets/cities/Aktivitete%20Octoberfest.jpeg" alt="Anëtarë të Illyrian Brains gjatë një udhëtimi të përbashkët në një qytet tjetër" loading="lazy" />
+            <div><strong>Udhëtim në një qytet tjetër</strong><span>Vizitë te një komunitet tjetër IB për t’u njohur dhe organizuar diçka së bashku.</span></div>
+          </article>
         </div>
       </div>
     </section>
@@ -113,29 +100,16 @@ const faqs = [
       <div class="guide-container"><CityCommunityNetwork /></div>
     </section>
 
-    <section class="guide-section guide-continuity" aria-labelledby="continuity-title">
-      <div class="guide-container">
-        <header class="guide-heading"><h2 id="continuity-title">Mbajeni qytetin të lehtë për t’u drejtuar.</h2></header>
-        <div class="guide-info-grid">
-          <article><h3>Një hapësirë e përbashkët</h3><p>Grupi kryesor përdoret për takime, njoftime dhe mundësi për t’u përfshirë.</p></article>
-          <article><h3>Grupe kur duhen</h3><p>Një grup tematik krijohet kur ka interes dhe një person që kujdeset për të.</p></article>
-          <article><h3>Punë e ndarë</h3><p>Çdo aktivitet mund të ketë organizatorin e vet. Ekipi lokal nuk duhet të bëjë gjithçka.</p></article>
-          <article><h3>Dorëzim i thjeshtë</h3><p>Kontaktet, kalendari dhe informacioni bazë ruhen që puna të vazhdojë lehtë.</p></article>
-        </div>
-      </div>
-    </section>
-
     <section class="guide-section guide-advanced" aria-labelledby="advanced-title">
       <div class="guide-container">
         <header class="guide-heading"><h2 id="advanced-title">Qyteti 401</h2></header>
-        <p class="guide-copy">Kjo strukturë bëhet e dobishme kur qyteti ka një ritëm të qëndrueshëm, disa aktivitete paralelisht dhe më shumë njerëz që duan të kontribuojnë.</p>
-        <div class="guide-advanced-intro"><strong>Shtoni përgjegjësinë kur lind nevoja.</strong><span>Një person mund të mbulojë disa prej tyre, ose një përgjegjësi mund të ndahet nga një grup i vogël.</span></div>
-        <div class="guide-advanced-areas">
-          {advancedAreas.map(area => (
-            <section class="guide-advanced-area">
-              <header><h3>{area.title}</h3><p>{area.purpose}</p></header>
-              {area.responsibilities.map(item => <article><h4>{item.title}</h4><p>{item.text}</p></article>)}
-            </section>
+        <p class="guide-copy">Pyetje për fazën kur komuniteti po rritet, po krijon grupe të reja dhe po kërkon një mënyrë të qëndrueshme për të organizuar aktivitete.</p>
+        <div class="guide-advanced-list">
+          {advancedQuestions.map(item => (
+            <details>
+              <summary>{item.question}<i aria-hidden="true"></i></summary>
+              <p>{item.answer}</p>
+            </details>
           ))}
         </div>
       </div>
@@ -153,24 +127,38 @@ const faqs = [
 
 <style>
   .guide-container{width:min(100% - 40px,1060px);margin-inline:auto}.guide-hero{padding:88px 0 74px;color:#fff;background:var(--night)}.guide-hero h1{margin:14px 0 20px;font-size:clamp(56px,9vw,94px);font-weight:300;line-height:1;letter-spacing:-.055em}.guide-hero>div>p:last-child{max-width:680px;margin:0;color:#ffffffb0;font-size:20px;line-height:1.65}.guide-section{padding:88px 0;background:#fff}.guide-section+.guide-section{border-top:1px solid var(--line)}.guide-muted,.guide-faq{background:#efeee9}.guide-heading h2{max-width:760px;margin:0;font-size:clamp(34px,4.5vw,52px);font-weight:400;line-height:1.08;letter-spacing:-.04em}.guide-copy{max-width:760px;margin:28px 0 0;color:var(--muted);font-size:17px;line-height:1.75}.guide-foundations{display:grid;grid-template-columns:repeat(3,1fr);margin-top:42px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.guide-foundations article{padding:28px 26px}.guide-foundations article+article{border-left:1px solid var(--line)}.guide-foundations span{color:var(--accent-dark);font-size:13px;font-weight:700}.guide-foundations h3{margin:34px 0 12px;font-size:22px}.guide-foundations p{margin:0;color:var(--muted);font-size:15px;line-height:1.65}.guide-photos{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:46px}.guide-photos figure{margin:0}.guide-photos img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.guide-photos figcaption{padding-top:10px;color:var(--muted);font-size:13px}.guide-roles{margin-top:36px;border-top:1px solid var(--line)}.guide-roles details{border-bottom:1px solid var(--line)}.guide-roles summary{display:grid;grid-template-columns:42px 1fr 34px;gap:16px;align-items:center;padding:24px 0;list-style:none;cursor:pointer}.guide-roles summary::-webkit-details-marker,.guide-faq-list summary::-webkit-details-marker{display:none}.guide-roles summary>span{color:var(--accent-dark);font-size:13px;font-weight:700}.guide-roles h3{margin:0 0 4px;font-size:22px}.guide-roles summary p{margin:0;color:var(--muted);font-size:15px;line-height:1.55}.guide-roles summary i,.guide-faq-list summary i{position:relative;width:30px;height:30px;border:1px solid var(--line);border-radius:50%}.guide-roles summary i::before,.guide-roles summary i::after,.guide-faq-list summary i::before,.guide-faq-list summary i::after{position:absolute;top:50%;left:50%;width:10px;height:1px;background:var(--ink);content:'';transform:translate(-50%,-50%)}.guide-roles summary i::after,.guide-faq-list summary i::after{transform:translate(-50%,-50%) rotate(90deg)}.guide-roles details[open] summary i::after,.guide-faq-list details[open] summary i::after{transform:translate(-50%,-50%)}.guide-roles ul{margin:0;padding:0 0 24px 58px;list-style:none}.guide-roles li{position:relative;padding:6px 0 6px 20px;color:#4c4e53;font-size:15px;line-height:1.6}.guide-roles li::before{position:absolute;left:0;color:var(--accent-dark);content:'—'}.guide-steps{display:grid;grid-template-columns:repeat(4,1fr);margin:40px 0 0;padding:0;border-top:1px solid #c9c8c2;border-bottom:1px solid #c9c8c2;list-style:none}.guide-steps li{padding:26px 22px}.guide-steps li+li{border-left:1px solid #c9c8c2}.guide-steps b{display:grid;width:30px;height:30px;border-radius:50%;color:#fff;background:var(--accent-dark);place-items:center}.guide-steps h3{margin:22px 0 7px;font-size:18px}.guide-steps p{margin:0;color:var(--muted);font-size:14px;line-height:1.55}.guide-events{background:#f8f7f4}.guide-options{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:36px}.guide-options article{padding-left:16px;border-left:2px solid #a5baa9}.guide-options strong,.guide-options span{display:block}.guide-options strong{margin-bottom:7px;font-size:15px}.guide-options span{color:var(--muted);font-size:14px;line-height:1.55}.guide-network{color:#fff;background:#20242a}.guide-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:42px;border-top:1px solid var(--line);border-left:1px solid var(--line)}.guide-info-grid article{padding:28px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.guide-info-grid h3{margin:0 0 10px;font-size:19px}.guide-info-grid p{margin:0;color:var(--muted);font-size:15px;line-height:1.65}.guide-advanced{background:#f8f7f4}.guide-advanced-intro{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;margin-top:42px;padding:22px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.guide-advanced-intro strong{font-size:16px}.guide-advanced-intro span{max-width:650px;color:var(--muted);font-size:15px;line-height:1.65}.guide-advanced-areas{display:grid;grid-template-columns:repeat(3,1fr);margin-top:36px;border-top:1px solid var(--line);border-left:1px solid var(--line)}.guide-advanced-area{display:flex;flex-direction:column;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.guide-advanced-area>header{min-height:150px;padding:26px;background:#efeee9}.guide-advanced-area>header h3{margin:0 0 10px;font-size:21px}.guide-advanced-area>header p,.guide-advanced-area article p{margin:0;color:var(--muted);font-size:14px;line-height:1.65}.guide-advanced-area article{flex:1;padding:24px 26px;background:#fff}.guide-advanced-area article+article{border-top:1px solid var(--line)}.guide-advanced-area h4{margin:0 0 9px;font-size:17px}.guide-faq-list{margin-top:42px;border-top:1px solid #c9c8c2}.guide-faq-list details{border-bottom:1px solid #c9c8c2}.guide-faq-list summary{display:grid;grid-template-columns:1fr 30px;gap:20px;align-items:center;padding:22px 0;font-size:18px;font-weight:600;list-style:none;cursor:pointer}.guide-faq-list details>p{max-width:760px;margin:0;padding:0 50px 24px 0;color:var(--muted);font-size:16px;line-height:1.7}@media(max-width:760px){.guide-container{width:min(100% - 28px,1060px)}.guide-hero{padding:64px 0 54px}.guide-section{padding:64px 0}.guide-foundations{grid-template-columns:1fr}.guide-foundations article+article{border-top:1px solid var(--line);border-left:0}.guide-photos,.guide-info-grid,.guide-steps,.guide-options,.guide-advanced-areas{grid-template-columns:1fr}.guide-advanced-intro{grid-template-columns:1fr;gap:8px}.guide-advanced-area>header{min-height:0}.guide-steps li+li{border-top:1px solid #c9c8c2;border-left:0}.guide-options{gap:18px}.guide-roles summary{grid-template-columns:32px 1fr 30px;gap:10px}.guide-roles ul{padding-left:42px}.guide-faq-list summary{font-size:16px}}
-  /* Section rhythm: each chapter has a distinct, restrained tone and a shared transition line. */
-  .guide-section{--section-accent:#b8aaa2;position:relative;border-top:0;background-color:#fff;box-shadow:inset 0 4px var(--section-accent)}
-  .guide-section+.guide-section{border-top:0}
-  .guide-overview{--section-accent:#bd9568;background:#f5f1eb}
-  .guide-team{--section-accent:#744761;background:#fff}
-  .guide-muted{--section-accent:#6f927c;background:#edf3ef}
-  .guide-events{--section-accent:#a1748c;background:#f5eef2}
-  .guide-network{--section-accent:#d0b58f;background:#20242a}
-  .guide-continuity{--section-accent:#9b7a56;background:#fffaf4}
-  .guide-advanced{--section-accent:#5f806d;background:#edf2ef}
-  .guide-faq{--section-accent:#87737d;background:#f1edef}
-  .guide-overview .guide-foundations article,.guide-muted .guide-steps li{background:rgba(255,255,255,.48)}
-  .guide-events .guide-options article{padding:22px;border:1px solid rgba(116,71,97,.16);border-top:3px solid #a1748c;background:rgba(255,255,255,.62)}
-  .guide-continuity .guide-info-grid article{background:rgba(255,255,255,.58)}
-  .guide-advanced-intro{border-color:#c8d2cc}
-  .guide-advanced-areas{border-color:#c8d2cc}
-  .guide-advanced-area{border-color:#c8d2cc}
-  .guide-advanced-area>header{background:#dfe8e2}
-  .guide-advanced-area article{background:rgba(255,255,255,.72)}
-  @media(max-width:760px){.guide-section{box-shadow:inset 0 3px var(--section-accent)}}
+  .guide-section{background:var(--paper)}
+  .guide-section+.guide-section{border-top:1px solid var(--line)}
+  .guide-overview,.guide-events,.guide-faq{background:var(--soft)}
+  .guide-team,.guide-advanced{background:var(--paper)}
+  .guide-subhead{margin:48px 0 0;font-size:20px;font-weight:600}
+  .guide-subhead+.guide-roles{margin-top:20px}
+  .guide-network{background:var(--night)}
+  .guide-overview .guide-foundations article{background:var(--paper)}
+  .guide-events .guide-options article{padding:22px;border:1px solid var(--line);border-top:3px solid var(--accent);background:var(--paper)}
+  .guide-events .guide-options article{overflow:hidden;padding:0;border-top:1px solid var(--line)}
+  .guide-options img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+  .guide-options article>div{padding:22px}
+  .guide-options strong{margin-bottom:10px;font-size:19px;line-height:1.25}
+  .guide-options span{font-size:15px;line-height:1.65}
+  .guide-advanced-intro,.guide-advanced-areas,.guide-advanced-area{border-color:var(--line)}
+  .guide-advanced-area>header{background:var(--soft)}
+  .guide-advanced-area article{background:var(--paper)}
+  .guide-advanced-list{margin-top:36px;border-top:1px solid var(--line)}
+  .guide-advanced-list details{border-bottom:1px solid var(--line)}
+  .guide-advanced-list summary{display:grid;grid-template-columns:1fr 30px;gap:20px;align-items:center;padding:22px 0;list-style:none;cursor:pointer}
+  .guide-advanced-list summary{font-size:18px;font-weight:600}
+  .guide-advanced-list summary::-webkit-details-marker{display:none}
+  .guide-advanced-list summary h3{margin:0 0 5px;font-size:19px}
+  .guide-advanced-list summary p{margin:0;color:var(--muted);font-size:14px;line-height:1.55}
+  .guide-advanced-list summary i{position:relative;width:30px;height:30px;border:1px solid var(--line);border-radius:50%}
+  .guide-advanced-list summary i::before,.guide-advanced-list summary i::after{position:absolute;top:50%;left:50%;width:10px;height:1px;background:var(--ink);content:'';transform:translate(-50%,-50%)}
+  .guide-advanced-list summary i::after{transform:translate(-50%,-50%) rotate(90deg)}
+  .guide-advanced-list details[open] summary i::after{transform:translate(-50%,-50%)}
+  .guide-advanced-list details>p{max-width:760px;margin:0;padding:0 50px 24px 0;color:var(--muted);font-size:16px;line-height:1.7}
+  .guide-advanced-panel{display:grid;grid-template-columns:1fr 1fr;gap:28px;padding:0 50px 26px 0}
+  .guide-advanced-panel article{padding-left:16px;border-left:2px solid var(--accent)}
+  .guide-advanced-panel h4{margin:0 0 8px;font-size:16px}
+  .guide-advanced-panel p{margin:0;color:var(--muted);font-size:14px;line-height:1.65}
+  @media(max-width:760px){.guide-advanced-panel{grid-template-columns:1fr;padding-right:0}.guide-advanced-list summary{gap:12px}}
 </style>
