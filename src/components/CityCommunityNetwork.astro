@@ -1,0 +1,116 @@
+<section class="city-network" aria-labelledby="city-network-title">
+  <header class="city-network-heading">
+    <div>
+      <h2 id="city-network-title">Si lidhet qyteti me rrjetin.</h2>
+    </div>
+    <p>Qyteti ka strukturën e vet lokale. Brenda Rrjetit IB, ekipet lidhin qytetet, grupet profesionale, projektet dhe infrastrukturën e përbashkët.</p>
+  </header>
+
+  <div class="city-network-toolbar">
+    <div class="city-network-legend" aria-label="Legjenda e rrjetit">
+      <span><i class="core"></i>Qyteti</span>
+      <span><i class="support"></i>Ekipi i qytetit</span>
+      <span><i class="participation"></i>Komuniteti kryesor</span>
+      <span><i class="connection"></i>Grupet tematike</span>
+      <span><i class="network"></i>Rrjeti IB</span>
+      <span><i class="network-team"></i>Ekipet e rrjetit</span>
+      <span><i class="ecosystem"></i>Mundësi në rrjet</span>
+    </div>
+    <button id="city-network-reset" type="button">Shfaq të gjithë rrjetin</button>
+  </div>
+
+  <div id="city-community-network" role="img" aria-label="Skemë interaktive ku Qyteti lidhet me Rrjetin IB; brenda rrjetit, ekipet lidhin qytetet e tjera, grupet profesionale, projektet dhe infrastrukturën e përbashkët"></div>
+  <p class="city-network-note" id="city-network-note" aria-live="polite">Zgjidh një pjesë për të lexuar rolin e saj.</p>
+
+  <div class="city-network-fallback">
+    <article><strong>Ekipi organizator</strong><span>koordinon qytetin, eventet dhe komunikimin.</span></article>
+    <article><strong>Komuniteti kryesor</strong><span>është hapësira e përbashkët për të gjithë pjesëmarrësit.</span></article>
+    <article><strong>Grupet tematike</strong><span>mund të jenë disa dhe zhvillojnë aktivitete rreth interesave të ndryshme.</span></article>
+    <article><strong>Ekipet e rrjetit</strong><span>bashkërendojnë dhe lidhin strukturat e ndryshme brenda Rrjetit IB.</span></article>
+    <article><strong>Qytete të tjera</strong><span>shkëmbejnë përvojë, vizita dhe aktivitete me komunitetin lokal.</span></article>
+    <article><strong>Grupe profesionale</strong><span>bashkojnë anëtarë nga qytete të ndryshme rreth një fushe.</span></article>
+    <article><strong>Projekte</strong><span>u japin anëtarëve mundësi të bashkëpunojnë në nisma konkrete.</span></article>
+    <article><strong>Infrastruktura</strong><span>ofron mjetet, platformat dhe burimet e përbashkëta që mbështesin qytetet.</span></article>
+  </div>
+</section>
+
+<script>
+  import cytoscape from 'cytoscape';
+
+  const container = document.querySelector<HTMLElement>('#city-community-network');
+  const reset = document.querySelector<HTMLButtonElement>('#city-network-reset');
+  const note = document.querySelector<HTMLElement>('#city-network-note');
+
+  if (container) {
+    const elements = [
+      { data: { id: 'city', label: 'Qyteti', type: 'container', note: 'Qyteti përmban ekipin organizator, komunitetin kryesor dhe grupet tematike.' } },
+      { data: { id: 'team', parent: 'city', label: 'Ekipi organizator', type: 'support', note: 'Ekipi koordinon qytetin, eventet, komunikimin dhe vazhdimësinë.' }, position: { x: 220, y: 180 } },
+      { data: { id: 'main', parent: 'city', label: 'Komuniteti kryesor', type: 'participation', note: 'Komuniteti kryesor është hapësira ku mblidhen të gjithë pjesëmarrësit e qytetit.' }, position: { x: 500, y: 180 } },
+      { data: { id: 'books', parent: 'city', label: 'Grup libri', type: 'group', note: 'Një shembull grupi tematik: diskutime dhe takime rreth librave.' }, position: { x: 210, y: 390 } },
+      { data: { id: 'sports', parent: 'city', label: 'Grup sporti', type: 'group', note: 'Një shembull grupi tematik: aktivitete sportive të organizuara nga anëtarët.' }, position: { x: 370, y: 390 } },
+      { data: { id: 'career', parent: 'city', label: 'Grup karriere', type: 'group', note: 'Një shembull grupi tematik: shkëmbim përvoje dhe mbështetje profesionale.' }, position: { x: 530, y: 390 } },
+      { data: { id: 'network', label: 'Rrjeti IB', type: 'network-container', note: 'Rrjeti IB përmban ekipet që lidhin qytetet, grupet profesionale, projektet dhe infrastrukturën e përbashkët.' } },
+      { data: { id: 'cities', parent: 'network', label: 'Qytete të tjera', type: 'ecosystem', note: 'Qytetet e tjera sjellin shkëmbim përvoje, vizita dhe aktivitete të përbashkëta.' }, position: { x: 900, y: 160 } },
+      { data: { id: 'professional', parent: 'network', label: 'Grupe profesionale', type: 'ecosystem', note: 'Grupet profesionale lidhin anëtarë nga qytete të ndryshme rreth profesionit ose fushës së tyre.' }, position: { x: 1100, y: 160 } },
+      { data: { id: 'projects', parent: 'network', label: 'Projekte', type: 'ecosystem', note: 'Projektet krijojnë hapësirë për bashkëpunim konkret mes anëtarëve të rrjetit.' }, position: { x: 900, y: 370 } },
+      { data: { id: 'infrastructure', parent: 'network', label: 'Infrastruktura', type: 'ecosystem', note: 'Infrastruktura përfshin mjetet, platformat dhe burimet e përbashkëta që ndihmojnë qytetet të funksionojnë.' }, position: { x: 1100, y: 370 } },
+      { data: { id: 'network-teams', parent: 'network', label: 'Ekipet e rrjetit', type: 'network-team', note: 'Ekipet e rrjetit bashkërendojnë punën dhe lidhin të gjitha strukturat brenda Rrjetit IB.' }, position: { x: 1000, y: 265 } },
+      { data: { id: 'team-main', source: 'team', target: 'main' } },
+      { data: { id: 'main-books', source: 'main', target: 'books' } },
+      { data: { id: 'main-sports', source: 'main', target: 'sports' } },
+      { data: { id: 'main-career', source: 'main', target: 'career' } },
+      { data: { id: 'city-network', source: 'city', target: 'network' } },
+      { data: { id: 'teams-cities', source: 'network-teams', target: 'cities' } },
+      { data: { id: 'teams-professional', source: 'network-teams', target: 'professional' } },
+      { data: { id: 'teams-projects', source: 'network-teams', target: 'projects' } },
+      { data: { id: 'teams-infrastructure', source: 'network-teams', target: 'infrastructure' } },
+    ];
+
+    const graph = cytoscape({
+      container,
+      elements,
+      layout: { name: 'preset', fit: true, padding: 58 },
+      style: [
+        { selector: 'node', style: { label: 'data(label)', 'font-family': 'Inter, sans-serif', 'font-size': 13, 'font-weight': 650, 'text-wrap': 'wrap', 'text-max-width': 100, color: '#f8f6f1', 'text-valign': 'center', 'text-halign': 'center', width: 104, height: 76, shape: 'round-rectangle', 'background-color': '#58665f', 'border-width': 2, 'border-color': '#ffffff3d' } },
+        { selector: 'node[type="container"]', style: { 'text-valign': 'top', 'text-halign': 'left', 'text-margin-x': 18, 'text-margin-y': 18, 'font-size': 20, 'background-color': '#a9c9b41f', 'background-opacity': .35, color: '#dcebe1', 'border-width': 2, 'border-color': '#a9c9b4', padding: 46, shape: 'round-rectangle' } },
+        { selector: 'node[type="support"]', style: { 'background-color': '#355246' } },
+        { selector: 'node[type="participation"]', style: { 'background-color': '#76566a' } },
+        { selector: 'node[type="group"]', style: { width: 116, height: 58, 'background-color': '#40576a', 'font-size': 11 } },
+        { selector: 'node[type="network-container"]', style: { 'text-valign': 'top', 'text-halign': 'left', 'text-margin-x': 18, 'text-margin-y': 18, 'font-size': 20, 'background-color': '#95754d1f', 'background-opacity': .35, color: '#f0dfc9', 'border-width': 2, 'border-color': '#95754d', padding: 46, shape: 'round-rectangle' } },
+        { selector: 'node[type="ecosystem"]', style: { width: 126, height: 64, 'background-color': '#795f3f', 'font-size': 11 } },
+        { selector: 'node[type="network-team"]', style: { width: 128, height: 72, 'background-color': '#b18755', 'border-color': '#f0dfc9' } },
+        { selector: 'edge', style: { width: 2, 'line-color': '#aeb7b1', opacity: .52, 'curve-style': 'bezier' } },
+        { selector: 'edge[id="city-network"]', style: { width: 4, 'line-color': '#d7c6ad', opacity: .9, 'line-style': 'dashed' } },
+        { selector: '.faded', style: { opacity: .12 } },
+        { selector: '.focused', style: { 'border-width': 5, 'border-color': '#fff', 'z-index': 10 } },
+      ],
+      minZoom: .65,
+      maxZoom: 1.8,
+      wheelSensitivity: .2,
+      boxSelectionEnabled: false,
+    });
+
+    const showAll = () => {
+      graph.elements().removeClass('faded focused');
+      graph.fit(graph.elements(), 58);
+      if (note) note.textContent = 'Zgjidh një pjesë për të lexuar rolin e saj.';
+    };
+    graph.on('tap', 'node', event => {
+      const node = event.target;
+      graph.elements().addClass('faded');
+      let related = node.closedNeighborhood().union(node.descendants()).union(node.ancestors());
+      node.neighborhood('node').forEach(neighbor => { related = related.union(neighbor.descendants()); });
+      related.removeClass('faded');
+      node.addClass('focused');
+      if (note) note.textContent = node.data('note');
+    });
+    graph.on('tap', event => { if (event.target === graph) showAll(); });
+    reset?.addEventListener('click', showAll);
+    new ResizeObserver(() => { graph.resize(); graph.fit(graph.elements(), 58); }).observe(container);
+    graph.ready(() => requestAnimationFrame(showAll));
+  }
+</script>
+
+<style>
+  .city-network{padding:12px 0 0;color:#fff}.city-network-heading{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.65fr);gap:70px;align-items:end}.city-network-heading h2{max-width:720px;margin:0;font-size:clamp(34px,4.5vw,52px);font-weight:400;line-height:1.08;letter-spacing:-.04em}.city-network-heading>p{margin:0;color:#ffffffa3;font-size:16px;line-height:1.7}.city-network-toolbar{display:flex;justify-content:space-between;gap:24px;align-items:center;margin:42px 0 14px}.city-network-legend{display:flex;flex-wrap:wrap;gap:18px}.city-network-legend span{display:flex;align-items:center;gap:8px;color:#ffffffa3;font-size:12px}.city-network-legend i{display:block;width:12px;height:12px;border-radius:50%;background:#a9c9b4}.city-network-legend .support{background:#527a69}.city-network-legend .participation{background:#9a718a}.city-network-legend .connection{border-radius:2px;background:#66849b}.city-network-legend .network{border:2px solid #95754d;border-radius:2px;background:transparent}.city-network-legend .network-team{background:#b18755}.city-network-legend .ecosystem{border-radius:2px;background:#95754d}.city-network-toolbar button{padding:9px 13px;border:1px solid #ffffff36;color:#fff;background:transparent;font:600 12px var(--font-body);cursor:pointer}.city-network-toolbar button:hover,.city-network-toolbar button:focus-visible{border-color:#fff;background:#ffffff12}#city-community-network{height:min(68vh,600px);min-height:480px;touch-action:none;border:1px solid #ffffff20;background:#292e34}.city-network-note{min-height:23px;margin:14px 0 0;color:#c8d5cd;font-size:14px}.city-network-fallback{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:42px;background:#ffffff20}.city-network-fallback article{display:grid;gap:10px;padding:22px;background:#292e34}.city-network-fallback strong{font-size:15px}.city-network-fallback span{color:#ffffff91;font-size:14px;line-height:1.6}@media(max-width:800px){.city-network-heading{grid-template-columns:1fr;gap:24px}.city-network-toolbar{align-items:flex-start;flex-direction:column;margin-top:34px}#city-community-network{height:62vh;min-height:440px}.city-network-fallback{grid-template-columns:1fr 1fr}}@media(max-width:520px){.city-network-fallback{grid-template-columns:1fr}#city-community-network{min-height:410px}}
+</style>
