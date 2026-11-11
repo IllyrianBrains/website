@@ -4,7 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import SectionTitle from '../components/SectionTitle.astro';
 import NetworkDirectoryHero from '../components/NetworkDirectoryHero.astro';
-import { fundingTiers, donationItems } from '../data/donations';
+import { fundingTiers, donationItems, ledger } from '../data/donations';
 import { mailto, emailTemplates } from '../data/emails';
 import { supporters } from '../data/supporters';
 
@@ -21,6 +21,17 @@ const donationOptions = [
   { id: 'cdo-muaj', group: 'Mbështetësit e Rrjetit', title: 'Çdo muaj', text: 'Një transfertë e rregullt, edhe e vogël, na ndihmon të planifikojmë vitin dhe të mbështesim më shumë qytete.', action: 'Dhuro çdo muaj', href: mailto(emailTemplates.donationMonthly), disabled: true, benefits: ['Raporti i shpenzimeve në fund të vitit, direkt në email.', 'Buletin informativ çdo 6 muaj me lajmet e rrjetit: qytetet e reja, eventet dhe nismat që mbështet, si po ecin projektet si Atlas dhe Mentorimi, dhe çfarë kemi në plan për muajt në vijim.', 'Ftesë për takimet dhe eventet e rrjetit, në qytetin tënd dhe online.', 'Emri yt në listën e Mbështetësve të Rrjetit në raportin vjetor, nëse dëshiron.'] },
 ];
 const annualReportHref = 'https://forum.illyrianbrains.org/tag/raport-vjetor';
+// From the public ledger (donations.csv): sum of received donations, excluding expenses.
+const totalCollected = ledger.filter(entry => entry.direction === 'hyrje').reduce((sum, entry) => sum + entry.amount, 0);
+// Zero budget, visible on purpose — the growth so far came from volunteers, not money.
+// `trend` is a flat line at 0 (true today for all four — this card format is built to
+// later plot the real ledger history as it grows past zero). `delta` compares to last month.
+const zeroFundsStats = [
+  { value: euro(totalCollected), label: 'Paratë e mbledhura deri tani', delta: '+€0 këtë muaj' },
+  { value: euro(0), label: 'Buxheti i marketingut', delta: '+€0 këtë muaj' },
+  { value: euro(0), label: 'Paga mesatare në ekip', delta: '+€0 këtë muaj' },
+  { value: euro(0), label: 'Kapital nga investitorë', delta: '+€0 këtë muaj' },
+];
 
 
 const principles = [
@@ -41,6 +52,20 @@ const principles = [
     <section class="section tone-white" id="transparenca">
       <div class="container">
         <SectionTitle kicker="Transparenca" title="Një rrjet vullnetarësh." text="Deri tani rrjeti është mbajtur nga kontributet e anëtarëve. Nga tetori 2026 mbështetemi te tarifat e anëtarësimit dhe te donacionet." />
+        <ul class="zero-funds-stats" aria-label="Statistikat e financimit">
+          {zeroFundsStats.map(stat => (
+            <li class="zero-tile">
+              <svg class="zero-tile-chart" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                <line class="zero-tile-chart-line" x1="2" y1="14" x2="94" y2="14" />
+                <circle class="zero-tile-chart-dot" cx="94" cy="14" r="3" />
+              </svg>
+              <strong class="zero-tile-value">{stat.value}</strong>
+              <span class="zero-tile-delta">{stat.delta}</span>
+              <span class="zero-tile-label">{stat.label}</span>
+            </li>
+          ))}
+        </ul>
+        <p class="stats-joke">Katër zero perfekte. I gjithë rrjeti është ndërtuar me kohën tonë të lirë, jo me buxhet — ndaj çdo euro që dhuron fillon vërtet nga zero.</p>
         <div class="focus-card">
           <ul>{principles.map(principle => <li>{principle}</li>)}</ul>
         </div>
@@ -150,6 +175,17 @@ const principles = [
   .supporters-empty { margin: 32px 0 0; padding: 24px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); background: #fff; }
   .supporters-empty a { color: var(--accent); font-weight: 700; }
   .construction-notice { margin: 0; padding: 12px 16px; color: var(--ink); background: #fbf3d9; font-size: 14px; font-weight: 600; text-align: center; }
+  .stats-joke { max-width: 640px; margin: 12px 0 28px; color: var(--muted); font-size: 14px; font-style: italic; line-height: 1.6; }
+  /* KPI-card layout (value + delta + sparkline), ready to plot the real ledger history once it's no longer flat. */
+  .zero-funds-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin: 28px 0 0; padding: 0; list-style: none; }
+  .zero-tile { display: flex; flex-direction: column; padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+  .zero-tile-chart { width: 100%; height: 28px; margin-bottom: 14px; overflow: visible; }
+  .zero-tile-chart-line { fill: none; stroke: var(--line); stroke-width: 2; stroke-linecap: round; }
+  .zero-tile-chart-dot { fill: var(--accent); }
+  .zero-tile-value { font-family: var(--font-display); font-size: 28px; font-weight: 500; line-height: 1; color: var(--ink); }
+  .zero-tile-delta { margin-top: 6px; color: var(--muted); font-size: 11px; font-weight: 700; }
+  .zero-tile-label { margin-top: 10px; color: var(--muted); font-size: 12px; line-height: 1.4; text-transform: uppercase; letter-spacing: .06em; }
+  @media (max-width: 600px) { .zero-tile { padding: 16px; } .zero-tile-value { font-size: 24px; } }
   .partner-button.is-disabled { color: var(--muted); background: var(--line); cursor: not-allowed; }
   .partner-button.is-disabled:hover { transform: none; background: var(--line); }
   .partner-button.is-disabled span { font-size: 12px; font-weight: 700; }

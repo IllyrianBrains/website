@@ -23,6 +23,7 @@ const teamProfiles = teams.map(team => ({
   members: directoryMembers.filter(member => member.teams?.some(item => item.slug === team.slug)),
 }));
 const boardMembers = directoryMembers.filter(member => member.teams?.some(team => team.slug === 'bordi'));
+const initialsOf = (name: string) => name.split(/\s+/).map(part => part[0]).slice(0, 2).join('');
 ---
 <BaseLayout title="Prezantimi · Illyrian Brains" description="Prezantimi i Illyrian Brains Network për organizatorët dhe pjesëmarrësit e rinj.">
   <main class="presentation-page">
@@ -88,7 +89,7 @@ const boardMembers = directoryMembers.filter(member => member.teams?.some(team =
       </section>
       <section class="city-members-slide" data-background-color="#263433">
         <p class="slide-number">Ku jemi</p><h2>Qytete të ndryshme.</h2>
-        <div class="city-member-grid">{cityMembers.map(group => <article><div class="city-avatar-stack">{group.members.filter(member => member.avatar).slice(0, 3).map(member => <img src={member.avatar} alt="" />)}</div><div><h3>{group.city}</h3><p>{group.members.length} anëtarë në direktori</p></div></article>)}</div>
+        <div class="city-member-grid">{cityMembers.map(group => <article><div class="city-avatar-stack">{group.members.slice(0, 3).map(member => <span class="city-avatar-initials">{initialsOf(member.name)}</span>)}</div><div><h3>{group.city}</h3><p>{group.members.length} anëtarë në direktori</p></div></article>)}</div>
       </section>
       <section class="organizer-slide" data-background-color="#30272e">
         <div class="organizer-copy"><p class="slide-number">Eventet</p><h2>Takimet e kthejnë rrjetin në komunitet.</h2><div class="organizer-actions"><span>Njohje të reja</span><span>Biseda me vlerë</span><span>Përvoja të përbashkëta</span><span>Lidhje që vazhdojnë</span></div></div>
@@ -110,7 +111,7 @@ const boardMembers = directoryMembers.filter(member => member.teams?.some(team =
       <section class="members-motion-slide" data-background-color="#181a1d">
         <div class="members-motion-heading"><div><p class="slide-number">Anëtarët</p><h2>Anëtarë në lëvizje.</h2></div><p class="members-motion-intro">Profesionistë që njihen, ndihmojnë dhe krijojnë së bashku.</p></div>
         <div class="member-marquees" aria-label="Anëtarë të Illyrian Brains">
-          {[0, 1, 2, 3].map(rowIndex => { const row = presentationMembers.slice(rowIndex * 8, rowIndex * 8 + 8); return <div class:list={["member-marquee", { reverse: rowIndex % 2 === 1 }]}><div class="member-marquee-track">{[...row, ...row].map((member, index) => <article aria-hidden={index >= row.length ? 'true' : undefined}><img src={member.avatar} alt="" /><div><strong>{member.name}</strong><span>{member.city || member.fieldsOfExpertise?.[0] || 'Illyrian Brains'}</span></div></article>)}</div></div> })}
+          {[0, 1, 2, 3].map(rowIndex => { const row = presentationMembers.slice(rowIndex * 8, rowIndex * 8 + 8); return <div class:list={["member-marquee", { reverse: rowIndex % 2 === 1 }]}><div class="member-marquee-track">{[...row, ...row].map((member, index) => <article aria-hidden={index >= row.length ? 'true' : undefined}><span class="member-marquee-initials">{initialsOf(member.name)}</span><div><strong>{member.name}</strong><span>{member.city || member.fieldsOfExpertise?.[0] || 'Illyrian Brains'}</span></div></article>)}</div></div> })}
         </div>
       </section>
       <section class="graph-slide" data-background-color="#181a1d">
@@ -164,7 +165,7 @@ const boardMembers = directoryMembers.filter(member => member.teams?.some(team =
         <p class="slide-number">Shtojcë · Bordi</p><h2>Përgjegjësia për drejtimin e organizatës.</h2>
         {boardMembers.length > 0 ? <div class="board-grid">{boardMembers.map(member => {
           const boardRole = member.teams?.find(team => team.slug === 'bordi')?.role;
-          return <article>{member.avatar ? <img src={member.avatar} alt="" /> : <span class="board-avatar">{member.name.split(/\s+/).map(part => part[0]).slice(0, 2).join('')}</span>}<div><h3>{member.name}</h3><p>{boardRole || 'Anëtar i Bordit'}</p><small>{member.title || member.city || 'Illyrian Brains'}</small></div></article>;
+          return <article><span class="board-avatar">{initialsOf(member.name)}</span><div><h3>{member.name}</h3><p>{boardRole || 'Anëtar i Bordit'}</p><small>{member.title || member.city || 'Illyrian Brains'}</small></div></article>;
         })}</div> : <p class="appendix-empty">Përbërja e Bordit publikohet dhe përditësohet te drejtoria e ekipeve.</p>}
         <a class="appendix-link" href="/ekipet/#bordi">Shiko Bordin e përditësuar</a>
         <aside class="notes">Bordi mban përgjegjësinë për drejtimin dhe vendimmarrjen e organizatës. Lista merret nga drejtoria publike e ekipeve.</aside>

@@ -36,7 +36,7 @@ body:has(.presentation-page) .presentation-page { display: block; min-height: 10
 .member-marquee-track { display: flex; width: max-content; gap: 14px; animation: member-drift 38s linear infinite; }
 .member-marquee.reverse .member-marquee-track { transform: translateX(-50%); animation-name: member-drift-reverse; animation-duration: 44s; }
 .member-marquee article { display: grid; grid-template-columns: 50px 180px; gap: 12px; align-items: center; width: 252px; padding: 7px; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; background: rgba(255,255,255,.065); }
-.member-marquee img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+.member-marquee-initials { display: grid; width: 50px; height: 50px; place-items: center; border-radius: 8px; background: #4a3c45; color: #fff; font-size: 14px; font-weight: 800; }
 .member-marquee strong, .member-marquee span { display: block; }
 .member-marquee strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .member-marquee span { margin-top: 6px; color: rgba(255,255,255,.52); font-size: 11px; }
@@ -46,8 +46,8 @@ body:has(.presentation-page) .presentation-page { display: block; min-height: 10
 .city-member-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 11px; margin-top: 34px; }
 .city-member-grid article { display: flex; min-height: 96px; align-items: center; gap: 14px; padding: 13px; border: 1px solid rgba(255,255,255,.2); border-radius: 12px; background: rgba(255,255,255,.07); }
 .city-avatar-stack { display: flex; min-width: 83px; }
-.city-avatar-stack img { width: 42px; height: 42px; margin-left: -20px; border: 3px solid #263433; border-radius: 50%; object-fit: cover; background: #202b2a; }
-.city-avatar-stack img:first-child { margin-left: 0; }
+.city-avatar-initials { display: grid; width: 42px; height: 42px; margin-left: -20px; place-items: center; border: 3px solid #263433; border-radius: 50%; background: #202b2a; color: #fff; font-size: 12px; font-weight: 800; }
+.city-avatar-initials:first-child { margin-left: 0; }
 .city-member-grid h3 { font-size: 18px; }
 .city-member-grid p { margin-top: 5px; color: rgba(255,255,255,.62); font-size: 11px; }
 .teams-slide h2 { max-width: 1080px; font-size: 65px; }
@@ -158,7 +158,7 @@ body:has(.presentation-page) .presentation-page { display: block; min-height: 10
 .appendix-title h2 { max-width: 1100px; font-size: 104px; }
 .board-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 36px; }
 .board-grid article { display: grid; grid-template-columns: 66px 1fr; gap: 14px; align-items: center; min-height: 105px; padding: 15px; border: 1px solid rgba(255,255,255,.2); border-radius: 11px; background: rgba(255,255,255,.06); }
-.board-grid img, .board-avatar { display: grid; width: 66px; height: 66px; place-items: center; border-radius: 9px; background: #4a3c45; color: #fff; object-fit: cover; font-size: 15px; font-weight: 800; }
+.board-avatar { display: grid; width: 66px; height: 66px; place-items: center; border-radius: 9px; background: #4a3c45; color: #fff; font-size: 15px; font-weight: 800; }
 .board-grid h3 { font-size: 18px; }.board-grid p { margin-top: 5px; color: #d2c4cc; font-size: 11px; font-weight: 800; text-transform: uppercase; }.board-grid small { display: block; margin-top: 4px; color: rgba(255,255,255,.55); font-size: 10px; }
 .board-slide .appendix-link, .appendix-mission-slide .appendix-link { display: inline-block; margin-top: 28px; }.appendix-empty { margin-top: 45px; color: rgba(255,255,255,.7); font-size: 18px; }
 .appendix-notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 42px; }.appendix-notes-grid article { padding: 20px; border: 1px solid rgba(255,255,255,.2); border-radius: 10px; background: rgba(255,255,255,.055); }.appendix-notes-grid h3 { font-size: 19px; }.appendix-notes-grid p { margin-top: 9px; color: rgba(255,255,255,.68); font-size: 13px; }
@@ -257,11 +257,11 @@ body:has(.presentation-page) .presentation-page { display: block; min-height: 10
   .members-motion-intro { margin-top: 12px; font-size: 13px; }
   .member-marquees { margin-top: 20px; }
   .member-marquee article { grid-template-columns: 42px 130px; width: 190px; }
-  .member-marquee img { width: 42px; height: 42px; }
+  .member-marquee-initials { width: 42px; height: 42px; font-size: 12px; }
 
   .city-member-grid { grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 22px; }
   .city-member-grid article { display: block; min-height: 94px; padding: 9px; }
-  .city-avatar-stack img { width: 31px; height: 31px; margin-left: -15px; }
+  .city-avatar-initials { width: 31px; height: 31px; margin-left: -15px; font-size: 10px; }
   .city-member-grid h3 { margin-top: 8px; font-size: 14px; }
   .city-member-grid p { font-size: 9px; }
 
@@ -339,7 +339,7 @@ body:has(.presentation-page) .presentation-page { display: block; min-height: 10
   .appendix-title h2 { font-size: 49px; }
   .board-grid { grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 22px; }
   .board-grid article { grid-template-columns: 40px 1fr; gap: 9px; min-height: 72px; padding: 9px; }
-  .board-grid img, .board-avatar { width: 40px; height: 40px; font-size: 10px; }
+  .board-avatar { width: 40px; height: 40px; font-size: 10px; }
   .board-grid h3 { font-size: 13px; }.board-grid p { font-size: 8px; }.board-grid small { font-size: 8px; }
   .board-slide .appendix-link, .appendix-mission-slide .appendix-link { margin-top: 18px; font-size: 10px; }
   .appendix-notes-grid { gap: 7px; margin-top: 24px; }.appendix-notes-grid article { padding: 12px; }.appendix-notes-grid h3 { font-size: 15px; }.appendix-notes-grid p { margin-top: 6px; font-size: 10px; }
